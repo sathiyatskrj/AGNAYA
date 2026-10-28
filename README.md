@@ -34,7 +34,7 @@ Extracted directly from CSERC tariff filings, CSPTCL engineering documents, and 
 ## 3. Mathematical Modules & Architecture
 
 ```
-C:\Users\Bhumika Baghel\.gemini\antigravity-ide\scratch\AGNAYA\
+.gemini\antigravity-ide\scratch\AGNAYA\
 ├── app.py                      # Interactive Streamlit Dashboard (Dark Theme, 7 Modules)
 ├── api.py                      # FastAPI REST Microservice (v2.0 with all endpoints)
 ├── test_system.py              # 8-Stage Automated Scientific Verification Suite
