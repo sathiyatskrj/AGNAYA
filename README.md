@@ -1,4 +1,4 @@
-# 🌡️⚡🏥 AGNAYA v2.0 (Unified Multi-Model Advanced Edition)
+# 🌡️⚡🏥 AGNAYA
 ### *Adaptive Geospatial Network for heatwave Analytics and Yield Assessment*
 **Stochastic Optimization, Power Flow Derating & Infrastructure Cascades for Raipur, Chhattisgarh**
 
