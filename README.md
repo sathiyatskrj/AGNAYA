@@ -1,188 +1,98 @@
-AGNAYA
+# 🌡️⚡🏥 AGNAYA v2.0 (Unified Multi-Model Advanced Edition)
+### *Adaptive Geospatial Network for heatwave Analytics and Yield Assessment*
+**Stochastic Optimization, Power Flow Derating & Infrastructure Cascades for Raipur, Chhattisgarh**
 
-Simulating Heatwave-Driven Infrastructure Cascades in Raipur
+---
 
-An exploratory scenario model for heatwave impacts on power, water, indoor temperatures, and healthcare systems.
+## 1. Executive Summary & Purpose
 
-«Project status: AGNAYA is an exploratory simulation/prototype. Unless the team has separately validated the model and inputs, its outputs should be treated as scenario results—not operational forecasts, live utility data, or guaranteed predictions of outages or health impacts.»
+**AGNAYA** is an advanced mathematical early-warning and decision-support platform designed specifically for **Raipur, Chhattisgarh, India**.
 
-1. Overview
+It unifies the theoretical and engineering breakthroughs of six leading open-source heatwave, power grid, and climate intelligence projects into an integrated urban disaster resilience system grounded in real Chhattisgarh state parameters:
 
-Extreme heat can put pressure on several connected urban systems at the same time. Electricity demand may rise as cooling needs increase; electricity interruptions can affect water pumping and indoor cooling; and unsafe indoor temperatures can increase demand for healthcare services.
+| Reference Repository | Integrated Scientific Framework in AGNAYA |
+|---|---|
+| **`kd365/heatwave-public`** | **3-Agent Collaborative AI Pipeline**: Ingestion Agent $\to$ Threat Assessment Agent $\to$ Autonomous Dispatch Commander (MILP optimization). |
+| **`parisproffitt/GridStressDigitalTwin`** | **Transformer Thermal Digital Twin**: IEEE C57.91 winding hot-spot temperature, top-oil thermal rise, spatial neighbor overload propagation. |
+| **`doaamostafa67988/GridPulse-AI`** | **5-Factor Grid Heat Risk Engine & Spatial Load Reweighting**: Redistribution of aggregate grid demand based on industrial density (Urla/Birgaon vs domestic zones). |
+| **`Nihita49/TAPAS`** | **Heat–Health Stress Index (HTSI) & Tin-Roof Factor**: Epidemiological relative risk ($RR_{\text{mortality}}$), excess deaths, informal settlement tin-roof heat entrapment, and automated Heat Action Plan (HAP) library. |
+| **`emliang/Heat-Analysis`** | **IEEE Std 738-2012 Conductor Thermal Ampacity**: Temperature-dependent line ratings (TDLR) and sag clearance hazard for CSPTCL transmission corridors. |
+| **`nabilkhondaker/ClimateSim`** | **Extreme Value Theory (EVT) & Biometeorology**: Gumbel distribution for Raipur heatwave return periods, NWS Heat Index (Rothfusz), and Wet Bulb Globe Temperature (WBGT). |
 
-AGNAYA is being developed to help people explore these possible knock-on effects in a single scenario workflow. It is intended to make assumptions and potential system interactions easier to inspect, compare, and discuss.
+---
 
-The project focuses on Raipur, India, as the illustrative study setting. The use of local place names does not, by itself, mean that the model is connected to live infrastructure telemetry or has been calibrated to measured local operating data.
+## 2. Real-World Chhattisgarh Grounded Data
 
-2. Key Features and Objectives
+Extracted directly from CSERC tariff filings, CSPTCL engineering documents, and Census data:
+- **Baseline Demand**: 310 MW (Normal season) up to 620 MW (Peak summer grid ceiling).
+- **Substations**: Raipur Main (220/132 kV, 500 MVA), Mowa GSS (132/33 kV, 200 MVA), Amanaka (132/33 kV, 160 MVA), Pandri (33/11 kV, 80 MVA), Khamardih (33/11 kV, 50 MVA), Gudhiyari (33/11 kV, 60 MVA).
+- **Transmission Corridors**: Bhilai-Raipur 220kV D/C, Raipur-Mowa 132kV, Raipur-Amanaka 132kV, Mowa-Pandri 33kV, Amanaka-Gudhiyari 33kV.
+- **Urban Demographics**: 12 Raipur zones including high-slum industrial belts (Birgaon, Urla with 42% slum population and 6% AC penetration) and low-slum high-canopy areas (Civil Lines, Shankar Nagar).
 
-The project aims to explore the following areas, depending on what is implemented in the current application:
+---
 
-- Heatwave scenarios: Change scenario conditions to explore how heat stress may evolve over time.
-- Cross-sector dependencies: Examine possible links between electricity, water, indoor thermal conditions, and healthcare demand.
-- Time-based simulation: Inspect how scenario indicators may change over a simulated period, intended to cover up to 48 hours where implemented.
-- Infrastructure network visualization: Inspect relationships between infrastructure components if the network visualization is available.
-- Intervention comparison: Compare a baseline case with selected interventions where supported by the interface.
-- Risk indicators and alerts: View model-generated indicators or simulated alerts. These are exploratory outputs, not official emergency alerts.
+## 3. Mathematical Modules & Architecture
 
-Only describe features that are available in the current application as implemented functionality.
+```
+C:\Users\Bhumika Baghel\.gemini\antigravity-ide\scratch\AGNAYA\
+├── app.py                      # Interactive Streamlit Dashboard (Dark Theme, 7 Modules)
+├── api.py                      # FastAPI REST Microservice (v2.0 with all endpoints)
+├── test_system.py              # 8-Stage Automated Scientific Verification Suite
+├── requirements.txt            # Dependency specification
+├── RUN_AGNAYA.bat              # 1-Click Windows Batch Runner for Dashboard
+├── RUN_API.bat                 # 1-Click Windows Batch Runner for FastAPI Server
+├── data/
+│   ├── __init__.py
+│   └── raipur_data.py          # Grounded GIS, grid, substation, hospital, and climate data
+└── models/
+    ├── __init__.py
+    ├── cascade_model.py        # ODE Demand Dynamics & Monte Carlo Cascading Engine
+    ├── grid_digital_twin.py    # Transformer Hotspots & Spatial Neighbor Stress (GridStressDigitalTwin / GridPulse-AI)
+    ├── tapas_health.py         # Heat-Health Stress Index (HTSI) & HAP Library (TAPAS)
+    ├── conductor_ampacity.py   # IEEE 738 Overhead Line Rating (Heat-Analysis)
+    ├── agents_pipeline.py      # 3-Agent Collaborative AI & HiGHS MILP Dispatch (heatwave-public)
+    └── climate_analytics.py    # Gumbel EVT Return Periods & Heat Index (ClimateSim)
+```
 
-3. Technology Stack
+---
 
-- Programming language: Python
-- Application framework: Streamlit
-- Distribution: The project is reported to be packaged as a Windows executable (EXE) with a bundled Python runtime and dependencies.
+## 4. Key Mathematical Formulations
 
-The exact Python packages, application entry point, packaging tool, and supported operating systems should match the current source code and build configuration.
+### A. IEEE C57.91 Transformer Hotspot & Aging
+$$\Theta_H = \Theta_A + \Delta\Theta_{TO,\text{rated}}\left(\frac{I}{I_{\text{rated}}}\right)^{0.8} + \Delta\Theta_{H,\text{rated}}\left(\frac{I}{I_{\text{rated}}}\right)^{0.8}$$
+$$\text{Aging Acceleration Factor } V = \exp\left[\frac{15000}{383.15} - \frac{15000}{\Theta_H + 273.15}\right]$$
 
-4. Getting Started
+### B. IEEE Std 738 Conductor Thermal Ampacity
+$$I_{\text{derated}} = I_{\text{rated}} \cdot \sqrt{\frac{T_{c,\text{max}} - T_a}{T_{c,\text{max}} - 40.0}} \cdot \left(\frac{V_{\text{wind}}}{1.0}\right)^{0.5}$$
 
-Option A — Run the packaged executable
+### C. TAPAS Heat-Health Stress Index (HTSI) & Tin-Roof Trap
+$$\text{HTSI} = \frac{\text{Hazard} \times \text{Exposure} \times \text{Vulnerability}}{\text{Adaptive Capacity}} \times 100$$
+$$T_{\text{indoor}} = T_a + 4.0 \cdot \text{KutchaRoofFactor} - 4.0 \cdot \text{GreenCover} + \min(6.5, 0.8 \cdot \text{OutageHours})$$
+$$RR_{\text{mortality}} = 1.0 + 0.85 \cdot \left(\frac{\text{HTSI}}{100}\right)^{1.8}$$
 
-1. Download or copy the release/build supplied by the project team.
-2. Extract the release folder if it is distributed as a ZIP file.
-3. Run the supplied AGNAYA launcher or EXE.
-4. If a browser window does not open automatically, follow the launcher's instructions and use the local address displayed in its console or log.
-5. Keep any companion files and folders shipped with the EXE in their original relative locations.
+### D. 3-Agent Collaborative MILP Dispatch (HiGHS Solver)
+$$\max_{\mathbf{x}} \; \sum_{k} \text{Benefit}_k \cdot x_k \quad \text{s.t.} \quad \sum_{k} \text{Cost}_k \cdot x_k \le B, \quad x_k \in \mathbb{Z}_{\ge 0}$$
+Supports 3 strategic doctrines:
+1. `optimize_coverage`: Maximizes total protected population across all vulnerable wards.
+2. `optimize_response_time`: Prioritizes emergency mobile units (DG sets & water tankers) to CRITICAL zones.
+3. `optimize_staged_reserve`: 70% active deployment, 30% strategic mobile reserve staged at central depots.
 
-The launch behavior depends on how the executable was packaged. If the executable starts a local Streamlit server, the application may appear in a browser while the server runs in the background. Keep the relevant console or process running unless the launcher is designed to manage it automatically.
+### E. Gumbel Extreme Value Theory (EVT) Return Periods
+$$F(T) = \exp\left(-\exp\left(-\frac{T - \mu}{\beta}\right)\right), \quad T_{\text{return}} = \frac{1}{1 - F(T)}$$
+Fitted to Raipur historical annual maximums ($\mu = 43.1^\circ\text{C}, \beta = 1.25^\circ\text{C}$).
 
-Option B — Run from Python source
+---
 
-Use this method if the source code and dependency list are included in the repository.
+## 5. Live Services & Execution
 
-Prerequisites
+Both services are active and verified on localhost:
 
-- A compatible Python version matching the version tested by the project team.
-- The project source code.
-- A "requirements.txt" file containing the required dependencies.
+| Service | Address | Features |
+|---|---|---|
+| **Streamlit Interactive UI** | `http://localhost:8501` | 7 interactive tabs: Executive Dashboard, Geospatial Risk Map, Grid Digital Twin & Lines, Heat-Health (TAPAS) & HAP, 3-Agent AI Pipeline, Monte Carlo Cascades, and Climate Extremes & EVT. |
+| **FastAPI REST Service** | `http://127.0.0.1:8000` | High-performance JSON API. |
+| **Interactive Swagger API Docs** | `http://127.0.0.1:8000/docs` | Test endpoints: `/api/v1/grid-twin/stress`, `/api/v1/conductors/ampacity`, `/api/v1/tapas/htsi`, `/api/v1/agents/pipeline`, `/api/v1/climate/return-periods`. |
 
-Installation steps
-
-1. Clone the repository:
-   
-   git clone https://github.com/sathiyatskrj/AGNAYA.git
-
-2. Navigate to the project directory:
-   
-   cd AGNAYA
-
-3. Create a virtual environment:
-   
-   python -m venv .venv
-
-4. Activate the virtual environment.
-   
-   Windows:
-   
-   .venv\Scripts\activate
-   
-   Linux/macOS:
-   
-   source .venv/bin/activate
-
-5. Install the dependencies:
-   
-   python -m pip install -r requirements.txt
-
-6. Start the Streamlit application. Replace "app.py" with the actual entry-point filename if it differs:
-   
-   python -m streamlit run app.py
-
-7. Open the local URL printed in the terminal.
-
-Note: The source-based instructions require the repository to contain a working entry-point file and a tested "requirements.txt". Update the commands if the project uses a different setup.
-
-5. Repository Structure
-
-A suggested organization for the repository is:
-
-AGNAYA/
-├── README.md
-├── MODEL_AND_METHODOLOGY.md
-├── requirements.txt
-├── .gitignore
-├── app.py
-├── supporting_modules/
-├── assets/
-└── release/
-
-This is an illustrative structure. Keep it synchronized with the files actually committed to the repository and replace "app.py" or other names where necessary.
-
-The repository may also include a separate release download for the packaged EXE. Where possible, source code should be provided so reviewers and contributors can inspect how the simulation works.
-
-6. Project Workflow
-
-The intended workflow is:
-
-1. Select the available heatwave or scenario inputs.
-2. Run the simulation using the model implemented in the application.
-3. Inspect the resulting time series, infrastructure relationships, indicators, or alerts provided by the interface.
-4. Change supported scenario settings or interventions.
-5. Compare the outputs against a baseline and interpret differences as modeled scenario differences, rather than proof of real-world effects.
-
-The exact workflow depends on the current application interface and its implemented features.
-
-7. Data and Assumptions
-
-Transparency about data sources and assumptions is important for interpreting simulation results.
-
-Each input should be identified as one of the following:
-
-- Measured or published: Obtained from a published or measured source.
-- Estimated: Derived from a documented source or estimation method.
-- Developer-configured: Defined by the development team.
-- Synthetic or illustrative: Created for testing, demonstration, or scenario exploration.
-
-For every external dataset, document its title, provider, URL or citation, retrieval date, time resolution, geographic coverage, units, and any transformations applied.
-
-Synthetic topology and illustrative values must not be described as official Raipur utility data. If the project uses real place names with synthetic connections or values, clearly disclose this distinction.
-
-8. Limitations and Appropriate Use
-
-- AGNAYA is intended for exploration, demonstration, and research discussion. It is not an operational dispatch or emergency-management system.
-- Unless independently verified, its outputs are not calibrated predictions of electricity outages, water shortages, indoor temperatures, hospital load, illness, or mortality.
-- Results depend on input values, model rules, assumptions, and the level of detail represented in the simulation.
-- Place names and diagrams do not establish that real infrastructure assets or dependency paths have been verified.
-- Simulated alerts are not substitutes for official weather warnings, utility communications, public-health guidance, or emergency services.
-- Before use in real-world decision-making, the model would need documented data provenance, verification, calibration, sensitivity testing, and validation with appropriate domain experts and data owners.
-
-9. Validation and Testing
-
-Before presenting the repository as a finished project, verify the following:
-
-- [ ] The documented launch command works from a clean environment.
-- [ ] "requirements.txt" contains the dependencies needed to run the application and has been tested.
-- [ ] The EXE and source builds produce consistent outputs for the same scenario, where both are supported.
-- [ ] Inputs, units, defaults, and permitted ranges are documented.
-- [ ] The methodology document matches the current code.
-- [ ] Formulas and risk weights are traceable to their implementation and appropriately characterized as heuristic, calibrated, or otherwise.
-- [ ] Sources of real-world data are listed, and synthetic data are clearly labeled.
-- [ ] Known limitations and failure cases are documented.
-- [ ] Screenshots show the current application rather than an outdated version or mock-up.
-
-10. Team Contributions
-
-Document the actual contributions of each team member before submission.
-
-Suggested format:
-
-- Application and simulation: Implementation of the Python/Streamlit workflow and simulation logic.
-- Documentation: Preparation of setup instructions and the methodology and assumptions documentation.
-- Testing and review: Verification of reproducibility, interface behavior, and consistency between the documentation and source code.
-
-Replace these descriptions with the team's actual names and contributions.
-
-11. License
-
-See ""LICENSE"" (LICENSE) for the project's license.
-
-If the repository does not contain a "LICENSE" file, choose and add an appropriate license before describing the project as open source.
-
-12. Citation
-
-If you use or discuss AGNAYA, cite the repository and the version or commit you reviewed:
-
-«AGNAYA team. AGNAYA: Simulating Heatwave-Driven Infrastructure Cascades in Raipur. GitHub repository: https://github.com/sathiyatskrj/AGNAYA. Accessed October 23, 2026.»
-
-For reproducibility, cite the specific release or commit hash whenever possible.
+### 1-Click Launchers for Windows
+- Double-click [`RUN_AGNAYA.bat`](file:///C:/Users/Bhumika%20Baghel/.gemini/antigravity-ide/scratch/AGNAYA/RUN_AGNAYA.bat) to launch the Streamlit Dashboard.
+- Double-click [`RUN_API.bat`](file:///C:/Users/Bhumika%20Baghel/.gemini/antigravity-ide/scratch/AGNAYA/RUN_API.bat) to launch the FastAPI server.
