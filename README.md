@@ -1,6 +1,6 @@
-# 🌡️⚡🏥 AGNAYA
-### *Adaptive Geospatial Network for heatwave Analytics and Yield Assessment*
-**Stochastic Optimization, Power Flow Derating & Infrastructure Cascades for Raipur, Chhattisgarh**
+# 🌡️⚡🏥 AGNAYA v3.0 — Raipur Heatwave & Grid Digital Twin
+### *Adaptive Geospatial Network for Heatwave Analytics and Yield Assessment*
+**Civil Protection & Utility Operations Center for Raipur, Chhattisgarh**
 
 ---
 
@@ -34,24 +34,37 @@ Extracted directly from CSERC tariff filings, CSPTCL engineering documents, and 
 ## 3. Mathematical Modules & Architecture
 
 ```
-.gemini\antigravity-ide\scratch\AGNAYA\
-├── app.py                      # Interactive Streamlit Dashboard (Dark Theme, 7 Modules)
-├── api.py                      # FastAPI REST Microservice (v2.0 with all endpoints)
-├── test_system.py              # 8-Stage Automated Scientific Verification Suite
-├── requirements.txt            # Dependency specification
+AGNAYA/
+├── app.py                      # Interactive Streamlit Digital Twin (9 Operational Tabs)
+├── api.py                      # FastAPI REST Microservice (v3.0 endpoints)
+├── styles.css                  # Municipal & Utility Design System
+├── agnaya_launcher.py          # Standalone In-Process Launcher
+├── AGNAYA.spec                 # PyInstaller Packaging Specification
+├── test_system.py              # 12-Stage Scientific Verification Suite
+├── requirements.txt            # Dependency Specification
 ├── RUN_AGNAYA.bat              # 1-Click Windows Batch Runner for Dashboard
 ├── RUN_API.bat                 # 1-Click Windows Batch Runner for FastAPI Server
+├── .streamlit/
+│   └── config.toml             # Neutral Dark Theme Configuration
+├── assets/
+│   ├── agnaya_logo.png         # Official Project Logo
+│   └── agnaya_logo.ico         # Executable Application Icon
 ├── data/
 │   ├── __init__.py
 │   └── raipur_data.py          # Grounded GIS, grid, substation, hospital, and climate data
 └── models/
     ├── __init__.py
-    ├── cascade_model.py        # ODE Demand Dynamics & Monte Carlo Cascading Engine
-    ├── grid_digital_twin.py    # Transformer Hotspots & Spatial Neighbor Stress (GridStressDigitalTwin / GridPulse-AI)
-    ├── tapas_health.py         # Heat-Health Stress Index (HTSI) & HAP Library (TAPAS)
+    ├── cascade_model.py        # Continuous ODE Demand & Monte Carlo Cascades
+    ├── grid_digital_twin.py    # Transformer Hotspots & Spatial Neighbor Overload Stress
+    ├── tapas_health.py         # Heat-Health Stress Index (HTSI) & Tin-Roof Trap
     ├── conductor_ampacity.py   # IEEE 738 Overhead Line Rating (Heat-Analysis)
-    ├── agents_pipeline.py      # 3-Agent Collaborative AI & HiGHS MILP Dispatch (heatwave-public)
-    └── climate_analytics.py    # Gumbel EVT Return Periods & Heat Index (ClimateSim)
+    ├── agents_pipeline.py      # 3-Agent Collaborative AI & HiGHS MILP Dispatch
+    ├── climate_analytics.py    # Gumbel EVT Return Periods & Heat Index
+    ├── grid_power_flow.py      # Synchronous DC Power Flow (P = B*theta)
+    ├── progressive_heatwave.py # 7-Stage Progressive Lifecycle Simulator
+    ├── system_resilience.py    # Continuous Resilience Curves Q(t) & AUC Loss
+    ├── trilingual_alerts.py    # Multi-Lingual Civil Protection Advisories
+    └── gridpulse_risk.py       # 5-Component Deterministic Risk Engine
 ```
 
 ---
