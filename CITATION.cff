@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this software in your research or municipal disaster planning, please cite it as below."
+authors:
+  - family-names: "Sathiyamoorthy"
+    given-names: "Krishnamoorthy"
+    affiliation: "AGNAYA Urban Disaster Resilience Initiative"
+title: "AGNAYA: Adaptive Geospatial Network for Heatwave Analytics and Yield Assessment"
+version: 3.0.0
+doi: "10.5281/zenodo.agnaya.v3"
+date-released: 2026-10-16
+url: "https://github.com/sathiyatskrj/AGNAYA"
+repository-code: "https://github.com/sathiyatskrj/AGNAYA"
+keywords:
+  - heatwave
+  - power-grid-digital-twin
+  - ieee-c57-91
+  - ieee-738
+  - dc-power-flow
+  - biometeorology
+  - disaster-resilience
+  - raipur-chhattisgarh
+  - cspdcl
+  - tapas-htsi
+license: "MIT"
