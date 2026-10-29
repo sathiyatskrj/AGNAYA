@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🌡️⚡ AGNAYA v3.0
+# 🌡️⚡ AGNAYA 
 ### **Adaptive Geospatial Network for Heatwave Analytics and Yield Assessment**
 #### *A Physics-Grounded Digital Twin & Autonomous Decision-Support Engine for Urban Heatwave Disasters*
 **Target Deployment: Raipur Municipal Corporation & Chhattisgarh State Power Distribution Company Ltd (CSPDCL / CSPTCL)**
