@@ -252,3 +252,4 @@ weather_connector = WeatherFeedConnector()
 def get_current_raipur_weather(force_refresh: bool = False) -> Dict[str, Any]:
     """Convenience helper to retrieve current Raipur weather with fallback."""
     return weather_connector.get_current_weather(force_refresh=force_refresh)
+

@@ -60,6 +60,18 @@ from models.system_resilience import SystemResilienceEngine
 from models.trilingual_alerts import TrilingualAlertGenerator
 from models.gridpulse_risk import GridPulseRiskEngine
 
+# Modular UI Views
+from ui.views.e2e_walkthrough_view import render_e2e_walkthrough_view
+from ui.views.alerts_view import render_alerts_view
+from ui.views.dispatch_view import render_dispatch_view
+from ui.views.montecarlo_view import render_montecarlo_view
+from ui.views.resilience_view import render_resilience_view
+
+@st.cache_data
+def cached_simulate_demand(t_peak: float, duration_days: int):
+    dm = DemandModel()
+    return dm.simulate(t_peak, duration_days)
+
 @st.cache_data
 def get_logo_base64():
     logo_path = os.path.join(BASE_DIR, "assets", "agnaya_logo.png")
@@ -261,8 +273,7 @@ with st.sidebar:
 # ══════════════════════════════════════════════════════════════
 # HEADER: OPERATIONAL STATUS & CONTEXT
 # ══════════════════════════════════════════════════════════════
-dm = DemandModel()
-t_h, D_mw = dm.simulate(T_peak, duration_days)
+t_h, D_mw = cached_simulate_demand(T_peak, duration_days)
 peak_d = float(np.max(D_mw))
 cap_normal = CSPDCL_PARAMS["raipur_peak_demand_mw"]
 shortfall = max(0, peak_d - cap_normal)
@@ -328,9 +339,10 @@ with st.expander("📖 Data Provenance Matrix & Terminology Guidelines (IMD / ND
 """)
 
 # ══════════════════════════════════════════════════════════════
-# THE 9 REFINED OPERATIONAL TABS
+# THE REFINED OPERATIONAL TABS & END-TO-END WALKTHROUGH
 # ══════════════════════════════════════════════════════════════
 (
+    tab_e2e,
     tab_overview,
     tab_timeline,
     tab_map,
@@ -341,6 +353,7 @@ with st.expander("📖 Data Provenance Matrix & Terminology Guidelines (IMD / ND
     tab_montecarlo,
     tab_resilience
 ) = st.tabs([
+    "End-to-End Walkthrough",
     "Overview",
     "Timeline",
     "Map",
@@ -351,6 +364,16 @@ with st.expander("📖 Data Provenance Matrix & Terminology Guidelines (IMD / ND
     "Monte Carlo",
     "Resilience"
 ])
+
+with tab_e2e:
+    render_e2e_walkthrough_view(
+        T_peak=T_peak,
+        rel_humidity=rel_humidity,
+        duration_days=duration_days,
+        power_outage_sim=power_outage_sim,
+        tripped_id=tripped_id,
+        budget_lakh=budget_lakh
+    )
 
 # ──────────────────────────────────────────────────────────────
 # TAB 1: OVERVIEW
@@ -1060,499 +1083,19 @@ with tab_substations:
     )
 
 # ──────────────────────────────────────────────────────────────
-# TAB 6: ALERTS
+# TABS 6-9: DELEGATED TO MODULAR UI VIEWS
 # ──────────────────────────────────────────────────────────────
 with tab_alerts:
-    st.markdown('<div class="section-title">Heat-health risk & public advisories</div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-desc">Universal Thermal Climate Index (UTCI) biometeorology and Kutcha/Tin-Roof Heat Trap factor, with municipal civil protection bulletins in Hindi, Chhattisgarhi, and English.</div>', unsafe_allow_html=True)
+    render_alerts_view(T_peak, rel_humidity, power_outage_sim, tripped_id)
 
-    trilingual_gen = TrilingualAlertGenerator()
-    utci_data = trilingual_gen.compute_biomet_utci(ambient_temp_c=T_peak, relative_humidity=rel_humidity)
-
-    u1, u2, u3, u4 = st.columns(4)
-    render_metric_card(
-        u1, "Biometeorological UTCI", f"{utci_data['utci_temp_c']:.1f}", "°C",
-        caption=utci_data['thermal_stress_category'],
-        status="critical" if utci_data['utci_temp_c'] >= 46 else "warning"
-    )
-    render_metric_card(
-        u2, "IMD Departure", f"+{T_peak - 42.4:.1f}", "°C",
-        caption="Above Raipur normal (42.4°C)",
-        status="critical" if T_peak - 42.4 >= 4 else "warning"
-    )
-    render_metric_card(
-        u3, "Advisory level", utci_data['health_action_urgency'], "",
-        caption="Action threshold active",
-        status="warning"
-    )
-    render_metric_card(
-        u4, "Emergency routing", "108 / 112 / 1912", "",
-        caption="Health / Disaster / Power helplines",
-        status="ok"
-    )
-
-    alerts_data = trilingual_gen.generate_trilingual_alerts(
-        ambient_temp_c=T_peak,
-        relative_humidity=rel_humidity,
-        active_outage_hours=power_outage_sim,
-        primary_affected_zone="Birgaon Industrial & Urla Slum Belt"
-    )
-
-    st.markdown('<div class="section-title">Civil protection broadcast bulletins</div>', unsafe_allow_html=True)
-    lang_tab1, lang_tab2, lang_tab3 = st.tabs(["हिंदी (Hindi)", "छत्तीसगढ़ी (Chhattisgarhi)", "English"])
-
-    with lang_tab1:
-        hindi_acts = "".join([f"<li>{act}</li>" for act in alerts_data['hindi']['actions']])
-        st.markdown(f"""
-        <div class="advisory-card">
-          <div class="advisory-card-header">
-            <div>
-              <div class="advisory-authority">कार्यालय कलेक्टर एवं जिला दंडाधिकारी, रायपुर &middot; जिला आपदा प्रबंधन प्राधिकरण</div>
-              <div class="advisory-headline">{alerts_data['hindi']['headline']}</div>
-            </div>
-            <div class="advisory-meta">
-              जारी समय: {now_ist}<br/>
-              संदर्भ: DDMA/RPR/HW-2024
-            </div>
-          </div>
-          <div class="advisory-body">{alerts_data['hindi']['body']}</div>
-          <div class="advisory-actions-title">आवश्यक जनसुरक्षा निर्देश:</div>
-          <ul class="advisory-actions-list">{hindi_acts}</ul>
-          <div class="advisory-footer-contacts">
-            <span>आपातकालीन सेवाएं:</span>
-            <span>एम्बुलेंस: <b>108</b></span>
-            <span>आपदा राहत नियंत्रण कक्ष: <b>112</b></span>
-            <span>बिजली विभाग (CSPDCL): <b>1912</b></span>
-          </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with lang_tab2:
-        chhat_acts = "".join([f"<li>{act}</li>" for act in alerts_data['chhattisgarhi']['actions']])
-        st.markdown(f"""
-        <div class="advisory-card">
-          <div class="advisory-card-header">
-            <div>
-              <div class="advisory-authority">कार्यालय कलेक्टर एवं जिला दंडाधिकारी, रायपुर &middot; जनसूचना परिपत्र</div>
-              <div class="advisory-headline">{alerts_data['chhattisgarhi']['headline']}</div>
-            </div>
-            <div class="advisory-meta">
-              जारी समय: {now_ist}<br/>
-              संदर्भ: DDMA/RPR/HW-2024-CG
-            </div>
-          </div>
-          <div class="advisory-body">{alerts_data['chhattisgarhi']['body']}</div>
-          <div class="advisory-actions-title">बचे बर जरूरी उपाय:</div>
-          <ul class="advisory-actions-list">{chhat_acts}</ul>
-          <div class="advisory-footer-contacts">
-            <span>आपातकाल संपर्क:</span>
-            <span>दवा-दारू एम्बुलेंस: <b>108</b></span>
-            <span>मदद नियंत्रण कक्ष: <b>112</b></span>
-            <span>बिजली शिकायत: <b>1912</b></span>
-          </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with lang_tab3:
-        eng_acts = "".join([f"<li>{act}</li>" for act in alerts_data['english']['actions']])
-        st.markdown(f"""
-        <div class="advisory-card">
-          <div class="advisory-card-header">
-            <div>
-              <div class="advisory-authority">Office of the District Magistrate & District Disaster Management Authority, Raipur</div>
-              <div class="advisory-headline">{alerts_data['english']['headline']}</div>
-            </div>
-            <div class="advisory-meta">
-              Issued: {now_ist}<br/>
-              Ref: DDMA/RPR/HW-2024-ENG
-            </div>
-          </div>
-          <div class="advisory-body">{alerts_data['english']['body']}</div>
-          <div class="advisory-actions-title">Mandatory Citizen Safeguards:</div>
-          <ul class="advisory-actions-list">{eng_acts}</ul>
-          <div class="advisory-footer-contacts">
-            <span>Emergency Helplines:</span>
-            <span>Medical Emergency (Ambulance): <b>108</b></span>
-            <span>Civil Protection Control Room: <b>112</b></span>
-            <span>Electricity Outage Helpline: <b>1912</b></span>
-          </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown('<div class="section-title">Ward heat vulnerability & indoor thermal trap (TAPAS model)</div>', unsafe_allow_html=True)
-    tapas_res = tapas_eng.compute_ward_hsri(T_peak, power_outage_sim)
-    tdf = pd.DataFrame(tapas_res)
-    tdf["primary_drivers"] = tdf["top_drivers"].apply(lambda d: "; ".join(d[:2]) if isinstance(d, list) else str(d))
-    st.dataframe(
-        tdf[[
-            "zone_id", "zone_name", "population", "slum_pct", "tin_roof_penalty_c",
-            "est_indoor_temp_c", "hsri_score", "risk_band", "relative_risk_tier", "primary_drivers"
-        ]],
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-            "zone_id": st.column_config.TextColumn("ID", width="small"),
-            "zone_name": st.column_config.TextColumn("Zone name"),
-            "population": st.column_config.NumberColumn("Population", format="%d"),
-            "slum_pct": st.column_config.NumberColumn("Slum share (%)", format="%.1f%%"),
-            "tin_roof_penalty_c": st.column_config.NumberColumn("Tin roof trap", format="+%.1f °C"),
-            "est_indoor_temp_c": st.column_config.NumberColumn("Est. indoor temp", format="%.1f °C"),
-            "hsri_score": st.column_config.ProgressColumn("Heuristic HSRI", format="%.1f", min_value=0.0, max_value=100.0),
-            "risk_band": st.column_config.TextColumn("Alert Band"),
-            "relative_risk_tier": st.column_config.TextColumn("Relative Risk Tier"),
-            "primary_drivers": st.column_config.TextColumn("Top Stress Drivers")
-        }
-    )
-    st.caption("⚠️ SIMULATION ONLY – NOT AN OFFICIAL WARNING. Heuristic heat-risk index is uncalibrated clinically. In-situ logger validation pending.")
-
-# ──────────────────────────────────────────────────────────────
-# TAB 7: DISPATCH
-# ──────────────────────────────────────────────────────────────
 with tab_dispatch:
-    st.markdown('<div class="section-title">Resource allocation & dispatch</div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-desc">Deterministic 3-Stage Dispatch Pipeline: Spatial microclimate ingestion &rarr; Infrastructure threat assessment &rarr; Mixed-Integer Linear Programming (HiGHS MILP) allocating cooling centers, water tankers, power resilience units, and hospital surge teams.</div>', unsafe_allow_html=True)
+    render_dispatch_view(T_peak, rel_humidity, budget_lakh)
 
-    strat_choice = st.selectbox(
-        "Optimization strategy",
-        [
-            "optimize_coverage (Maximize shielded population)",
-            "optimize_response_time (Priority allocation to critical wards)",
-            "optimize_staged_reserve (70% deployed, 30% reserve buffer)"
-        ],
-        index=0
-    )
-    clean_strat = strat_choice.split(" ")[0]
-
-    run_pipeline = st.button("Run resource optimization")
-
-    if run_pipeline or "pipeline_results" in st.session_state:
-        if run_pipeline or "pipeline_results" not in st.session_state:
-            with st.spinner("Solving Mixed-Integer Linear Program..."):
-                a1 = SpatialClimateAgent()
-                w_out = a1.run(T_peak, rel_humidity)
-                a2 = ThreatAssessmentAgent()
-                th_out = a2.run(w_out, peak_d)
-                a3 = DispatchCommanderAgent()
-                disp_out = a3.run(th_out, budget_lakh=budget_lakh, strategy=clean_strat)
-                st.session_state["pipeline_results"] = disp_out
-
-        disp_out = st.session_state["pipeline_results"]
-        dplan = disp_out["dispatch_plan"]
-
-        ac1, ac2, ac3 = st.columns(3)
-        render_metric_card(
-            ac1, "Budget allocated", f"₹ {dplan['total_cost_lakh']:.1f}", "L",
-            caption=f"Budget ceiling: ₹ {budget_lakh:.1f}L",
-            status="ok"
-        )
-        render_metric_card(
-            ac2, "Estimated population protected", f"{dplan['estimated_citizens_shielded']:,}", "",
-            caption="Direct protection from acute heat injury",
-            status="ok"
-        )
-        render_metric_card(
-            ac3, "Solver status", f"{dplan['solver_status']}", "",
-            caption="HiGHS Mixed-Integer Linear Program",
-            status="ok"
-        )
-
-        st.markdown('<div class="section-title">Allocated municipal resources</div>', unsafe_allow_html=True)
-        alloc_items = [f"<b>{k.replace('_', ' ').capitalize()}</b>: {v} units" for k, v in dplan["units_allocated"].items() if v > 0]
-        st.markdown(f"""
-        <div class="note-box">
-          {' &nbsp;&bull;&nbsp; '.join(alloc_items)}
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.markdown('<div class="section-title">Ward deployment schedule</div>', unsafe_allow_html=True)
-        disp_df = pd.DataFrame([
-            {
-                "Ward": z["zone_name"],
-                "Threat level": z["threat_level"],
-                "Threat score": z["threat_score"],
-                "Assigned resources": ", ".join(z["assigned_interventions"]) if z["assigned_interventions"] else "Routine surveillance"
-            }
-            for z in dplan["zone_assignments"]
-        ])
-        st.dataframe(
-            disp_df,
-            use_container_width=True,
-            hide_index=True,
-            column_config={
-                "Ward": st.column_config.TextColumn("Municipal ward"),
-                "Threat level": st.column_config.TextColumn("Risk level"),
-                "Threat score": st.column_config.ProgressColumn("Threat index", format="%.2f", min_value=0.0, max_value=1.0),
-                "Assigned resources": st.column_config.TextColumn("Deployed mitigation units")
-            }
-        )
-
-# ──────────────────────────────────────────────────────────────
-# TAB 8: MONTE CARLO
-# ──────────────────────────────────────────────────────────────
 with tab_montecarlo:
-    st.markdown('<div class="section-title">Stochastic cascade simulation</div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-desc">Evaluates the probability of compounding urban lifeline failures (substations, water pumping, emergency hospitals) across stochastic realizations under severe heat conditions.</div>', unsafe_allow_html=True)
+    render_montecarlo_view(T_peak, rel_humidity, duration_days)
 
-    mc_c1, mc_c2, mc_c3 = st.columns([1.5, 1.5, 1])
-    with mc_c1:
-        n_runs = st.select_slider("Stochastic realizations", [100, 250, 500, 1000], value=250)
-    with mc_c2:
-        compare_interventions = st.checkbox("Compare with municipal mitigation", value=True)
-    with mc_c3:
-        st.markdown("<div style='height:28px;'></div>", unsafe_allow_html=True)
-        recompute_mc = st.button("Run simulation batch")
-
-    mc_cache_key = f"{T_peak}_{duration_days}_{n_runs}_{compare_interventions}"
-    if recompute_mc or "mc_data" not in st.session_state or st.session_state.get("mc_key") != mc_cache_key:
-        with st.spinner(f"Simulating {n_runs} stochastic realizations..."):
-            mc_engine = MonteCarloCascade(N_sim=n_runs)
-            base_res = mc_engine.run(T_peak, duration_days, interventions={})
-            if compare_interventions:
-                int_res = mc_engine.run(T_peak, duration_days, interventions={
-                    "power_resilience": 4, "cooling_centre": 5, "water_tankers": 15, "hospital_surge": 2
-                })
-            else:
-                int_res = None
-            st.session_state["mc_data"] = {"baseline": base_res, "intervention": int_res}
-            st.session_state["mc_key"] = mc_cache_key
-
-    mc_data = st.session_state["mc_data"]
-    b_res = mc_data["baseline"]
-    i_res = mc_data["intervention"]
-    par = b_res["population_at_high_risk"]
-
-    m1, m2, m3, m4, m5 = st.columns(5)
-    fail_rate = b_res.get("failure_rate_percent", 75.0)
-    mean_sev = b_res.get("mean_wards_severed", 3.2)
-    p90_sev = b_res.get("p90_wards_severed", 6.0)
-    avg_sub_fail = np.mean(list(b_res["substation_failure_prob"].values()))
-
-    render_metric_card(
-        m1, "System failure risk", f"{fail_rate:.1f}", "%",
-        caption="P(&ge;1 substation outage)",
-        status="critical" if fail_rate > 50 else "warning"
-    )
-    render_metric_card(
-        m2, "Mean wards severed", f"{mean_sev:.1f}", "/ 12",
-        caption=f"P90: {p90_sev:.0f} wards",
-        status="critical" if mean_sev >= 4 else "warning"
-    )
-    render_metric_card(
-        m3, "Mean at-risk population", f"{par['mean']/1000:.1f}", "k",
-        caption=f"P10–P90: {par['p10']/1000:.0f}k–{par['p90']/1000:.0f}k",
-        status="critical"
-    )
-    render_metric_card(
-        m4, "Grid shortfall", f"{b_res['demand_shortfall_mw']:.0f}", "MW",
-        caption=f"Surge: +{peak_d-cap_normal:.0f} MW",
-        status="warning"
-    )
-    render_metric_card(
-        m5, "Average substation risk", f"{avg_sub_fail*100:.1f}", "%",
-        caption="Across all 6 substations",
-        status="warning"
-    )
-
-    st.markdown('<div class="section-title">Population-at-risk probability distribution</div>', unsafe_allow_html=True)
-    fig_mc_dist = go.Figure()
-    raw_base = [v / 1000.0 for v in b_res.get("raw_population_at_high_risk", [par['mean']])]
-    fig_mc_dist.add_trace(go.Histogram(
-        x=raw_base, name="Baseline (unmitigated)",
-        nbinsx=35, marker_color="rgba(239, 68, 68, 0.65)", opacity=0.75
-    ))
-
-    if i_res is not None:
-        raw_int = [v / 1000.0 for v in i_res.get("raw_population_at_high_risk", [i_res["population_at_high_risk"]['mean']])]
-        fig_mc_dist.add_trace(go.Histogram(
-            x=raw_int, name="With municipal mitigation",
-            nbinsx=35, marker_color="rgba(16, 185, 129, 0.65)", opacity=0.75
-        ))
-        i_par = i_res["population_at_high_risk"]
-        fig_mc_dist.add_vline(
-            x=i_par['mean'] / 1000.0, line_dash="dash", line_color="#10B981",
-            annotation_text=f"Mitigated mean: {i_par['mean']/1000:.1f}k",
-            annotation_font=dict(color="#10B981", size=11)
-        )
-
-    fig_mc_dist.add_vline(
-        x=par['mean'] / 1000.0, line_dash="dash", line_color="#EF4444",
-        annotation_text=f"Baseline mean: {par['mean']/1000:.1f}k",
-        annotation_font=dict(color="#EF4444", size=11)
-    )
-    fig_mc_dist.update_layout(
-        barmode="overlay",
-        xaxis_title="Citizens exposed to severe thermal stress or power loss (thousands)",
-        yaxis_title="Simulation realizations",
-    )
-    apply_utility_chart_theme(fig_mc_dist, height=310, show_legend=True)
-    st.plotly_chart(fig_mc_dist, use_container_width=True)
-
-    c_sub_f, c_ward_f = st.columns([1.3, 2.7])
-    with c_sub_f:
-        st.markdown('<div class="section-title">Substation failure probabilities</div>', unsafe_allow_html=True)
-        sub_probs = [
-            {"Substation": next(s["name"].replace("Substation", "").strip() for s in RAIPUR_SUBSTATIONS if s["id"] == sid), "Prob": p * 100.0}
-            for sid, p in b_res["substation_failure_prob"].items()
-        ]
-        sp_df = pd.DataFrame(sub_probs)
-        fig_sp = px.bar(
-            sp_df, x="Prob", y="Substation", orientation="h",
-            color="Prob", color_continuous_scale="Reds", text="Prob"
-        )
-        fig_sp.update_traces(texttemplate='%{text:.1f}%', textposition='outside')
-        fig_sp.update_layout(
-            xaxis_title="Failure probability (%)", yaxis_title="",
-            xaxis_range=[0, 115],
-            coloraxis_showscale=False
-        )
-        apply_utility_chart_theme(fig_sp, height=280, show_legend=False)
-        st.plotly_chart(fig_sp, use_container_width=True)
-
-    with c_ward_f:
-        st.markdown('<div class="section-title">Ward cascading disruption matrix</div>', unsafe_allow_html=True)
-        ward_matrix = []
-        for z in RAIPUR_ZONES:
-            w_risk = b_res["water_disruption_prob"].get(z["id"], 0.0)
-            h_stat = b_res["zone_health_risk"].get(z["id"], {})
-            sub_id = z["substation"]
-            p_risk = b_res["substation_failure_prob"].get(sub_id, 0.0)
-            exposed_pop = int(h_stat.get('mean', 0.0) * z['population'])
-            ward_matrix.append({
-                "Ward": z["name"],
-                "Population": z["population"],
-                "Power loss risk": p_risk * 100.0,
-                "Water cutoff risk": w_risk * 100.0,
-                "Mean exposed pop": exposed_pop,
-                "Slum density": z["slum_pct"]
-            })
-        st.dataframe(
-            pd.DataFrame(ward_matrix),
-            use_container_width=True,
-            hide_index=True,
-            column_config={
-                "Ward": st.column_config.TextColumn("Municipal ward"),
-                "Population": st.column_config.NumberColumn("Population", format="%d"),
-                "Power loss risk": st.column_config.NumberColumn("Power risk", format="%.1f%%"),
-                "Water cutoff risk": st.column_config.NumberColumn("Water risk", format="%.1f%%"),
-                "Mean exposed pop": st.column_config.NumberColumn("Exposed population", format="%d"),
-                "Slum density": st.column_config.ProgressColumn("Slum density", format="%.0f%%", min_value=0.0, max_value=1.0)
-            }
-        )
-
-# ──────────────────────────────────────────────────────────────
-# TAB 9: RESILIENCE
-# ──────────────────────────────────────────────────────────────
 with tab_resilience:
-    st.markdown('<div class="section-title">Infrastructure resilience & risk audit</div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-desc">Continuous infrastructure performance curves Q(t) &isin; [0, 1] and Area Under the Curve (AUC) resilience loss reduction, paired with statutory deterministic risk scoring.</div>', unsafe_allow_html=True)
-
-    resilience_eng = SystemResilienceEngine()
-    res_comp = resilience_eng.compare_resilience_curves(peak_temp_c=T_peak, duration_days=duration_days)
-    b_resil = res_comp["baseline"]
-    a_resil = res_comp["agnaya_shielded"]
-
-    rk1, rk2, rk3, rk4, rk5 = st.columns(5)
-    render_metric_card(
-        rk1, "Baseline resilience", f"{b_resil['resilience_index_percent']:.1f}", "%",
-        caption=f"Nadir Q_min: {b_resil['nadir_q']:.2f}",
-        status="critical"
-    )
-    render_metric_card(
-        rk2, "Mitigated resilience", f"{a_resil['resilience_index_percent']:.1f}", "%",
-        caption=f"Nadir Q_min: {a_resil['nadir_q']:.2f}",
-        status="ok"
-    )
-    render_metric_card(
-        rk3, "AUC loss avoided", f"{res_comp['loss_reduction_percent']:.1f}", "%",
-        caption="Area under disruption curve spared",
-        status="ok"
-    )
-    render_metric_card(
-        rk4, "Baseline recovery", f"{b_resil['recovery_time_h']:.0f}", "hrs",
-        caption=f"Degradation: {b_resil['degradation_time_h']:.0f}h",
-        status="warning"
-    )
-    render_metric_card(
-        rk5, "Mitigated recovery", f"{a_resil['recovery_time_h']:.0f}", "hrs",
-        caption="Accelerated restoration",
-        status="ok"
-    )
-
-    st.markdown('<div class="section-title">Continuous infrastructure performance Q(t) vs. Time</div>', unsafe_allow_html=True)
-    fig_res = go.Figure()
-    fig_res.add_trace(go.Scatter(
-        x=[t / 24.0 for t in b_resil["time_hours"]], y=b_resil["Q_t"],
-        name="Baseline performance Q_base(t)",
-        line=dict(color="#EF4444", width=2.5), fill="tozeroy", fillcolor="rgba(239, 68, 68, 0.06)"
-    ))
-    fig_res.add_trace(go.Scatter(
-        x=[t / 24.0 for t in a_resil["time_hours"]], y=a_resil["Q_t"],
-        name="Mitigated performance Q_shielded(t)",
-        line=dict(color="#10B981", width=2.5), fill="tonexty", fillcolor="rgba(16, 185, 129, 0.12)"
-    ))
-    fig_res.add_hline(y=1.0, line_dash="dot", line_color="#6B7280", annotation_text="100% Normal capacity")
-    fig_res.add_hline(y=0.5, line_dash="dash", line_color="#F59E0B", annotation_text="50% Severe disruption")
-    fig_res.update_layout(
-        xaxis_title="Time since heatwave onset (days)",
-        yaxis_title="System performance quality Q(t)",
-        yaxis_range=[0.0, 1.05]
-    )
-    apply_utility_chart_theme(fig_res, height=310, show_legend=True)
-    st.plotly_chart(fig_res, use_container_width=True)
-
-    st.markdown('<div class="section-title">Deterministic risk audit (5-factor framework)</div>', unsafe_allow_html=True)
-    gpr_engine = GridPulseRiskEngine()
-    gpr_wards = gpr_engine.compute_all_wards_gridpulse(ambient_temp_c=T_peak, total_grid_demand_mw=peak_d, outage_hours=power_outage_sim)
-    gpr_df = pd.DataFrame(gpr_wards)
-
-    c_audit1, c_audit2 = st.columns([1.2, 2.8])
-    with c_audit1:
-        st.markdown("**Inspect ward audit report:**")
-        selected_zone_name = st.selectbox("Municipal ward", [z["zone_name"] for z in gpr_wards], index=0, label_visibility="collapsed")
-        sel_zone_id = next(z["zone_id"] for z in gpr_wards if z["zone_name"] == selected_zone_name)
-        card_data = gpr_engine.generate_boardroom_audit_report(sel_zone_id, ambient_temp_c=T_peak, total_grid_demand_mw=peak_d, outage_hours=power_outage_sim)
-
-        st.markdown(f"""
-        <div class="advisory-card">
-          <div class="advisory-authority">Municipal Risk Assessment</div>
-          <div class="advisory-headline" style="font-size:15px;margin-top:2px;">{card_data['zone_name']} ({card_data['zone_id']})</div>
-          <div style="font-size:13px;color:#9CA3AF;margin:8px 0 12px 0;line-height:1.5;">{card_data['executive_summary']}</div>
-          <div style="font-size:12.5px;color:#D1D5DB;line-height:1.7;border-top:1px solid #262A33;padding-top:8px;">
-            <b>5-Factor Deterministic Weights:</b><br/>
-            &bull; Hazard (30%): <b>{card_data['factors']['H_hazard']:.2f}</b><br/>
-            &bull; Demand (25%): <b>{card_data['factors']['D_demand']:.2f}</b><br/>
-            &bull; Asset Stress (20%): <b>{card_data['factors']['A_asset']:.2f}</b><br/>
-            &bull; Outage Exposure (15%): <b>{card_data['factors']['O_outage']:.2f}</b><br/>
-            &bull; Vulnerability (10%): <b>{card_data['factors']['V_vulnerability']:.2f}</b>
-          </div>
-          <div style="font-size:11.5px;color:#6B7280;margin-top:10px;padding-top:8px;border-top:1px solid #262A33;line-height:1.4;">
-            <b>Statutory Citations:</b><br/>
-            {"<br/>".join([f"&bull; {c}" for c in card_data['citations']])}
-          </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with c_audit2:
-        st.markdown("**Citywide 12-Ward Risk Scoring Matrix:**")
-        st.dataframe(
-            gpr_df[[
-                "zone_id", "zone_name", "composite_risk", "risk_tier",
-                "H_hazard", "D_demand", "A_asset", "O_outage", "V_vulnerability"
-            ]],
-            use_container_width=True,
-            hide_index=True,
-            column_config={
-                "zone_id": st.column_config.TextColumn("ID", width="small"),
-                "zone_name": st.column_config.TextColumn("Ward name"),
-                "composite_risk": st.column_config.ProgressColumn("Composite risk", format="%.1f", min_value=0.0, max_value=100.0),
-                "risk_tier": st.column_config.TextColumn("Risk band"),
-                "H_hazard": st.column_config.NumberColumn("Hazard (H)", format="%.2f"),
-                "D_demand": st.column_config.NumberColumn("Demand (D)", format="%.2f"),
-                "A_asset": st.column_config.NumberColumn("Asset (A)", format="%.2f"),
-                "O_outage": st.column_config.NumberColumn("Outage (O)", format="%.2f"),
-                "V_vulnerability": st.column_config.NumberColumn("Vulnerability (V)", format="%.2f")
-            }
-        )
+    render_resilience_view(T_peak, duration_days, tripped_id, budget_lakh)
 
 # ══════════════════════════════════════════════════════════════
 # FOOTER
@@ -1560,6 +1103,6 @@ with tab_resilience:
 st.markdown("""
 <div class="app-footer">
   <div>Data sources: CSERC Tariff Order FY 2024–25 &middot; CSPTCL Grid Records &middot; IMD Climatological Normals 1970–2024 &middot; Census of India 2011</div>
-  <div>AGNAYA v3.0 &middot; Raipur Municipal Corporation &amp; CSPDCL</div>
+  <div>AGNAYA v3.1 &middot; Decision-Support Prototype &middot; SIMULATION ONLY &ndash; NOT AN OFFICIAL WARNING</div>
 </div>
 """, unsafe_allow_html=True)

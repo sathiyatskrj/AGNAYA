@@ -35,12 +35,12 @@ def run_multi_model_tests():
     print(" AGNAYA V3.1: Rigorous Multi-Model Scientific Verification Suite")
     print("=" * 75)
     passed_checks = 0
-    total_checks = 12
+    total_checks = 14
 
     # ─────────────────────────────────────────────────────────────────────────
-    # [1/12] Data Assets & Grounded Parameters
+    # [1/14] Data Assets & Grounded Parameters
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[1/12] Verifying Raipur Infrastructure Baseline & Data Provenance Matrix...")
+    print("\n[1/14] Verifying Raipur Infrastructure Baseline & Data Provenance Matrix...")
     from data.raipur_data import (
         RAIPUR_ZONES, RAIPUR_SUBSTATIONS, RAIPUR_WATER_PUMPS,
         RAIPUR_HOSPITALS, CSPDCL_PARAMS, OBSERVED_CLIMATE_RECORDS,
@@ -119,9 +119,9 @@ def run_multi_model_tests():
     passed_checks += 1
 
     # ─────────────────────────────────────────────────────────────────────────
-    # [2/12] Demand Dynamics Saturating ODE
+    # [2/14] Demand Dynamics Saturating ODE
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[2/12] Testing Saturating Electricity Demand ODE Dynamics...")
+    print("\n[2/14] Testing Saturating Electricity Demand ODE Dynamics...")
     from models.cascade_model import DemandModel
     dm = DemandModel()
     t, D = dm.simulate(T_peak_celsius=46.5, duration_days=3)
@@ -146,9 +146,9 @@ def run_multi_model_tests():
     passed_checks += 1
 
     # ─────────────────────────────────────────────────────────────────────────
-    # [3/12] Infrastructure Dependency Graph
+    # [3/14] Infrastructure Dependency Graph
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[3/12] Testing Infrastructure Dependency Graph (NetworkX)...")
+    print("\n[3/14] Testing Infrastructure Dependency Graph (NetworkX)...")
     from models.cascade_model import InfrastructureNetwork
     net = InfrastructureNetwork()
     assert net.G.number_of_nodes() == 29, f"Expected 29 nodes, got {net.G.number_of_nodes()}"
@@ -172,9 +172,9 @@ def run_multi_model_tests():
     passed_checks += 1
 
     # ─────────────────────────────────────────────────────────────────────────
-    # [4/12] Transformer Digital Twin (IEEE Std C57.91-2011 Clause 7)
+    # [4/14] Transformer Digital Twin (IEEE Std C57.91-2011 Clause 7)
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[4/12] Testing Transformer Hot-Spot & Aging Twin (IEEE Std C57.91-2011 Clause 7)...")
+    print("\n[4/14] Testing Transformer Hot-Spot & Aging Twin (IEEE Std C57.91-2011 Clause 7)...")
     from models.grid_digital_twin import TransformerDigitalTwin, GridStressNetwork
     s01_data = next(s for s in RAIPUR_SUBSTATIONS if s["id"] == "S01")
     twin = TransformerDigitalTwin(s01_data)
@@ -204,9 +204,9 @@ def run_multi_model_tests():
     passed_checks += 1
 
     # ─────────────────────────────────────────────────────────────────────────
-    # [5/12] Conductor Dynamic Line Rating (IEEE Std 738-2012 via linerate)
+    # [5/14] Conductor Dynamic Line Rating (IEEE Std 738-2012 via linerate)
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[5/12] Testing Conductor Dynamic Line Rating (IEEE Std 738-2012 via linerate)...")
+    print("\n[5/14] Testing Conductor Dynamic Line Rating (IEEE Std 738-2012 via linerate)...")
     from models.conductor_ampacity import ConductorThermalAmpacity, LinerateAmpacityAdapter, compute_ieee738_ampacity_legacy
     adapter = LinerateAmpacityAdapter()
     amp_40 = adapter.compute_ampacity("ACSR Zebra", ambient_temp_c=40.0, wind_speed_ms=1.0)
@@ -231,9 +231,9 @@ def run_multi_model_tests():
     passed_checks += 1
 
     # ─────────────────────────────────────────────────────────────────────────
-    # [6/12] TAPAS Heuristic Heat-Risk Index & Indoor Temperature
+    # [6/14] TAPAS Heuristic Heat-Risk Index & Indoor Temperature
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[6/12] Testing TAPAS Heuristic Heat-Risk Index (HSRI) & Indoor Temperature...")
+    print("\n[6/14] Testing TAPAS Heuristic Heat-Risk Index (HSRI) & Indoor Temperature...")
     from models.tapas_health import TapasHealthEngine
     from models.cascade_model import calculate_indoor_temp, classify_risk_band
 
@@ -259,9 +259,9 @@ def run_multi_model_tests():
     passed_checks += 1
 
     # ─────────────────────────────────────────────────────────────────────────
-    # [7/12] Deterministic 3-Stage Dispatch Pipeline (HiGHS MILP)
+    # [7/14] Deterministic 3-Stage Dispatch Pipeline (HiGHS MILP)
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[7/12] Testing Deterministic 3-Stage Dispatch Pipeline & HiGHS MILP...")
+    print("\n[7/14] Testing Deterministic 3-Stage Dispatch Pipeline & HiGHS MILP...")
     from models.agents_pipeline import (
         SpatialClimateStage, ThreatAssessmentStage, ResourceDispatchStage,
         DeterministicDispatchPipeline
@@ -284,9 +284,9 @@ def run_multi_model_tests():
     passed_checks += 1
 
     # ─────────────────────────────────────────────────────────────────────────
-    # [8/12] Climate EVT Return Periods
+    # [8/14] Climate EVT Return Periods
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[8/12] Testing Climate Extremes & Gumbel Return Periods...")
+    print("\n[8/14] Testing Climate Extremes & Gumbel Return Periods...")
     from models.climate_analytics import ClimateAnalyticsEngine
     clim = ClimateAnalyticsEngine()
     rp = clim.compute_return_period(46.5)
@@ -302,9 +302,9 @@ def run_multi_model_tests():
     passed_checks += 1
 
     # ─────────────────────────────────────────────────────────────────────────
-    # [9/12] Synchronous DC Power Flow
+    # [9/14] Synchronous DC Power Flow
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[9/12] Testing Synchronous DC Power Flow & Catenary Line Sag...")
+    print("\n[9/14] Testing Synchronous DC Power Flow & Catenary Line Sag...")
     from models.grid_power_flow import DCPowerFlowEngine
     pf = DCPowerFlowEngine()
     pf_res = pf.solve_power_flow(ambient_temp_c=46.5, total_city_load_mw=450.0, tripped_substation_id='S01')
@@ -320,9 +320,9 @@ def run_multi_model_tests():
     passed_checks += 1
 
     # ─────────────────────────────────────────────────────────────────────────
-    # [10/12] 7-Stage Progressive Heatwave Lifecycle
+    # [10/14] 7-Stage Progressive Heatwave Lifecycle
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[10/12] Testing 7-Stage Progressive Heatwave Lifecycle Simulator...")
+    print("\n[10/14] Testing 7-Stage Progressive Heatwave Lifecycle Simulator...")
     from models.progressive_heatwave import ProgressiveHeatwaveSimulator
     sim = ProgressiveHeatwaveSimulator()
     assert sim.get_stage_count() == 7
@@ -336,9 +336,9 @@ def run_multi_model_tests():
     passed_checks += 1
 
     # ─────────────────────────────────────────────────────────────────────────
-    # [11/12] Continuous System Resilience & Exact AUC Arithmetic
+    # [11/14] Continuous System Resilience & Exact AUC Arithmetic
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[11/12] Testing Continuous System Resilience & AUC Deficit Arithmetic...")
+    print("\n[11/14] Testing Continuous System Resilience & AUC Deficit Arithmetic...")
     from models.system_resilience import SystemResilienceEngine
     sre = SystemResilienceEngine()
     ev = sre.evaluate_resilience_curves(ambient_peak_c=46.5, duration_days=5)
@@ -360,9 +360,9 @@ def run_multi_model_tests():
     passed_checks += 1
 
     # ─────────────────────────────────────────────────────────────────────────
-    # [12/12] Biometeorology (pythermalcomfort) & Trilingual Alerts
+    # [12/14] Biometeorology (pythermalcomfort) & Trilingual Alerts
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[12/12] Testing Biometeorology (pythermalcomfort) & Trilingual Broadcasts...")
+    print("\n[12/14] Testing Biometeorology (pythermalcomfort) & Trilingual Broadcasts...")
     from models.trilingual_alerts import TrilingualAlertGenerator, PyThermalComfortAdapter
     biomet = PyThermalComfortAdapter()
     m = biomet.compute_all_metrics(tdb=45.0, rh=30.0, v=1.2)
@@ -382,6 +382,107 @@ def run_multi_model_tests():
     print(f"  [PASS] pythermalcomfort metrics verified: UTCI={m['utci_celsius']} C, WBGT={m['wbgt_celsius']} C, Wet-bulb={m['wet_bulb_celsius']} C.")
     print(f"  [PASS] Mandatory simulation disclaimer verified across English, Hindi, and Chhattisgarhi texts.")
     print(f"  [PASS] Native-speaker review flags confirmed on vernacular drafts.")
+    passed_checks += 1
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # [13/14] Sobol Sensitivity Analysis (SALib) & Uncertainty Bounds
+    # ─────────────────────────────────────────────────────────────────────────
+    print("\n[13/14] Testing Sobol Global Sensitivity Analysis (SALib) & Monte Carlo Intervals...")
+    from models.sensitivity_analysis import SobolSensitivityEngine, SOBOL_PROBLEM
+    sobol_eng = SobolSensitivityEngine(seed=42)
+    sobol_res = sobol_eng.run_sobol_analysis(n_samples=32)
+    assert sobol_res["seed"] == 42
+    assert "indices" in sobol_res
+    assert "peak_demand_mw" in sobol_res["indices"]
+    s1_demand = sobol_res["indices"]["peak_demand_mw"]["S1"]
+    st_demand = sobol_res["indices"]["peak_demand_mw"]["ST"]
+    assert len(s1_demand) == 4 and len(st_demand) == 4
+    # Ambient temp index is first variable: must dominate demand variance (ST >= 0.70)
+    assert st_demand[0] >= 0.70, f"Expected ambient temperature ST >= 0.70, got {st_demand[0]}"
+    # Uncertainty intervals
+    u_demand = sobol_res["uncertainty_intervals"]["peak_demand_mw"]
+    assert u_demand["p05"] <= u_demand["p50_median"] <= u_demand["p95"]
+    assert "SIMULATION ONLY – NOT AN OFFICIAL WARNING" in sobol_res["disclaimer"]
+
+    print(f"  [PASS] SALib Sobol decomposition verified (n_samples=32). ST(T_amb) = {st_demand[0]:.3f}.")
+    print(f"  [PASS] Monte Carlo confidence bounds: P05={u_demand['p05']} MW, Median={u_demand['p50_median']} MW, P95={u_demand['p95']} MW.")
+    passed_checks += 1
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # [14/14] CAP v1.2 XML, ReportLab PDFs & Rule 5 Deterministic Number Guard
+    # ─────────────────────────────────────────────────────────────────────────
+    print("\n[14/14] Testing CAP v1.2 XML, ReportLab Executive PDFs & Rule 5 Number Guard...")
+    from models.cap_alerts import CAPAlertGenerator
+    from models.pdf_reports import generate_ward_brief_pdf, generate_sitrep_pdf
+    from models.llm_explainer import DeterministicNumberGuard, DeterministicNarrativeGenerator
+
+    # 1. CAP v1.2 XML Generator
+    cap_gen = CAPAlertGenerator()
+    cap_xml = cap_gen.generate_cap_alert(
+        ambient_temp_c=46.5,
+        relative_humidity_pct=28.0,
+        peak_demand_mw=475.9,
+        shortfall_mw=55.9,
+        critical_zones=[{"zone_id": "Z05", "zone_name": "Tikrapara", "risk_band": "RED"}],
+        tripped_substation="S01 Raipur Main"
+    )
+    assert "<status>Draft</status>" in cap_xml, "CAP status must be strictly Draft"
+    assert "SIMULATION ONLY – NOT AN OFFICIAL WARNING" in cap_xml
+    assert "NEEDS_NATIVE_SPEAKER_REVIEW" in cap_xml
+    assert "urn:oasis:names:tc:emergency:cap:1.2" in cap_xml
+
+    # 2. ReportLab PDF Generation
+    from data.raipur_data import RAIPUR_ZONES
+    z05 = next(z for z in RAIPUR_ZONES if z["id"] == "Z05")
+    sim_ctx = {"ambient_temp_c": 46.5, "outage_hours": 2.0, "duration_days": 5}
+    ward_brief_bytes = generate_ward_brief_pdf(z05, sim_ctx)
+    assert len(ward_brief_bytes) > 3000, f"Ward brief PDF too small ({len(ward_brief_bytes)} bytes)"
+    assert ward_brief_bytes.startswith(b"%PDF"), "Output is not a valid PDF header"
+
+    sim_summary = {
+        "peak_temp_celsius": 46.5,
+        "peak_demand_mw": 475.9,
+        "disruption_hours_saved": 14.62,
+        "resilience_dividend_pct": 85.6,
+        "tripped_substation": "S01 Raipur Main",
+        "budget_lakh": 60.0
+    }
+    top_threats = [
+        {"zone_id": "Z05", "zone_name": "Tikrapara", "risk_band": "RED", "threat_score": 0.88, "slum_pct": 0.35, "est_indoor_temp_c": 48.9},
+        {"zone_id": "Z08", "zone_name": "Gudhiyari", "risk_band": "RED", "threat_score": 0.82, "slum_pct": 0.28, "est_indoor_temp_c": 47.8}
+    ]
+    allocated_fleet = {"cooling_centre": 5, "power_resilience": 3, "water_tankers": 20, "jal_jeevan": 20}
+    sitrep_bytes = generate_sitrep_pdf(sim_summary, top_threats, allocated_fleet)
+    assert len(sitrep_bytes) > 3000, f"SITREP PDF too small ({len(sitrep_bytes)} bytes)"
+    assert sitrep_bytes.startswith(b"%PDF"), "Output is not a valid PDF header"
+
+    # 3. Rule 5 Deterministic Number Guard
+    inputs_dict = {
+        "ambient_temp_c": 46.5,
+        "relative_humidity_pct": 28.0,
+        "peak_demand_mw": 475.9,
+        "contracted_limit_mw": 420.0,
+        "emergency_cap_mw": 620.0,
+        "shortfall_mw": 55.9,
+        "substation_hotspot_c": 118.5,
+        "max_indoor_temp_c": 48.9,
+        "resilience_dividend_pct": 85.6,
+        "disruption_hours_saved": 14.6,
+        "top_vulnerable_zone": "Z05 Tikrapara"
+    }
+    valid_text = DeterministicNarrativeGenerator.generate_narrative(inputs_dict)
+    is_valid, ungrounded = DeterministicNumberGuard.validate(valid_text, inputs_dict)
+    assert is_valid is True, f"Deterministic narrative unexpectedly failed validation: {ungrounded}"
+
+    # Verify that hallucinated numbers (e.g. fabricated deaths or uncalibrated costs) are rejected
+    hallucinated_text = valid_text + " The simulation forecasts 42 fatalities and 318 hospital admissions."
+    is_valid_bad, ungrounded_bad = DeterministicNumberGuard.validate(hallucinated_text, inputs_dict)
+    assert is_valid_bad is False, "Guard must reject hallucinated numbers"
+    assert 42.0 in ungrounded_bad and 318.0 in ungrounded_bad
+
+    print(f"  [PASS] OASIS CAP v1.2 XML verified: status=Draft, trilingual info blocks present.")
+    print(f"  [PASS] ReportLab PDFs generated: Ward Brief ({len(ward_brief_bytes)} bytes), SITREP ({len(sitrep_bytes)} bytes).")
+    print(f"  [PASS] Rule 5 DeterministicNumberGuard verified: valid passes, hallucinations (42, 318) strictly rejected.")
     passed_checks += 1
 
     print("\n" + "=" * 75)

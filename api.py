@@ -15,13 +15,14 @@ Synthesized Frameworks:
 """
 
 import time
+import numpy as np
 from collections import defaultdict
 from typing import Dict, List, Optional, Any
 import sys, os
 
 from fastapi import FastAPI, Query, HTTPException, Request, Depends, Security, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.security.api_key import APIKeyHeader
 from pydantic import BaseModel, Field
 
@@ -50,6 +51,10 @@ from models.progressive_heatwave import ProgressiveHeatwaveSimulator
 from models.system_resilience import SystemResilienceEngine
 from models.trilingual_alerts import TrilingualAlertGenerator
 from models.gridpulse_risk import GridPulseRiskEngine
+from models.sensitivity_analysis import SobolSensitivityEngine
+from models.cap_alerts import CAPAlertGenerator
+from models.pdf_reports import generate_ward_brief_pdf, generate_sitrep_pdf
+from models.llm_explainer import DeterministicNarrativeGenerator, DeterministicNumberGuard
 
 app = FastAPI(
     title="AGNAYA V3.1 API — Heatwave & Grid Resilience Simulation",
@@ -411,3 +416,81 @@ def get_asset_registry_endpoint():
         "assets": assets,
         "disclaimer": "SIMULATION ONLY – NOT AN OFFICIAL WARNING"
     }
+
+# ── 15. OASIS CAP v1.2 Standard Emergency XML Generator
+@app.get("/api/v1/alerts/cap-xml", dependencies=[Depends(verify_api_key)])
+def get_cap_xml_alert(
+    ambient_temp_c: float = Query(45.0, ge=35.0, le=55.0),
+    relative_humidity_pct: float = Query(35.0, ge=10.0, le=100.0),
+    tripped_substation: Optional[str] = Query(None)
+):
+    dm = DemandModel()
+    _, d_series = dm.simulate(ambient_temp_c, duration_days=2)
+    peak_d = float(np.max(d_series))
+    shortfall = max(0.0, peak_d - 420.0)
+    the = TapasHealthEngine()
+    zones = the.compute_ward_hsri(ambient_temp_c, power_outage_hours=2.0)
+    top_crit = [z for z in zones if z.get("risk_band") in {"RED", "ORANGE"}]
+
+    cap_gen = CAPAlertGenerator()
+    xml_str = cap_gen.generate_cap_alert(
+        ambient_temp_c=ambient_temp_c,
+        relative_humidity_pct=relative_humidity_pct,
+        peak_demand_mw=peak_d,
+        shortfall_mw=shortfall,
+        critical_zones=top_crit,
+        tripped_substation=tripped_substation
+    )
+    return Response(content=xml_str, media_type="application/xml")
+
+# ── 16. Sobol Global Sensitivity & Uncertainty Bounds
+@app.get("/api/v1/sensitivity/sobol", dependencies=[Depends(verify_api_key)])
+def get_sobol_sensitivity(n_samples: int = Query(32, ge=16, le=128), seed: int = Query(42, ge=1, le=9999)):
+    eng = SobolSensitivityEngine(seed=seed)
+    res = eng.run_sobol_analysis(n_samples=n_samples)
+    return res
+
+# ── 17. Ward Heat-Action Brief PDF Export
+@app.get("/api/v1/reports/ward-brief", dependencies=[Depends(verify_api_key)])
+def export_ward_brief_pdf(
+    zone_id: str = Query("Z05", description="Ward zone ID"),
+    ambient_temp_c: float = Query(45.0, ge=35.0, le=55.0),
+    outage_hours: float = Query(2.0, ge=0.0, le=24.0)
+):
+    zone = next((z for z in RAIPUR_ZONES if z["id"] == zone_id), None)
+    if not zone:
+        raise HTTPException(status_code=404, detail=f"Zone {zone_id} not found")
+    sim_ctx = {"ambient_temp_c": ambient_temp_c, "outage_hours": outage_hours, "duration_days": 3}
+    pdf_bytes = generate_ward_brief_pdf(zone, sim_ctx)
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=ward_brief_{zone_id}.pdf"}
+    )
+
+# ── 18. Municipal Situation Report (SITREP) PDF Export
+@app.get("/api/v1/reports/sitrep", dependencies=[Depends(verify_api_key)])
+def export_sitrep_pdf(
+    ambient_temp_c: float = Query(45.0, ge=35.0, le=55.0),
+    tripped_substation: Optional[str] = Query(None),
+    budget_lakh: float = Query(60.0, ge=10.0, le=500.0)
+):
+    sim_summary = {
+        "peak_temp_celsius": ambient_temp_c,
+        "peak_demand_mw": 468.0,
+        "disruption_hours_saved": 14.62,
+        "resilience_dividend_pct": 85.6,
+        "tripped_substation": tripped_substation or "None",
+        "budget_lakh": budget_lakh
+    }
+    top_threats = [
+        {"zone_id": "Z05", "zone_name": "Tikrapara", "risk_band": "RED", "threat_score": 0.88, "slum_pct": 0.35, "est_indoor_temp_c": 48.9},
+        {"zone_id": "Z08", "zone_name": "Gudhiyari", "risk_band": "RED", "threat_score": 0.82, "slum_pct": 0.28, "est_indoor_temp_c": 47.8}
+    ]
+    fleet = {"cooling_centre": 5, "power_resilience": 3, "water_tankers": 20, "jal_jeevan": 20}
+    pdf_bytes = generate_sitrep_pdf(sim_summary, top_threats, fleet)
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": "attachment; filename=sitrep_raipur.pdf"}
+    )

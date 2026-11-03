@@ -186,3 +186,4 @@ intervention,INT_05,jal_jeevan,capacity_persons_per_unit,500,persons,ASSUMED,Dai
 intervention,INT_05,jal_jeevan,effectiveness_score,0.40,ratio,ASSUMED,Heuristic hydration relief score,2026-02-15,2024,LOW,Dehydration prevention impact
 intervention,INT_05,jal_jeevan,electricity_required_kw,0.0,kW,ASSUMED,Passive shaded kiosk,2026-02-15,2024,HIGH,Zero grid power required
 intervention,INT_05,jal_jeevan,water_required_kld,8.0,kLD,ASSUMED,Daily drinking water dispense,2026-02-15,2024,MEDIUM,Daily water consumption
+
