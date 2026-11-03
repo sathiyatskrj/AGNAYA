@@ -164,6 +164,7 @@ def root():
             "/api/v1/gridpulse/audit",
             "/api/v1/grid-twin/stress",
             "/api/v1/conductors/ampacity",
+            "/api/v1/demand/ode",
             "/api/v1/tapas/htsi",
             "/api/v1/agents/pipeline",
             "/api/v1/climate/return-periods",
@@ -298,6 +299,30 @@ def get_conductor_ampacity(
         "ambient_temp_celsius": ambient_temp,
         "wind_speed_ms": wind_speed_ms,
         "corridors": corridors,
+        "disclaimer": "SIMULATION ONLY – NOT AN OFFICIAL WARNING"
+    }
+
+# ── 7b. Demand Dynamics Saturating ODE
+@app.get("/api/v1/demand/ode", dependencies=[Depends(verify_api_key)])
+def get_demand_ode(
+    peak_temp_celsius: float = Query(45.0, ge=35.0, le=55.0, description="Peak ambient temperature in °C"),
+    duration_days: int = Query(4, ge=1, le=14, description="Simulation duration in days")
+):
+    import numpy as np
+    dm = DemandModel()
+    t_hours, demand_mw = dm.simulate(T_peak_celsius=peak_temp_celsius, duration_days=duration_days)
+    max_d = float(np.max(demand_mw))
+    shortfall = max(0.0, max_d - CSPDCL_PARAMS["raipur_peak_demand_mw"])
+    return {
+        "peak_temp_celsius": peak_temp_celsius,
+        "duration_days": duration_days,
+        "baseline_demand_mw": CSPDCL_PARAMS["raipur_normal_demand_mw"],
+        "statutory_limit_mw": CSPDCL_PARAMS["raipur_peak_demand_mw"],
+        "emergency_ceiling_mw": CSPDCL_PARAMS["raipur_emergency_cap_mw"],
+        "peak_demand_mw": round(max_d, 1),
+        "shortfall_mw": round(shortfall, 1),
+        "hours": [round(float(t), 1) for t in t_hours],
+        "demand_trajectory_mw": [round(float(d), 1) for d in demand_mw],
         "disclaimer": "SIMULATION ONLY – NOT AN OFFICIAL WARNING"
     }
 

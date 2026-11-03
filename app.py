@@ -3,7 +3,7 @@ AGNAYA - Adaptive Geospatial Network for Heatwave Analytics and Yield Assessment
 Raipur, Chhattisgarh | Municipal & Grid Operations Twin
 
 Synthesized Research Frameworks:
-  - kd365/heatwave-public: 3-Agent Collaborative AI Pipeline & MILP Dispatch
+  - kd365/heatwave-public: Deterministic Multi-Stage Dispatch Pipeline & HiGHS MILP
   - parisproffitt/GridStressDigitalTwin: 7-Stage Progressive Heatwave Timeline & Transformer Thermal Models
   - doaamostafa67988/GridPulse-AI: 5-Component Deterministic Risk Engine & Statutory Audit Reports
   - Nihita49/TAPAS: UTCI Biometeorology, Tin-Roof Heat Trap & Trilingual Public Advisories
@@ -443,10 +443,11 @@ with tab_timeline:
         caption="Insulation degradation rate",
         status="critical" if stage_info['transformer_aging_factor'] >= 4 else "warning"
     )
+    high_stress_wards = sum(1 for w in stage_eval['wards_health'] if w.get('risk_band') in ['SEVERE', 'HIGH'])
     render_metric_card(
-        tk4, "Projected ER admissions", f"{stage_info['hospital_heat_admissions']}", "patients/day",
-        caption="Raipur AIIMS & District Hospital",
-        status="critical" if stage_info['hospital_heat_admissions'] > 80 else "ok"
+        tk4, "High-stress wards", f"{high_stress_wards} / 12", "zones",
+        caption="Zones at High/Severe HSRI",
+        status="critical" if high_stress_wards >= 4 else ("warning" if high_stress_wards > 0 else "ok")
     )
 
     st.markdown('<div class="section-title">Multi-asset parameter progression (Stages 1–7)</div>', unsafe_allow_html=True)
@@ -1069,35 +1070,37 @@ with tab_alerts:
         """, unsafe_allow_html=True)
 
     st.markdown('<div class="section-title">Ward heat vulnerability & indoor thermal trap (TAPAS model)</div>', unsafe_allow_html=True)
-    tapas_res = tapas_eng.compute_ward_htsi(T_peak, power_outage_sim)
+    tapas_res = tapas_eng.compute_ward_hsri(T_peak, power_outage_sim)
     tdf = pd.DataFrame(tapas_res)
+    tdf["primary_drivers"] = tdf["top_drivers"].apply(lambda d: "; ".join(d[:2]) if isinstance(d, list) else str(d))
     st.dataframe(
         tdf[[
             "zone_id", "zone_name", "population", "slum_pct", "tin_roof_penalty_c",
-            "est_indoor_temp_c", "htsi_score", "risk_band", "daily_excess_deaths", "daily_emergency_admissions"
+            "est_indoor_temp_c", "hsri_score", "risk_band", "relative_risk_tier", "primary_drivers"
         ]],
         use_container_width=True,
         hide_index=True,
         column_config={
             "zone_id": st.column_config.TextColumn("ID", width="small"),
-            "zone_name": st.column_config.TextColumn("Ward name"),
+            "zone_name": st.column_config.TextColumn("Zone name"),
             "population": st.column_config.NumberColumn("Population", format="%d"),
-            "slum_pct": st.column_config.ProgressColumn("Slum density", format="%.0f%%", min_value=0.0, max_value=1.0),
+            "slum_pct": st.column_config.NumberColumn("Slum share (%)", format="%.1f%%"),
             "tin_roof_penalty_c": st.column_config.NumberColumn("Tin roof trap", format="+%.1f °C"),
             "est_indoor_temp_c": st.column_config.NumberColumn("Est. indoor temp", format="%.1f °C"),
-            "htsi_score": st.column_config.ProgressColumn("HTSI score", format="%.1f", min_value=0.0, max_value=100.0),
-            "risk_band": st.column_config.TextColumn("Risk level"),
-            "daily_excess_deaths": st.column_config.NumberColumn("Est. excess deaths/day", format="%.1f"),
-            "daily_emergency_admissions": st.column_config.NumberColumn("Est. admissions/day", format="%.0f")
+            "hsri_score": st.column_config.ProgressColumn("Heuristic HSRI", format="%.1f", min_value=0.0, max_value=100.0),
+            "risk_band": st.column_config.TextColumn("Alert Band"),
+            "relative_risk_tier": st.column_config.TextColumn("Relative Risk Tier"),
+            "primary_drivers": st.column_config.TextColumn("Top Stress Drivers")
         }
     )
+    st.caption("⚠️ SIMULATION ONLY – NOT AN OFFICIAL WARNING. Heuristic heat-risk index is uncalibrated clinically. In-situ logger validation pending.")
 
 # ──────────────────────────────────────────────────────────────
 # TAB 7: DISPATCH
 # ──────────────────────────────────────────────────────────────
 with tab_dispatch:
     st.markdown('<div class="section-title">Resource allocation & dispatch</div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-desc">Multi-agent decision pipeline: Spatial climate ingestion &rarr; Threat assessment &rarr; Mixed-Integer Linear Programming (MILP via HiGHS) allocating cooling centers, water tankers, power resilience units, and hospital surge teams.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-desc">Deterministic 3-Stage Dispatch Pipeline: Spatial microclimate ingestion &rarr; Infrastructure threat assessment &rarr; Mixed-Integer Linear Programming (HiGHS MILP) allocating cooling centers, water tankers, power resilience units, and hospital surge teams.</div>', unsafe_allow_html=True)
 
     strat_choice = st.selectbox(
         "Optimization strategy",

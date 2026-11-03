@@ -3,10 +3,13 @@ AGNAYA - Mathematical Models Engine
 Raipur, Chhattisgarh Heatwave Cascade Simulation
 
 Mathematical components:
-  1. Differential equation model: electricity demand dynamics
+  1. Differential equation model: electricity demand dynamics (Saturating ODE)
   2. Network theory: infrastructure dependency graph
   3. Monte Carlo simulation: uncertainty quantification
   4. Optimization: intervention allocation under budget constraint
+
+DISCLAIMER: SIMULATION ONLY – NOT AN OFFICIAL WARNING.
+Not endorsed by IMD, NDMA, CSPDCL, or Raipur Municipal Corporation.
 """
 
 import numpy as np
@@ -14,6 +17,8 @@ import networkx as nx
 from scipy.integrate import odeint
 from scipy.optimize import linprog
 import sys, os
+from typing import Dict, List, Any, Tuple
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from data.raipur_data import (
     RAIPUR_ZONES, RAIPUR_SUBSTATIONS, RAIPUR_WATER_PUMPS,
@@ -23,48 +28,101 @@ from data.raipur_data import (
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 1. DIFFERENTIAL EQUATIONS — Electricity Demand Model
+# 0. COMMON STANDARDIZED EMPIRICAL FUNCTIONS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def calculate_indoor_temp(
+    ambient_temp_c: float,
+    slum_pct: float,
+    green_cover_pct: float,
+    outage_hours: float = 0.0
+) -> float:
+    """
+    Empirical simplified microclimatic indoor temperature estimate.
+    Status: ASSUMED / SIMPLIFIED ESTIMATE PENDING IN-SITU VALIDATION.
+
+    Formula:
+        T_indoor = T_ambient + Delta T_roof - Delta T_canopy + Delta T_outage
+    Where:
+        Delta T_roof   = 4.0 * slum_pct (radiative thermal entrapment under CGI tin roofs)
+        Delta T_canopy = 4.0 * green_cover_pct (vegetative shade buffering)
+        Delta T_outage = min(6.5, 0.8 * outage_hours) (thermal accumulation during mechanical cooling loss)
+    """
+    roof_trap = 4.0 * slum_pct
+    canopy_cooling = 4.0 * green_cover_pct
+    outage_accumulation = min(6.5, 0.8 * max(0.0, outage_hours)) if outage_hours > 0 else 0.0
+    return round(float(ambient_temp_c + roof_trap - canopy_cooling + outage_accumulation), 1)
+
+
+def classify_risk_band(score_0_to_1: float) -> str:
+    """
+    Standardized NDMA 4-tier alert classification for simulation:
+    - LOW (GREEN): score < 0.45
+    - MODERATE (YELLOW): 0.45 <= score < 0.60
+    - HIGH (ORANGE): 0.60 <= score < 0.75
+    - SEVERE (RED): score >= 0.75
+    """
+    if score_0_to_1 >= 0.75:
+        return "SEVERE"
+    if score_0_to_1 >= 0.60:
+        return "HIGH"
+    if score_0_to_1 >= 0.45:
+        return "MODERATE"
+    return "LOW"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 1. DIFFERENTIAL EQUATIONS — Electricity Demand Model (Saturating ODE)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 class DemandModel:
     """
-    Models electricity demand evolution during a heatwave.
+    Models electricity demand evolution during an urban heatwave.
 
-    dD/dt = alpha * (T - T0) - beta * (D - D0)
+    Governing saturating differential equation:
+        dD/dt = alpha * mult * max(0, T(t) - T_set) * (D_cap - D(t)) - gamma * (D(t) - D_base)
 
     Where:
-        D  = electricity demand (MW) at time t
-        T  = ambient temperature (°C) at time t
-        T0 = reference temperature (base_temp_celsius)
-        D0 = baseline demand (MW)
-        alpha = demand sensitivity to temperature (MW/°C)
-        beta  = demand relaxation rate
+        D(t)   = electricity demand (MW) at time t
+        T(t)   = ambient dry-bulb temperature (°C) at time t
+        T_set  = cooling activation threshold (27.0°C)
+        D_base = baseline normal daytime demand (310.0 MW)
+        D_cap  = emergency transmission thermal ceiling (620.0 MW)
+        alpha  = cooling sensitivity growth rate (0.0048 h^-1 °C^-1)
+        gamma  = demand relaxation rate towards baseload (0.08 h^-1)
+        mult   = latent/sensible humidity multiplier (1.12)
 
-    Adapted for Raipur conditions using CSPDCL parameters.
+    Physical Invariants:
+        1. D(t) is strictly bounded in [D_base, D_cap] = [310 MW, 620 MW] for all t.
+        2. Contracted summer peak limit = 420.0 MW (CSPDCL tariff threshold).
+        3. Shortfall = max(0, D(t) - 420.0 MW), indicating unserved load / rolling outage pressure.
     """
     def __init__(self, D0_mw=None):
         p = HEAT_DEMAND_PARAMS
         self.T0 = p["base_temp_celsius"]
         self.alpha = p["alpha"]
-        self.beta = p["beta"]
+        self.gamma = p.get("gamma", 0.08)
+        self.beta = self.gamma  # Alias for backward compatibility
+        self.D_cap = p.get("demand_cap_mw", CSPDCL_PARAMS["raipur_emergency_cap_mw"])
+        self.statutory_limit_mw = CSPDCL_PARAMS["raipur_peak_demand_mw"]  # 420 MW
         self.humidity_mult = p["humidity_multiplier"]
         self.D0 = D0_mw or CSPDCL_PARAMS["raipur_normal_demand_mw"]
 
     def temperature_profile(self, t_hours, T_peak, T_night=None):
-        """Sinusoidal daily temperature profile."""
+        """Sinusoidal daily temperature profile with peak at 15:00."""
         if T_night is None:
             T_night = T_peak - 10.0
-        # Peak at 15:00 (t mod 24 = 15)
-        T_daily = (T_peak + T_night) / 2 + (T_peak - T_night) / 2 * np.sin(
-            2 * np.pi * (t_hours % 24 - 9) / 24
+        T_daily = (T_peak + T_night) / 2.0 + (T_peak - T_night) / 2.0 * np.sin(
+            2.0 * np.pi * (t_hours % 24.0 - 9.0) / 24.0
         )
         return T_daily
 
     def _ode(self, D, t, T_peak, humidity=True):
         T = self.temperature_profile(t, T_peak)
         mult = self.humidity_mult if humidity else 1.0
-        dDdt = self.alpha * mult * (T - self.T0) - self.beta * (D - self.D0)
-        return dDdt
+        cooling_drive = self.alpha * mult * max(0.0, T - self.T0) * (self.D_cap - D)
+        relaxation = self.gamma * (D - self.D0)
+        return cooling_drive - relaxation
 
     def simulate(self, T_peak_celsius, duration_days=4, dt_hours=1.0):
         """
@@ -72,7 +130,7 @@ class DemandModel:
 
         Returns:
             t_hours: time array
-            D_mw: demand array (MW)
+            D_mw: demand array (MW) bounded within [D0, D_cap]
         """
         t_hours = np.arange(0, duration_days * 24, dt_hours)
         D_init = self.D0
@@ -152,13 +210,13 @@ class InfrastructureNetwork:
     def _zone_vulnerability(z):
         """Composite vulnerability index [0, 1]."""
         v = (
-            0.30 * z["vulnerable_elderly_pct"] / 0.18 +
-            0.25 * z["slum_pct"] / 0.42 +
-            0.15 * (1 - z["green_cover_pct"] / 0.25) +
-            0.15 * (1 - z["ac_penetration_pct"]) +
-            0.15 * (z["avg_building_age_yr"] / 40.0)
+            0.30 * min(1.0, z["vulnerable_elderly_pct"] / 0.18) +
+            0.25 * min(1.0, z["slum_pct"] / 0.42) +
+            0.15 * max(0.0, 1.0 - z["green_cover_pct"] / 0.25) +
+            0.15 * max(0.0, 1.0 - z["ac_penetration_pct"]) +
+            0.15 * min(1.0, z["avg_building_age_yr"] / 40.0)
         )
-        return min(1.0, v)
+        return min(1.0, max(0.0, v))
 
     def apply_substation_failure(self, failed_substation_id):
         """
@@ -166,12 +224,10 @@ class InfrastructureNetwork:
         Returns dict of affected nodes and their operational status.
         """
         affected = {}
-        # BFS / DFS from failed node
         descendants = nx.descendants(self.G, failed_substation_id)
         for node in descendants:
             node_data = self.G.nodes[node]
             node_type = node_data.get("type", "unknown")
-            # Check if node has backup
             if node_type == "water_pump":
                 has_backup = node_data["data"].get("backup_generator", False)
                 affected[node] = {"operational": has_backup, "type": node_type}
@@ -219,7 +275,7 @@ class MonteCarloCascade:
     For each simulation:
       - Sample transformer failure probability based on load factor + age + temp
       - Cascade to water, cooling, hospital services
-      - Estimate population exposure and health-service demand
+      - Estimate population exposure to heat-infrastructure stress
     """
     def __init__(self, N_sim=1000, seed=42):
         self.N_sim = N_sim
@@ -231,32 +287,27 @@ class MonteCarloCascade:
         """
         Empirical failure probability formula.
         Based on IEEE transformer aging models adapted for Indian conditions.
-
-        P(fail) = base_rate * age_factor * load_factor * temp_factor
         """
         base_rate = 0.02  # 2% base hourly risk during extreme heat
-        age_factor = 1 + (substation["age_years"] - 15) * 0.03
-        load_factor = np.exp(max(0, load_fraction - 0.85) * 5)
-        temp_factor = np.exp(max(0, temp_celsius - 42) * 0.15)
+        age_factor = 1.0 + (substation["age_years"] - 15.0) * 0.03
+        load_factor = np.exp(max(0.0, load_fraction - 0.85) * 5.0)
+        temp_factor = np.exp(max(0.0, temp_celsius - 42.0) * 0.15)
         has_backup = 0.5 if not substation["backup_transformer"] else 1.0
         prob = min(0.95, base_rate * age_factor * load_factor * temp_factor * has_backup)
-        return prob
+        return float(prob)
 
     def _zone_health_risk(self, zone, indoor_temp, power_available, water_available):
         """
-        Health risk score [0, 1] per zone.
-        Accounts for indoor temperature, elderly population, AC access, infrastructure.
+        Heuristic Heat-Risk Index [0, 1] per zone.
+        Synthesizes vulnerability, thermal stress, and lifeline disruption.
+        Status: SIMULATION HEURISTIC - NOT CLINICALLY VALIDATED.
         """
         v = self.network.G.nodes[zone["id"]]["vulnerability"]
-        # Indoor temp rises when power out and outdoor temp extreme
-        if not power_available:
-            effective_indoor = indoor_temp + 6  # +6°C when no cooling
-        else:
-            effective_indoor = indoor_temp - zone["ac_penetration_pct"] * 8
-        heat_index_risk = min(1.0, max(0, (effective_indoor - 36) / 10))
-        water_penalty = 0.3 if not water_available else 0.0
-        risk = 0.5 * v + 0.35 * heat_index_risk + 0.15 * water_penalty
-        return min(1.0, risk)
+        heat_index_risk = min(1.0, max(0.0, (indoor_temp - 36.0) / 14.0))
+        power_penalty = 0.20 if not power_available else 0.0
+        water_penalty = 0.20 if not water_available else 0.0
+        risk = 0.40 * v + 0.40 * heat_index_risk + power_penalty + water_penalty
+        return min(1.0, max(0.0, risk))
 
     def run(self, T_peak, duration_days, interventions=None):
         """
@@ -276,11 +327,12 @@ class MonteCarloCascade:
         # Simulate demand trajectory
         t_h, D_mw = self.demand_model.simulate(T_peak, duration_days)
         peak_demand = float(np.max(D_mw))
-        cap = CSPDCL_PARAMS["raipur_peak_demand_mw"]
+        cap = CSPDCL_PARAMS["raipur_peak_demand_mw"]  # 420 MW contracted statutory summer limit
+        
         # Power resilience intervention boosts capacity
         if "power_resilience" in interventions:
             cap += interventions["power_resilience"] * INTERVENTION_OPTIONS["power_resilience"]["capacity_mw_per_unit"]
-        demand_shortfall_mw = max(0, peak_demand - cap)
+        demand_shortfall_mw = max(0.0, peak_demand - cap)
 
         results = {
             "power_fail_by_substation": {s["id"]: [] for s in RAIPUR_SUBSTATIONS},
@@ -299,7 +351,6 @@ class MonteCarloCascade:
             sub_failed = {}
             for s in RAIPUR_SUBSTATIONS:
                 cap_derated = self.demand_model.transformer_capacity_at_temp(s, T_peak)
-                # Load fraction increases with overall demand
                 load_frac = s["load_factor_normal"] * (peak_demand / CSPDCL_PARAMS["raipur_normal_demand_mw"])
                 load_frac = min(1.2, load_frac)
                 p_fail = self._transformer_fail_prob(s, load_frac, T_peak)
@@ -310,38 +361,38 @@ class MonteCarloCascade:
             # For each zone assess cascading effects
             for z in RAIPUR_ZONES:
                 power_ok = not sub_failed.get(z["substation"], False)
-                # Power resilience intervention
                 if "power_resilience" in interventions and not power_ok:
                     power_ok = self.rng.random() < 0.7  # 70% restoration chance
 
                 if not power_ok:
                     sim_wards_severed += 1
 
-                # Water availability (depends on electricity to pumps)
+                # Water availability
                 wp = next(w for w in RAIPUR_WATER_PUMPS if w["id"] == z["water_pump"])
                 sub_for_water = wp["electricity_dependency"]
                 water_sub_ok = not sub_failed.get(sub_for_water, False)
                 water_ok = water_sub_ok or wp["backup_generator"]
-                # Water tanker intervention
                 if "water_tankers" in interventions and not water_ok:
                     water_ok = True
 
-                # Estimate indoor temperature
-                outdoor = T_peak - self.rng.uniform(0, 3)
-                indoor_temp = outdoor - z["green_cover_pct"] * 5
-                if not power_ok:
-                    indoor_temp += 5 + self.rng.uniform(0, 3)
+                # Estimate indoor temperature using unified formula
+                outage_h = 3.0 if not power_ok else 0.0
+                indoor_temp = calculate_indoor_temp(
+                    ambient_temp_c=T_peak - self.rng.uniform(0.0, 1.5),
+                    slum_pct=z["slum_pct"],
+                    green_cover_pct=z["green_cover_pct"],
+                    outage_hours=outage_h
+                )
 
                 # Cooling centre coverage
                 cc_effective = False
                 if "cooling_centre" in interventions:
                     units = interventions["cooling_centre"]
-                    coverage_prob = min(1.0, units * 200 / (z["population"] * 0.05))
+                    coverage_prob = min(1.0, units * 200.0 / (z["population"] * 0.05))
                     cc_effective = self.rng.random() < coverage_prob
 
-                # Adjust indoor temp if cooling centre available
                 if cc_effective:
-                    indoor_temp -= 3
+                    indoor_temp -= 2.5
 
                 risk = self._zone_health_risk(z, indoor_temp, power_ok, water_ok)
                 results["health_risk_zone"][z["id"]].append(risk)
@@ -349,37 +400,37 @@ class MonteCarloCascade:
                 water_disruption = int(not water_ok)
                 results["water_disruption_zone"][z["id"]].append(water_disruption)
 
-                if risk > 0.6:
+                if risk > 0.60:
                     sim_pop_risk += z["population"] * risk
 
             results["wards_severed"].append(sim_wards_severed)
 
             # Hospital demand surge
-            total_high_risk_pop = sim_pop_risk
             for h in RAIPUR_HOSPITALS:
                 served_pop = sum(
                     z["population"]
                     for z in RAIPUR_ZONES if z["id"] in h["serves_zones"]
                 )
-                # 1 per 1000 population needs emergency at extreme heat
-                expected_er = served_pop * 0.001 * (T_peak - 40) / 5
-                # Add stochastic variation
-                actual_er = self.rng.poisson(max(0, expected_er))
-                # Hospital surge intervention
+                expected_er = served_pop * 0.001 * max(0.0, (T_peak - 40.0) / 5.0)
+                actual_er = self.rng.poisson(max(0.0, expected_er))
                 surge_cap = h["emergency_capacity"]
                 if "hospital_surge" in interventions:
                     surge_cap += interventions["hospital_surge"] * INTERVENTION_OPTIONS["hospital_surge"]["beds_per_unit"]
                 overloaded = int(actual_er > surge_cap)
                 results["hospital_overload"][h["id"]].append(overloaded)
 
-            results["population_at_high_risk"].append(total_high_risk_pop)
+            results["population_at_high_risk"].append(sim_pop_risk)
 
         # Summarize results
         summary = {
+            "disclaimer": "SIMULATION ONLY – NOT AN OFFICIAL WARNING",
             "T_peak": T_peak,
             "duration_days": duration_days,
-            "peak_demand_mw": peak_demand,
-            "demand_shortfall_mw": demand_shortfall_mw,
+            "baseline_demand_mw": CSPDCL_PARAMS["raipur_normal_demand_mw"],
+            "statutory_limit_mw": CSPDCL_PARAMS["raipur_peak_demand_mw"],
+            "emergency_ceiling_mw": CSPDCL_PARAMS["raipur_emergency_cap_mw"],
+            "peak_demand_mw": round(peak_demand, 1),
+            "demand_shortfall_mw": round(demand_shortfall_mw, 1),
             "interventions": interventions,
             "substation_failure_prob": {
                 sid: float(np.mean(vals))
@@ -394,6 +445,7 @@ class MonteCarloCascade:
                     "mean": float(np.mean(vals)),
                     "p10": float(np.percentile(vals, 10)),
                     "p90": float(np.percentile(vals, 90)),
+                    "risk_band": classify_risk_band(float(np.mean(vals)))
                 }
                 for zid, vals in results["health_risk_zone"].items()
             },
@@ -429,11 +481,8 @@ class MonteCarloCascade:
 class InterventionOptimizer:
     """
     Solves the constrained optimization problem:
-
         min_x  E[L(x)]   subject to  Cost(x) <= B
-
     Where x is a vector of integer intervention counts.
-    Uses linear relaxation + rounding for tractability.
     """
     def __init__(self, budget_lakh=50.0, N_sim=150):
         self.budget = budget_lakh
@@ -457,7 +506,6 @@ class InterventionOptimizer:
         Returns list of Pareto-efficient solutions.
         """
         baseline_risk = self._compute_baseline_risk(T_peak, duration_days)
-
         candidates = []
 
         # Single-type interventions
@@ -472,11 +520,11 @@ class InterventionOptimizer:
                     "interventions": combo,
                     "cost_lakh": cost,
                     "risk_population": risk,
-                    "risk_reduction_pct": 100 * (baseline_risk - risk) / max(baseline_risk, 1),
+                    "risk_reduction_pct": 100.0 * (baseline_risk - risk) / max(baseline_risk, 1.0),
                     "summary": summary,
                 })
 
-        # Multi-type combinations (top-2 types)
+        # Multi-type combinations (top priority combinations)
         priority_combos = [
             {"power_resilience": 1, "cooling_centre": 2},
             {"power_resilience": 2, "water_tankers": 3},
@@ -494,7 +542,7 @@ class InterventionOptimizer:
                 "interventions": combo,
                 "cost_lakh": cost,
                 "risk_population": risk,
-                "risk_reduction_pct": 100 * (baseline_risk - risk) / max(baseline_risk, 1),
+                "risk_reduction_pct": 100.0 * (baseline_risk - risk) / max(baseline_risk, 1.0),
                 "summary": summary,
             })
 
@@ -528,11 +576,12 @@ def compute_zone_risk_table(T_peak, interventions=None):
             "Zone Name": z["name"],
             "Population": z["population"],
             "Vulnerability Index": round(vuln, 3),
-            "Power Failure Prob (%)": round(sub_fail_p * 100, 1),
-            "Water Disruption Prob (%)": round(water_fail_p * 100, 1),
+            "Power Failure Prob (%)": round(sub_fail_p * 100.0, 1),
+            "Water Disruption Prob (%)": round(water_fail_p * 100.0, 1),
             "Health Risk Score": round(health_risk, 3),
-            "Slum Population (%)": round(z["slum_pct"] * 100, 1),
-            "AC Penetration (%)": round(z["ac_penetration_pct"] * 100, 1),
-            "Elderly (%)": round(z["vulnerable_elderly_pct"] * 100, 1),
+            "Risk Band": classify_risk_band(health_risk),
+            "Slum Population (%)": round(z["slum_pct"] * 100.0, 1),
+            "AC Penetration (%)": round(z["ac_penetration_pct"] * 100.0, 1),
+            "Elderly (%)": round(z["vulnerable_elderly_pct"] * 100.0, 1),
         })
     return rows, summary

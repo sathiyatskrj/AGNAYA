@@ -78,13 +78,13 @@ class TransformerDigitalTwin:
         hotspot_rise = self.delta_theta_h_rated * (load_ratio ** self.winding_exponent_n)
         hotspot_temp = top_oil_temp + hotspot_rise
 
-        # IEEE relative aging acceleration factor (Normal life = 1.0 at 110°C hotspot)
-        if hotspot_temp > 80.0:
-            aging_factor = np.exp((15000.0 / 383.15) - (15000.0 / (hotspot_temp + 273.15)))
-        else:
-            aging_factor = 0.1
+        # IEEE Std C57.91-2011 Clause 7 Relative Aging Acceleration Factor F_AA
+        # Reference insulation life: 1.0 at 110.0°C (383.15 K) winding hot-spot temperature.
+        # F_AA = exp[ 15000 / 383.15 - 15000 / (Theta_H + 273.15) ]
+        theta_h_k = hotspot_temp + 273.15
+        aging_factor = float(np.exp((15000.0 / 383.15) - (15000.0 / theta_h_k)))
 
-        # Insulation life consumption per hour (nominal life = 180,000 hours)
+        # Insulation life consumption per 24h (Normal life expectancy = 180,000 hours per Clause 7)
         loss_of_life_pct_per_day = (aging_factor * 24.0 / 180000.0) * 100.0
 
         return {

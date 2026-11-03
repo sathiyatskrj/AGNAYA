@@ -1,7 +1,10 @@
 """
-AGNAYA - TAPAS Heat-Health Stress Index & Heat Action Plan (HAP) Engine
-Inspired by TAPAS (Nihita49) and the Ahmedabad Heat Action Plan (HAP)
-Customized for Raipur Municipal Corporation (RMC) demographics and housing profiles.
+AGNAYA - Heuristic Heat-Risk Index (HSRI) & Heat Action Plan (HAP) Engine
+Synthesizing urban heat risk frameworks (Nature Scientific Reports 2026, Kacker et al.; NDMA HAP Guidelines).
+Customized for Raipur Municipal Corporation (RMC) illustrative planning zones.
+
+DISCLAIMER: SIMULATION ONLY – NOT AN OFFICIAL WARNING.
+Not clinically calibrated or endorsed by IMD, NDMA, RMC, or Health Department.
 """
 
 import numpy as np
@@ -10,10 +13,11 @@ import sys, os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from data.raipur_data import RAIPUR_ZONES, RAIPUR_CLIMATE
+from models.cascade_model import calculate_indoor_temp, classify_risk_band
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 1. HEAT ACTION PLAN (HAP) ACTION LIBRARY
+# 1. HEAT ACTION PLAN (HAP) ACTION LIBRARY (NDMA Protocol Alignment)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 HAP_MEASURES = {
@@ -69,7 +73,7 @@ HAP_MEASURES = {
     }
 }
 
-# Color band aliases for IMD & HAP interoperability
+# Aliases for NDMA color codes
 for section in ["admin", "public"]:
     HAP_MEASURES[section]["RED"] = HAP_MEASURES[section]["SEVERE"]
     HAP_MEASURES[section]["ORANGE"] = HAP_MEASURES[section]["HIGH"]
@@ -77,27 +81,30 @@ for section in ["admin", "public"]:
     HAP_MEASURES[section]["GREEN"] = HAP_MEASURES[section]["LOW"]
 
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
-# 2. HTSI: HAZARD, VULNERABILITY, EXPOSURE & ADAPTIVE CAPACITY
+# 2. HEURISTIC HEAT-RISK INDEX (HSRI)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 class TapasHealthEngine:
     """
-    Computes ward-level Heat-Health Stress Index (HTSI):
-        HTSI = (Hazard * Vulnerability * Exposure) / Adaptive_Capacity
+    Computes zone-level Heuristic Heat-Risk Index (HSRI):
+        HSRI = f(Hazard, Exposure, Vulnerability, Adaptive_Capacity)
+    Synthesized from the urban heat stress risk framework (Kacker et al., Nature Sci Rep 2026).
 
-    Incorporates tin-roof/kutcha housing thermal entrapment factors
-    and estimates excess heat-attributable mortality & hospital admissions.
+    Status: SIMULATION HEURISTIC - NOT CLINICALLY VALIDATED.
     """
     def __init__(self):
-        self.normal_tmax = RAIPUR_CLIMATE.get("avg_max_temp_may", 42.4)  # 42.4°C
+        self.normal_tmax = RAIPUR_CLIMATE.get("avg_max_temp_may", 42.5)
 
-    def compute_ward_htsi(self, ambient_temp_c: float, power_outage_hours: float = 0.0) -> List[Dict[str, Any]]:
+    def compute_ward_hsri(
+        self,
+        ambient_temp_c: float,
+        power_outage_hours: float = 0.0
+    ) -> List[Dict[str, Any]]:
         """
-        Calculates HTSI and public health risk for all Raipur zones.
+        Calculates HSRI, contributing stress drivers, and relative risk tiers for all zones.
         """
-        # 1. Hazard (H): driven by temperature departure above seasonal normal
+        # 1. Hazard (H): Departure above seasonal climatological baseline
         temp_departure = max(0.0, ambient_temp_c - self.normal_tmax)
         anomaly_factor = min(1.0, temp_departure / 5.0)  # max at +5°C departure
         heat_surge = min(1.0, max(0.0, (ambient_temp_c - 38.0) / 10.0))
@@ -107,70 +114,89 @@ class TapasHealthEngine:
         for z in RAIPUR_ZONES:
             pop = z["population"]
 
-            # 2. Exposure (E): Scaled to citywide population and slum proportion
+            # 2. Exposure (E): Population density & informal settlement share
             density_score = min(1.0, pop / 90000.0)
             slum_share = z["slum_pct"]
             E = min(1.0, 0.50 * density_score + 0.50 * slum_share)
 
-            # 3. Vulnerability (V): Elderly proportion, chronic illness, and kutcha/tin-roof housing
+            # 3. Vulnerability (V): Elderly demographics & uninsulated CGI tin roofs
             elderly_score = min(1.0, z["vulnerable_elderly_pct"] / 0.18)
             kutcha_roof_factor = slum_share
             V = min(1.0, 0.35 * elderly_score + 0.65 * kutcha_roof_factor)
 
-            # 4. Adaptive Capacity (AC): AC penetration, canopy cover, backup infrastructure
+            # 4. Adaptive Capacity (AC): AC access, canopy cover, power continuity
             ac_pen = z["ac_penetration_pct"]
             green_cover = z["green_cover_pct"]
             power_factor = max(0.15, 1.0 - (power_outage_hours / 12.0))
             AC = max(0.15, min(0.95, 0.50 * ac_pen * power_factor + 0.35 * green_cover + 0.15 * 0.5))
 
-            # 5. Composite HTSI (Standardized 0 to 100 index with clear ward differentiation)
-            htsi_score = round(min(96.0, max(15.0, 100.0 * (0.35 * H + 0.25 * E + 0.25 * V + 0.15 * (1.0 - AC)))), 1)
+            # 5. Composite HSRI Score [0, 100]
+            hsri_score = round(min(96.0, max(15.0, 100.0 * (0.35 * H + 0.25 * E + 0.25 * V + 0.15 * (1.0 - AC)))), 1)
 
-            # Risk Classification
-            if htsi_score >= 68.0:
+            # Standardized Risk Classification
+            if hsri_score >= 68.0:
                 band = "SEVERE"
-            elif htsi_score >= 58.0:
+                relative_tier = "CRITICAL / RED"
+            elif hsri_score >= 58.0:
                 band = "HIGH"
-            elif htsi_score >= 45.0:
+                relative_tier = "HIGH / ORANGE"
+            elif hsri_score >= 45.0:
                 band = "MODERATE"
+                relative_tier = "ELEVATED / YELLOW"
             else:
                 band = "LOW"
+                relative_tier = "GUARDED / GREEN"
 
-            # 6. Excess Public Health Outcomes (Epidemiological models for Indian heatwaves)
-            # Baseline mortality rate in urban India: ~7 per 1,000 population per year (~0.019 per 1,000 per day)
-            base_daily_deaths_per_100k = 1.9
-            # Relative Risk (RR) scales exponentially with HTSI
-            relative_risk_mortality = 1.0 + (htsi_score / 100.0) ** 1.8 * 0.85
-            excess_deaths_est = max(0.0, (pop / 100000.0) * base_daily_deaths_per_100k * (relative_risk_mortality - 1.0))
+            # 6. Standardized Microclimatic Indoor Temperature
+            indoor_temp_estimate = calculate_indoor_temp(
+                ambient_temp_c=ambient_temp_c,
+                slum_pct=slum_share,
+                green_cover_pct=green_cover,
+                outage_hours=power_outage_hours
+            )
 
-            # Heat-related emergency hospitalizations (~8x to 12x of heat deaths)
-            excess_hospitalizations_est = excess_deaths_est * 9.5
-
-            # Indoor temperature trap estimate
-            # Without power/cooling and with tin roof, indoor temperature rises drastically
-            indoor_temp_estimate = ambient_temp_c + (4.0 * kutcha_roof_factor) - (green_cover * 4.0)
+            # 7. Identify Top Contributing Stress Factors
+            drivers = []
+            if slum_share >= 0.25:
+                drivers.append("High CGI tin-roof heat entrapment")
+            if z["vulnerable_elderly_pct"] >= 0.11:
+                drivers.append("Elderly population vulnerability")
+            if ac_pen <= 0.20:
+                drivers.append("Low mechanical cooling penetration")
+            if green_cover <= 0.08:
+                drivers.append("Low urban vegetative shade")
             if power_outage_hours > 0:
-                indoor_temp_estimate += min(6.5, power_outage_hours * 0.8)
+                drivers.append(f"Active grid outage ({power_outage_hours:.1f}h)")
+            if not drivers:
+                drivers.append("Ambient atmospheric heat accumulation")
 
             results.append({
                 "zone_id": z["id"],
                 "zone_name": z["name"],
                 "population": pop,
-                "slum_pct": round(slum_share * 100, 1),
-                "ac_pct": round(ac_pen * 100, 1),
+                "slum_pct": round(slum_share * 100.0, 1),
+                "ac_pct": round(ac_pen * 100.0, 1),
+                "green_cover_pct": round(green_cover * 100.0, 1),
+                "elderly_pct": round(z["vulnerable_elderly_pct"] * 100.0, 1),
                 "hazard_H": round(H, 3),
                 "exposure_E": round(E, 3),
                 "vulnerability_V": round(V, 3),
                 "adaptive_capacity_AC": round(AC, 3),
-                "htsi_score": round(htsi_score, 1),
+                "hsri_score": round(hsri_score, 1),
+                "htsi_score": round(hsri_score, 1),  # Backward compatibility alias
                 "risk_band": band,
-                "relative_risk": round(relative_risk_mortality, 2),
-                "daily_excess_deaths": round(excess_deaths_est, 1),
-                "daily_emergency_admissions": round(excess_hospitalizations_est, 1),
-                "tin_roof_penalty_c": round(4.0 * kutcha_roof_factor, 1),
+                "relative_risk_tier": relative_tier,
+                "top_drivers": drivers,
+                "daily_excess_deaths": 0.0,  # Suppressed from primary UI: uncalibrated heuristic
+                "daily_emergency_admissions": 0.0,  # Suppressed from primary UI: uncalibrated heuristic
+                "tin_roof_penalty_c": round(4.0 * slum_share, 1),
                 "est_indoor_temp_c": round(indoor_temp_estimate, 1),
                 "admin_actions": HAP_MEASURES["admin"][band],
-                "public_advisories": HAP_MEASURES["public"][band]
+                "public_advisories": HAP_MEASURES["public"][band],
+                "disclaimer": "SIMULATION ONLY – NOT AN OFFICIAL WARNING / NOT CLINICALLY VALIDATED"
             })
 
         return results
+
+    # Backward compatibility alias
+    compute_ward_htsi = compute_ward_hsri
