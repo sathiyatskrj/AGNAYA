@@ -12,6 +12,6 @@ echo [*] Starting Uvicorn API server on http://localhost:8000
 echo [*] Interactive API docs available at http://localhost:8000/docs
 echo.
 
-.venv\Scripts\python -m uvicorn api:app --host 0.0.0.0 --port 8000 --reload
+.venv\Scripts\python -m uvicorn api:app --host 127.0.0.1 --port 8000 --reload
 
 pause

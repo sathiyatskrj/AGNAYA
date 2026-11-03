@@ -33,8 +33,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
-# Authenticated CARTO Basemaps API Key
-CARTO_KEY = "cb1_4luv_1_702fe094ac8114d4005f2fa3"
+# Centralized Configuration & Basemap Fallbacks
+from config import settings
 
 from data.raipur_data import (
     RAIPUR_ZONES, RAIPUR_SUBSTATIONS, RAIPUR_WATER_PUMPS,
@@ -544,8 +544,16 @@ with tab_map:
         control_scale=True,
     )
 
+    # Basemap tile URLs with keyless fallback
+    if settings.CARTO_API_KEY:
+        dark_tiles = f"https://basemaps.cartocdn.com/rastertiles/dark_all/{{z}}/{{x}}/{{y}}.png?key={settings.CARTO_API_KEY}"
+        light_tiles = f"https://basemaps.cartocdn.com/rastertiles/light_all/{{z}}/{{x}}/{{y}}.png?key={settings.CARTO_API_KEY}"
+    else:
+        dark_tiles = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
+        light_tiles = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
+
     folium.TileLayer(
-        tiles=f"https://basemaps.cartocdn.com/rastertiles/dark_all/{{z}}/{{x}}/{{y}}.png?key={CARTO_KEY}",
+        tiles=dark_tiles,
         attr='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
         name="CARTO Dark Matter (Muted)",
         max_zoom=19,
@@ -555,11 +563,20 @@ with tab_map:
     ).add_to(m)
 
     folium.TileLayer(
-        tiles=f"https://basemaps.cartocdn.com/rastertiles/light_all/{{z}}/{{x}}/{{y}}.png?key={CARTO_KEY}",
+        tiles=light_tiles,
         attr='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
         name="CARTO Positron (Light)",
         max_zoom=19,
         subdomains="abcd",
+        overlay=False,
+        control=True,
+    ).add_to(m)
+
+    folium.TileLayer(
+        tiles="https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        attr='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        name="OpenStreetMap Standard (Keyless)",
+        max_zoom=19,
         overlay=False,
         control=True,
     ).add_to(m)

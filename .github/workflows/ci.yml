@@ -7,9 +7,24 @@ on:
     branches: [ main ]
 
 jobs:
+  security:
+    name: Secret Scanning & Credential Exposure Detection
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Run Gitleaks Secret Scanner
+      uses: gitleaks/gitleaks-action@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   test:
     name: Verify 12-Stage Multi-Model Digital Twin Core
     runs-on: ubuntu-latest
+    needs: [security]
     strategy:
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
@@ -35,4 +50,4 @@ jobs:
 
     - name: Verify FastAPI Microservice Compilation
       run: |
-        python -m py_compile api.py app.py agnaya_launcher.py
+        python -m py_compile config.py api.py app.py agnaya_launcher.py

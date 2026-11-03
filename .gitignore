@@ -4,12 +4,20 @@ venv/
 env/
 ENV/
 
+# Secrets & Environment Variables
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
 # Python cache & compiled files
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .pytest_cache/
+.coverage
+htmlcov/
 
 # Executables & Build Artifacts (Large binaries)
 build/
