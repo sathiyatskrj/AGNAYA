@@ -40,7 +40,9 @@ from data.raipur_data import (
     RAIPUR_ZONES, RAIPUR_SUBSTATIONS, RAIPUR_WATER_PUMPS,
     RAIPUR_HOSPITALS, RAIPUR_CLIMATE, HISTORICAL_HEATWAVES,
     INTERVENTION_OPTIONS, COOLING_CENTRES, CSPDCL_PARAMS,
+    get_asset_registry, get_provenance_summary, TERMINOLOGY_DEFINITIONS,
 )
+from data.weather_feed import get_current_raipur_weather
 from models.cascade_model import (
     DemandModel, InfrastructureNetwork, MonteCarloCascade,
     InterventionOptimizer, compute_zone_risk_table,
@@ -174,14 +176,44 @@ with st.sidebar:
     else:
         def_temp, def_rh, def_dur, def_out, def_trip = 45.5, 35.0, 4, 2.0, 0
 
+    st.markdown('<div class="sidebar-section-heading">Open-Meteo Weather Feed</div>', unsafe_allow_html=True)
+    live_wx = get_current_raipur_weather()
+    is_synth = live_wx.get("is_synthetic_fallback", False)
+    wx_badge_cls = "status-badge-ok" if not is_synth else "status-badge-warning"
+    wx_label = "OPEN-METEO NWP" if not is_synth else "SYNTHETIC/FALLBACK"
+    wx_time = (live_wx.get("retrieval_timestamp") or "N/A")[:19].replace("T", " ")
+
+    st.markdown(f"""
+    <div style="background:#161920;border:1px solid #262A33;border-radius:6px;padding:9px 11px;margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:11px;font-weight:600;color:#9CA3AF;">GRIDDED MODEL</span>
+        <span class="status-badge {wx_badge_cls}" style="font-size:10px;padding:1px 5px;">{wx_label}</span>
+      </div>
+      <div style="font-size:13px;color:#F3F4F6;font-weight:600;">
+        {live_wx.get('temperature_c', 42.5):.1f}°C &middot; {live_wx.get('relative_humidity_pct', 35.0):.0f}% RH &middot; {live_wx.get('wind_speed_ms', 2.8):.1f} m/s
+      </div>
+      <div style="font-size:10.5px;color:#6B7280;margin-top:4px;line-height:1.35;">
+        Retrieved: {wx_time} UTC<br/>
+        <i>Gridded NWP (21.25°N, 81.63°E). NOT official IMD station data.</i>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if st.button("Sync Sliders with Open-Meteo Feed", use_container_width=True):
+        st.session_state["slider_temp"] = float(live_wx.get("temperature_c", 42.5))
+        st.session_state["slider_rh"] = float(live_wx.get("relative_humidity_pct", 35.0))
+        st.rerun()
+
     st.markdown('<div class="sidebar-section-heading">Meteorological conditions</div>', unsafe_allow_html=True)
+    cur_temp_val = st.session_state.get("slider_temp", float(def_temp))
+    cur_rh_val = st.session_state.get("slider_rh", float(def_rh))
     T_peak = st.slider(
-        "Peak daytime temperature (°C)", 38.0, 50.0, float(def_temp), 0.5,
-        help="Forecasted maximum dry-bulb temperature recorded at Raipur IMD station #42809."
+        "Peak daytime temperature (°C)", 38.0, 50.0, float(cur_temp_val), 0.5,
+        help="Simulated maximum dry-bulb temperature. Reference IMD all-time record: 47.9°C (May 28, 2024)."
     )
     rel_humidity = st.slider(
-        "Relative humidity (%)", 15.0, 80.0, float(def_rh), 5.0,
-        help="Afternoon ambient humidity; affects wet-bulb globe temperature and heat index."
+        "Relative humidity (%)", 15.0, 80.0, float(cur_rh_val), 5.0,
+        help="Afternoon ambient relative humidity; affects wet-bulb globe temperature and heat index."
     )
     duration_days = st.slider(
         "Heatwave duration (days)", 1, 10, int(def_dur),
@@ -214,13 +246,15 @@ with st.sidebar:
         help="Total municipal contingency funds allocated for heat mitigation assets."
     )
 
-    st.markdown("""
-    <div style="font-size:11.5px;color:#6B7280;margin-top:24px;padding-top:12px;border-top:1px solid #262A33;line-height:1.45;">
-      <b>Data Grounding:</b><br/>
-      • CSERC Tariff Order FY 2024–25<br/>
-      • CSPTCL Substation Records<br/>
-      • IMD Raipur Normals (1970–2024)<br/>
-      • Census of India 2011 (RMC)
+    prov_sum = get_provenance_summary()
+    st.markdown(f"""
+    <div style="font-size:11.5px;color:#9CA3AF;margin-top:20px;padding:10px;background:#161920;border:1px solid #262A33;border-radius:6px;line-height:1.45;">
+      <b style="color:#F3F4F6;">Data Provenance Audit Matrix:</b><br/>
+      • Total Parameters Audited: <b>{prov_sum.get('total_parameters_audited', 187)}</b><br/>
+      • Verified (CSERC/IMD): <b>{prov_sum.get('status_breakdown', {}).get('VERIFIED', 0)}</b><br/>
+      • Derived (GIS/Census): <b>{prov_sum.get('status_breakdown', {}).get('DERIVED', 0)}</b><br/>
+      • Assumed (Rules/Norms): <b>{prov_sum.get('status_breakdown', {}).get('ASSUMED', 0)}</b><br/>
+      <span style="font-size:10.5px;color:#6B7280;">See data/DATA_SOURCES.csv</span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -260,7 +294,7 @@ st.markdown(f"""
     {logo_html}
     <div>
       <h1 class="app-title">AGNAYA — Heatwave & Grid Digital Twin</h1>
-      <p class="app-subtitle">Raipur Municipal Corporation &middot; Chhattisgarh State Power Distribution Company Ltd (CSPDCL)</p>
+      <p class="app-subtitle">Decision-Support Simulation Prototype &middot; Calibrated to Raipur, Chhattisgarh Infrastructure &middot; SIMULATION ONLY</p>
     </div>
   </div>
   <div class="app-header-status">
@@ -276,7 +310,22 @@ st.markdown(f"""
     </div>
   </div>
 </div>
+
+<div class="banner-simulation" style="background:#1A1E26;border-left:4px solid #F59E0B;padding:9px 14px;margin:12px 0 16px 0;border-radius:4px;font-size:12px;color:#D1D5DB;line-height:1.45;">
+  <b>SIMULATION ONLY – NOT AN OFFICIAL WARNING.</b> All models, forecasts, risk tiers, and resource allocations are research approximations for municipal planning. Not endorsed by IMD, NDMA, RMC, or CSPDCL/CSPTCL.
+</div>
 """, unsafe_allow_html=True)
+
+with st.expander("📖 Data Provenance Matrix & Terminology Guidelines (IMD / NDMA / CSERC)", expanded=False):
+    st.markdown("""
+| Terminology | Definition & Source Boundary | Application in AGNAYA | Statutory Authority |
+| :--- | :--- | :--- | :--- |
+| **OBSERVED** | Physical ground-truth measurements recorded by statutory monitoring networks. | IMD Station #42809 records (all-time peak 47.9°C on May 28, 2024); CSERC FY24-25 tariff filings. | India Meteorological Department (IMD) |
+| **FORECAST** | Gridded numerical weather prediction (NWP) model outputs from Open-Meteo API. | Hourly temperature, humidity, and irradiance at 21.2514° N, 81.6296° E (30-min cache). NOT official IMD station telemetry. | Open-Meteo NWP (Gridded Model) |
+| **USER HYPOTHETICAL** | What-if scenario parameters selected via sliders or test suites to evaluate stress limits. | Scenario sliders (38°C–50°C, outage duration, N-1 substation trip contingency). | User-selected stress scenario |
+| **MODEL-CLASSIFIED** | Algorithmic risk tiers and stress indices computed by deterministic physics and engineering models. | Heuristic Heat-Risk Index (HSRI), IEEE Std C57.91 transformer thermal aging acceleration ($F_{AA}$). | Deterministic algorithms (Uncalibrated) |
+| **OFFICIAL WARNING** | **NEVER PRODUCED BY THIS TOOL.** Statutory red/orange warnings, heatwave alerts, or evacuation directives. | Explicitly prohibited by core system rules. All outputs carry mandatory simulation disclaimers. | **IMD / NDMA / SEC / DDMA Exclusively** |
+""")
 
 # ══════════════════════════════════════════════════════════════
 # THE 9 REFINED OPERATIONAL TABS
@@ -529,8 +578,8 @@ with tab_timeline:
 # TAB 3: MAP
 # ──────────────────────────────────────────────────────────────
 with tab_map:
-    st.markdown('<div class="section-title">Geospatial risk digital twin</div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-desc">Grounded GIS layout of Raipur: 220/132/33 kV transmission lines, substation transformers, water treatment plants, emergency hospitals, and municipal wards.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Geospatial Risk Digital Twin (Simulated)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-desc">Illustrative GIS layout of Raipur: 220/132/33 kV transmission corridors, substation transformers, water treatment plants, emergency hospitals, and aggregated illustrative planning zones.</div>', unsafe_allow_html=True)
 
     tapas_eng = TapasHealthEngine()
     htsi_data = {w["zone_id"]: w for w in tapas_eng.compute_ward_htsi(T_peak, power_outage_sim)}
@@ -719,7 +768,7 @@ with tab_map:
         components.html(m._repr_html_(), height=620, scrolling=False)
 
     with col_side:
-        st.markdown('<div class="section-title">Substation SCADA telemetry</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">Substation Grid Status (Simulated)</div>', unsafe_allow_html=True)
         for s in RAIPUR_SUBSTATIONS:
             se = sub_eval.get(s["id"], {})
             is_t = (s["id"] == tripped_id)
@@ -738,6 +787,44 @@ with tab_map:
               </div>
             </div>
             """, unsafe_allow_html=True)
+
+    # Map Legend & Asset Registry Check
+    st.markdown("""
+    <div style="background:#161920;border:1px solid #262A33;border-radius:6px;padding:12px;margin-top:16px;">
+      <div style="font-size:12px;font-weight:600;color:#F3F4F6;margin-bottom:6px;">MAP LEGEND & ASSET TOPOLOGY STATUS</div>
+      <div style="display:flex;flex-wrap:wrap;gap:14px;font-size:11.5px;color:#9CA3AF;">
+        <span><b style="color:#EF4444;">&bull; Red:</b> Tripped (N-1) Contingency</span>
+        <span><b style="color:#F59E0B;">&bull; Orange:</b> Thermal Overload (Hotspot &gt; 115°C or Load &gt; 90%)</span>
+        <span><b style="color:#10B981;">&bull; Green:</b> Normal Operations</span>
+        <span><b style="color:#3B82F6;">&bull; Water Drops:</b> WTP / Boosting Station (WP01 Kharun 180 MLD is Verified Physical)</span>
+        <span><b style="color:#9CA3AF;">&bull; Plus Markers:</b> Emergency Healthcare (H01 Dr. Ambedkar 880 beds is Verified Physical)</span>
+        <span><b style="color:#A78BFA;">&bull; Polygons:</b> Illustrative Planning Zones (Aggregated Planning Areas)</span>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    with st.expander("🔍 Asset Registry Verification Checklist (Substations, WTPs & Hospitals)", expanded=False):
+        reg_items = get_asset_registry()
+        reg_df_map = pd.DataFrame(reg_items)
+        st.dataframe(
+            reg_df_map[[
+                "asset_id", "name", "asset_class", "is_real_identifiable_asset",
+                "capacity_display", "capacity_status", "link_type", "status", "confidence"
+            ]],
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "asset_id": st.column_config.TextColumn("ID", width="small"),
+                "name": st.column_config.TextColumn("Asset Name"),
+                "asset_class": st.column_config.TextColumn("Class"),
+                "is_real_identifiable_asset": st.column_config.CheckboxColumn("Physical Asset?"),
+                "capacity_display": st.column_config.TextColumn("Capacity / Sizing"),
+                "capacity_status": st.column_config.TextColumn("Capacity Certainty"),
+                "link_type": st.column_config.TextColumn("Topology Link"),
+                "status": st.column_config.TextColumn("Data Provenance"),
+                "confidence": st.column_config.TextColumn("Confidence"),
+            }
+        )
 
 # ──────────────────────────────────────────────────────────────
 # TAB 4: POWER FLOW
@@ -902,7 +989,7 @@ with tab_substations:
         status="warning" if tripped_id else "ok"
     )
 
-    st.markdown('<div class="section-title">Substation digital twin telemetry</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Substation Digital Twin Status (Simulated)</div>', unsafe_allow_html=True)
     sub_df = pd.DataFrame(sub_eval_list)
     st.dataframe(
         sub_df[[
@@ -946,6 +1033,29 @@ with tab_substations:
             "normal_flow_mw": st.column_config.NumberColumn("Flow (MW)", format="%.1f"),
             "loading_percentage": st.column_config.ProgressColumn("Loading", format="%.1f%%", min_value=0.0, max_value=120.0),
             "status": st.column_config.TextColumn("Status")
+        }
+    )
+
+    st.markdown('<div class="section-title">Critical Infrastructure Asset Registry & Data Provenance</div>', unsafe_allow_html=True)
+    reg_items = get_asset_registry()
+    reg_df = pd.DataFrame(reg_items)
+    st.dataframe(
+        reg_df[[
+            "asset_id", "name", "asset_class", "is_real_identifiable_asset",
+            "capacity_display", "capacity_status", "link_type", "status", "confidence"
+        ]],
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "asset_id": st.column_config.TextColumn("ID", width="small"),
+            "name": st.column_config.TextColumn("Asset Name"),
+            "asset_class": st.column_config.TextColumn("Class"),
+            "is_real_identifiable_asset": st.column_config.CheckboxColumn("Physical Asset?"),
+            "capacity_display": st.column_config.TextColumn("Capacity / Sizing"),
+            "capacity_status": st.column_config.TextColumn("Capacity Certainty"),
+            "link_type": st.column_config.TextColumn("Topology Link"),
+            "status": st.column_config.TextColumn("Data Provenance"),
+            "confidence": st.column_config.TextColumn("Confidence"),
         }
     )
 

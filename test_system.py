@@ -40,16 +40,61 @@ def run_multi_model_tests():
     # ─────────────────────────────────────────────────────────────────────────
     # [1/12] Data Assets & Grounded Parameters
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[1/12] Verifying Raipur Infrastructure Baseline & Data Provenance...")
+    print("\n[1/12] Verifying Raipur Infrastructure Baseline & Data Provenance Matrix...")
     from data.raipur_data import (
         RAIPUR_ZONES, RAIPUR_SUBSTATIONS, RAIPUR_WATER_PUMPS,
         RAIPUR_HOSPITALS, CSPDCL_PARAMS, OBSERVED_CLIMATE_RECORDS,
-        RAIPUR_CLIMATE
+        RAIPUR_CLIMATE, get_asset_registry, get_data_sources_rows,
+        get_provenance_summary, TERMINOLOGY_DEFINITIONS
     )
+    from data.weather_feed import WeatherFeedConnector, SYNTHETIC_FALLBACK_RECORD
+
     assert len(RAIPUR_ZONES) == 12, "Expected exactly 12 illustrative planning zones"
     assert len(RAIPUR_SUBSTATIONS) == 6, "Expected exactly 6 CSPTCL/CSPDCL substations"
     assert len(RAIPUR_WATER_PUMPS) == 6, "Expected 6 water treatment and pumping assets"
     assert len(RAIPUR_HOSPITALS) == 5, "Expected 5 healthcare facilities"
+
+    # Verify DATA_SOURCES.csv matrix completeness
+    ds_rows = get_data_sources_rows()
+    assert len(ds_rows) >= 180, f"Expected at least 180 audited parameters, got {len(ds_rows)}"
+    prov_sum = get_provenance_summary()
+    assert prov_sum["status_breakdown"]["VERIFIED"] >= 20, "Expected at least 20 verified parameters"
+    assert prov_sum["status_breakdown"]["DERIVED"] >= 50, "Expected at least 50 derived parameters"
+    assert prov_sum["status_breakdown"]["ASSUMED"] >= 90, "Expected at least 90 assumed parameters"
+
+    # Verify Asset Registry Check
+    reg_assets = get_asset_registry()
+    assert len(reg_assets) == 17, f"Expected 17 critical infrastructure assets, got {len(reg_assets)}"
+    for a in reg_assets:
+        assert "is_real_identifiable_asset" in a, f"Missing identifiability flag for {a['asset_id']}"
+        assert a["capacity_status"] in {"VERIFIED", "ASSUMED"}
+        assert a["link_type"] in {"PHYSICAL", "PLANNING_ASSUMED", "CONCEPTUAL"}
+
+    # Verify specific physical groundings
+    s01_reg = next(a for a in reg_assets if a["asset_id"] == "S01")
+    assert s01_reg["is_real_identifiable_asset"] is True and s01_reg["capacity_status"] == "VERIFIED"
+    wp01_reg = next(a for a in reg_assets if a["asset_id"] == "WP01")
+    assert wp01_reg["is_real_identifiable_asset"] is True and wp01_reg["capacity_status"] == "VERIFIED"
+    h01_reg = next(a for a in reg_assets if a["asset_id"] == "H01")
+    assert h01_reg["is_real_identifiable_asset"] is True and h01_reg["capacity_status"] == "VERIFIED"
+
+    # Verify Open-Meteo Weather Connector & Graceful Fallback
+    wx_conn = WeatherFeedConnector(timeout_seconds=2.0)
+    # Simulate network failure to verify explicit SYNTHETIC/FALLBACK mode
+    wx_conn.fetch_live_gridded_data = lambda: (_ for _ in ()).throw(Exception("Simulated offline test"))
+    fallback_wx = wx_conn.get_current_weather(force_refresh=True)
+    assert fallback_wx["is_synthetic_fallback"] is True, "Expected is_synthetic_fallback=True on failure"
+    assert fallback_wx["status"] == "SYNTHETIC/FALLBACK", f"Expected SYNTHETIC/FALLBACK status, got {fallback_wx['status']}"
+    assert "SIMULATION ONLY" in fallback_wx["disclaimer"]
+    assert "IMD" not in fallback_wx["provider"], "Fallback weather must never claim to be IMD station data"
+
+    # Verify Terminology Definitions
+    assert "OBSERVED" in TERMINOLOGY_DEFINITIONS
+    assert "FORECAST" in TERMINOLOGY_DEFINITIONS
+    assert "USER_HYPOTHETICAL" in TERMINOLOGY_DEFINITIONS
+    assert "MODEL_CLASSIFIED" in TERMINOLOGY_DEFINITIONS
+    assert "OFFICIAL_WARNING" in TERMINOLOGY_DEFINITIONS
+    assert "NEVER PRODUCED" in TERMINOLOGY_DEFINITIONS["OFFICIAL_WARNING"]["definition"]
 
     # Verify climate records: 47.9°C verified all-time IMD record (May 28, 2024 at Mana Airport)
     assert OBSERVED_CLIMATE_RECORDS["all_time_record_celsius"] == 47.9
@@ -65,6 +110,10 @@ def run_multi_model_tests():
     assert CSPDCL_PARAMS["raipur_emergency_cap_mw"] == 620, "Emergency thermal ceiling must be 620 MW"
 
     print(f"  [PASS] 12 Zones, 6 Substations, 6 WTPs (WP01={wp01['capacity_MLD']} MLD), 5 Hospitals verified.")
+    print(f"  [PASS] DATA_SOURCES.csv matrix verified: {len(ds_rows)} parameters audited ({prov_sum['status_breakdown']['VERIFIED']} verified, {prov_sum['status_breakdown']['DERIVED']} derived).")
+    print(f"  [PASS] Asset Registry verified: 17 assets (S01, WP01, H01 physically grounded).")
+    print(f"  [PASS] Open-Meteo Weather Connector verified with explicit SYNTHETIC/FALLBACK resilience.")
+    print(f"  [PASS] Terminology & governance definitions verified.")
     print(f"  [PASS] All-time record verified: {OBSERVED_CLIMATE_RECORDS['all_time_record_celsius']} deg C (IMD {OBSERVED_CLIMATE_RECORDS['record_date']}).")
     print(f"  [PASS] CSPDCL baselines: 310 MW (base) / 420 MW (contracted summer) / 620 MW (emergency ceiling).")
     passed_checks += 1

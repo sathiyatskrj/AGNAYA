@@ -1,0 +1,188 @@
+entity_type,entity_id,name,parameter,value,unit,status,source,retrieval_date,reference_year,confidence,notes
+climate,CLIM_01,IMD Raipur Mana #42809,all_time_record_celsius,47.9,deg_C,VERIFIED,IMD Daily Weather Reports / Climatological Normals,2026-02-15,2024,HIGH,All-time record recorded on 2024-05-28 at Mana Airport Station #42809
+climate,CLIM_01,IMD Raipur Mana #42809,prior_record_celsius,46.7,deg_C,VERIFIED,IMD Climatological Records,2026-02-15,2013,HIGH,Prior historical maximum recorded on 2013-05-23
+climate,CLIM_01,IMD Raipur Mana #42809,avg_max_temp_may,42.5,deg_C,VERIFIED,IMD Climatological Normals (1981-2010),2026-02-15,2010,HIGH,Long-term climatological normal maximum temperature for May
+climate,CLIM_01,IMD Raipur Mana #42809,heatwave_threshold_may,44.5,deg_C,VERIFIED,IMD Heatwave Warning Criteria,2026-02-15,2024,HIGH,Threshold for heatwave declaration in plains when normal max >= 40 deg C
+climate,CLIM_01,IMD Raipur Mana #42809,heatwave_threshold_april,43.5,deg_C,VERIFIED,IMD Heatwave Warning Criteria,2026-02-15,2024,HIGH,April heatwave criteria based on local climatological normal
+utility,UTIL_01,CSPDCL Raipur Circle,avg_acos_rs_per_kwh,6.10,INR/kWh,VERIFIED,CSERC Tariff Order FY2024-25 Section 7.4,2026-02-15,2024,HIGH,Average Cost of Supply determined by Chhattisgarh State Electricity Regulatory Commission
+utility,UTIL_01,CSPDCL Raipur Circle,adjusted_acos_rs_per_kwh,6.92,INR/kWh,VERIFIED,CSERC Tariff Order FY2024-25 Tariff Schedule,2026-02-15,2024,HIGH,Cross-subsidy surcharge adjusted cost of supply
+utility,UTIL_01,CSPDCL Raipur Circle,atc_losses_pct,17.63,percent,VERIFIED,CSERC Tariff Order FY2024-25 Table 4.12,2026-02-15,2024,HIGH,Approved Aggregate Technical and Commercial (AT&C) loss benchmark
+utility,UTIL_01,CSPDCL Raipur Circle,raipur_normal_demand_mw,310.0,MW,VERIFIED,CSPDCL Load Dispatch Reports FY2023-24,2026-02-15,2024,HIGH,Normal summer daytime urban baseload demand
+utility,UTIL_01,CSPDCL Raipur Circle,raipur_peak_demand_mw,420.0,MW,VERIFIED,CSPDCL Summer Peak Power Purchase Contract,2026-02-15,2024,HIGH,Approved summer daytime contracted peak draw limit
+utility,UTIL_01,CSPDCL Raipur Circle,raipur_emergency_cap_mw,620.0,MW,ASSUMED,Transmission Corridor Thermal Ceiling Estimate,2026-02-15,2024,MEDIUM,Transmission network physical thermal capacity ceiling before mandatory shedding
+zone,Z01,Amanaka,population,112000,persons,DERIVED,Census of India 2011 (RMC Ward aggregates),2026-02-15,2011,MEDIUM,Aggregated illustrative planning zone
+zone,Z01,Amanaka,area_km2,8.2,km2,DERIVED,RMC Master Plan 2031 GIS zone boundaries,2026-02-15,2021,MEDIUM,Geographic boundary footprint
+zone,Z01,Amanaka,vulnerable_elderly_pct,0.11,ratio,DERIVED,Census 2011 Age Cohort Distribution,2026-02-15,2011,MEDIUM,Proportion of population aged 60+
+zone,Z01,Amanaka,slum_pct,0.28,ratio,DERIVED,RMC Slum Free City Plan of Action (RAY),2026-02-15,2016,MEDIUM,Proportion of kutcha/tin-roof housing
+zone,Z01,Amanaka,green_cover_pct,0.08,ratio,DERIVED,NRSC / ISRO Bhuvan High-Resolution Green Cover,2026-02-15,2021,MEDIUM,Canopy and vegetative area fraction
+zone,Z01,Amanaka,avg_building_age_yr,22,years,ASSUMED,RMC Property Tax Assessment estimates,2026-02-15,2022,LOW,Estimated mean building stock age
+zone,Z01,Amanaka,ac_penetration_pct,0.18,ratio,ASSUMED,CSERC Domestic Load Survey estimate,2026-02-15,2023,LOW,Household air-conditioning adoption rate
+zone,Z02,Shankar Nagar,population,95000,persons,DERIVED,Census of India 2011 (RMC Ward aggregates),2026-02-15,2011,MEDIUM,Aggregated illustrative planning zone
+zone,Z02,Shankar Nagar,area_km2,6.8,km2,DERIVED,RMC Master Plan 2031 GIS zone boundaries,2026-02-15,2021,MEDIUM,Geographic boundary footprint
+zone,Z02,Shankar Nagar,vulnerable_elderly_pct,0.13,ratio,DERIVED,Census 2011 Age Cohort Distribution,2026-02-15,2011,MEDIUM,Proportion of population aged 60+
+zone,Z02,Shankar Nagar,slum_pct,0.12,ratio,DERIVED,RMC Slum Free City Plan of Action (RAY),2026-02-15,2016,MEDIUM,Proportion of kutcha/tin-roof housing
+zone,Z02,Shankar Nagar,green_cover_pct,0.15,ratio,DERIVED,NRSC / ISRO Bhuvan High-Resolution Green Cover,2026-02-15,2021,MEDIUM,Canopy and vegetative area fraction
+zone,Z02,Shankar Nagar,avg_building_age_yr,18,years,ASSUMED,RMC Property Tax Assessment estimates,2026-02-15,2022,LOW,Estimated mean building stock age
+zone,Z02,Shankar Nagar,ac_penetration_pct,0.45,ratio,ASSUMED,CSERC Domestic Load Survey estimate,2026-02-15,2023,LOW,Household air-conditioning adoption rate
+zone,Z03,Telibandha,population,88000,persons,DERIVED,Census of India 2011 (RMC Ward aggregates),2026-02-15,2011,MEDIUM,Aggregated illustrative planning zone
+zone,Z03,Telibandha,area_km2,5.5,km2,DERIVED,RMC Master Plan 2031 GIS zone boundaries,2026-02-15,2021,MEDIUM,Geographic boundary footprint
+zone,Z03,Telibandha,vulnerable_elderly_pct,0.09,ratio,DERIVED,Census 2011 Age Cohort Distribution,2026-02-15,2011,MEDIUM,Proportion of population aged 60+
+zone,Z03,Telibandha,slum_pct,0.09,ratio,DERIVED,RMC Slum Free City Plan of Action (RAY),2026-02-15,2016,MEDIUM,Proportion of kutcha/tin-roof housing
+zone,Z03,Telibandha,green_cover_pct,0.22,ratio,DERIVED,NRSC / ISRO Bhuvan High-Resolution Green Cover,2026-02-15,2021,MEDIUM,Canopy and vegetative area fraction
+zone,Z03,Telibandha,avg_building_age_yr,14,years,ASSUMED,RMC Property Tax Assessment estimates,2026-02-15,2022,LOW,Estimated mean building stock age
+zone,Z03,Telibandha,ac_penetration_pct,0.60,ratio,ASSUMED,CSERC Domestic Load Survey estimate,2026-02-15,2023,LOW,Household air-conditioning adoption rate
+zone,Z04,Pandri,population,74000,persons,DERIVED,Census of India 2011 (RMC Ward aggregates),2026-02-15,2011,MEDIUM,Aggregated illustrative planning zone
+zone,Z04,Pandri,area_km2,4.8,km2,DERIVED,RMC Master Plan 2031 GIS zone boundaries,2026-02-15,2021,MEDIUM,Geographic boundary footprint
+zone,Z04,Pandri,vulnerable_elderly_pct,0.10,ratio,DERIVED,Census 2011 Age Cohort Distribution,2026-02-15,2011,MEDIUM,Proportion of population aged 60+
+zone,Z04,Pandri,slum_pct,0.18,ratio,DERIVED,RMC Slum Free City Plan of Action (RAY),2026-02-15,2016,MEDIUM,Proportion of kutcha/tin-roof housing
+zone,Z04,Pandri,green_cover_pct,0.12,ratio,DERIVED,NRSC / ISRO Bhuvan High-Resolution Green Cover,2026-02-15,2021,MEDIUM,Canopy and vegetative area fraction
+zone,Z04,Pandri,avg_building_age_yr,20,years,ASSUMED,RMC Property Tax Assessment estimates,2026-02-15,2022,LOW,Estimated mean building stock age
+zone,Z04,Pandri,ac_penetration_pct,0.38,ratio,ASSUMED,CSERC Domestic Load Survey estimate,2026-02-15,2023,LOW,Household air-conditioning adoption rate
+zone,Z05,Tikrapara,population,98000,persons,DERIVED,Census of India 2011 (RMC Ward aggregates),2026-02-15,2011,MEDIUM,Aggregated illustrative planning zone
+zone,Z05,Tikrapara,area_km2,7.0,km2,DERIVED,RMC Master Plan 2031 GIS zone boundaries,2026-02-15,2021,MEDIUM,Geographic boundary footprint
+zone,Z05,Tikrapara,vulnerable_elderly_pct,0.08,ratio,DERIVED,Census 2011 Age Cohort Distribution,2026-02-15,2011,MEDIUM,Proportion of population aged 60+
+zone,Z05,Tikrapara,slum_pct,0.35,ratio,DERIVED,RMC Slum Free City Plan of Action (RAY),2026-02-15,2016,MEDIUM,Proportion of kutcha/tin-roof housing
+zone,Z05,Tikrapara,green_cover_pct,0.06,ratio,DERIVED,NRSC / ISRO Bhuvan High-Resolution Green Cover,2026-02-15,2021,MEDIUM,Canopy and vegetative area fraction
+zone,Z05,Tikrapara,avg_building_age_yr,28,years,ASSUMED,RMC Property Tax Assessment estimates,2026-02-15,2022,LOW,Estimated mean building stock age
+zone,Z05,Tikrapara,ac_penetration_pct,0.10,ratio,ASSUMED,CSERC Domestic Load Survey estimate,2026-02-15,2023,LOW,Household air-conditioning adoption rate
+zone,Z06,Mowa,population,67000,persons,DERIVED,Census of India 2011 (RMC Ward aggregates),2026-02-15,2011,MEDIUM,Aggregated illustrative planning zone
+zone,Z06,Mowa,area_km2,6.2,km2,DERIVED,RMC Master Plan 2031 GIS zone boundaries,2026-02-15,2021,MEDIUM,Geographic boundary footprint
+zone,Z06,Mowa,vulnerable_elderly_pct,0.12,ratio,DERIVED,Census 2011 Age Cohort Distribution,2026-02-15,2011,MEDIUM,Proportion of population aged 60+
+zone,Z06,Mowa,slum_pct,0.20,ratio,DERIVED,RMC Slum Free City Plan of Action (RAY),2026-02-15,2016,MEDIUM,Proportion of kutcha/tin-roof housing
+zone,Z06,Mowa,green_cover_pct,0.10,ratio,DERIVED,NRSC / ISRO Bhuvan High-Resolution Green Cover,2026-02-15,2021,MEDIUM,Canopy and vegetative area fraction
+zone,Z06,Mowa,avg_building_age_yr,16,years,ASSUMED,RMC Property Tax Assessment estimates,2026-02-15,2022,LOW,Estimated mean building stock age
+zone,Z06,Mowa,ac_penetration_pct,0.30,ratio,ASSUMED,CSERC Domestic Load Survey estimate,2026-02-15,2023,LOW,Household air-conditioning adoption rate
+zone,Z07,Devendra Nagar,population,82000,persons,DERIVED,Census of India 2011 (RMC Ward aggregates),2026-02-15,2011,MEDIUM,Aggregated illustrative planning zone
+zone,Z07,Devendra Nagar,area_km2,5.9,km2,DERIVED,RMC Master Plan 2031 GIS zone boundaries,2026-02-15,2021,MEDIUM,Geographic boundary footprint
+zone,Z07,Devendra Nagar,vulnerable_elderly_pct,0.14,ratio,DERIVED,Census 2011 Age Cohort Distribution,2026-02-15,2011,MEDIUM,Proportion of population aged 60+
+zone,Z07,Devendra Nagar,slum_pct,0.15,ratio,DERIVED,RMC Slum Free City Plan of Action (RAY),2026-02-15,2016,MEDIUM,Proportion of kutcha/tin-roof housing
+zone,Z07,Devendra Nagar,green_cover_pct,0.18,ratio,DERIVED,NRSC / ISRO Bhuvan High-Resolution Green Cover,2026-02-15,2021,MEDIUM,Canopy and vegetative area fraction
+zone,Z07,Devendra Nagar,avg_building_age_yr,12,years,ASSUMED,RMC Property Tax Assessment estimates,2026-02-15,2022,LOW,Estimated mean building stock age
+zone,Z07,Devendra Nagar,ac_penetration_pct,0.52,ratio,ASSUMED,CSERC Domestic Load Survey estimate,2026-02-15,2023,LOW,Household air-conditioning adoption rate
+zone,Z08,Khamardih,population,55000,persons,DERIVED,Census of India 2011 (RMC Ward aggregates),2026-02-15,2011,MEDIUM,Aggregated illustrative planning zone
+zone,Z08,Khamardih,area_km2,9.5,km2,DERIVED,RMC Master Plan 2031 GIS zone boundaries,2026-02-15,2021,MEDIUM,Geographic boundary footprint
+zone,Z08,Khamardih,vulnerable_elderly_pct,0.09,ratio,DERIVED,Census 2011 Age Cohort Distribution,2026-02-15,2011,MEDIUM,Proportion of population aged 60+
+zone,Z08,Khamardih,slum_pct,0.40,ratio,DERIVED,RMC Slum Free City Plan of Action (RAY),2026-02-15,2016,MEDIUM,Proportion of kutcha/tin-roof housing
+zone,Z08,Khamardih,green_cover_pct,0.04,ratio,DERIVED,NRSC / ISRO Bhuvan High-Resolution Green Cover,2026-02-15,2021,MEDIUM,Canopy and vegetative area fraction
+zone,Z08,Khamardih,avg_building_age_yr,32,years,ASSUMED,RMC Property Tax Assessment estimates,2026-02-15,2022,LOW,Estimated mean building stock age
+zone,Z08,Khamardih,ac_penetration_pct,0.06,ratio,ASSUMED,CSERC Domestic Load Survey estimate,2026-02-15,2023,LOW,Household air-conditioning adoption rate
+zone,Z09,Gudhiyari,population,71000,persons,DERIVED,Census of India 2011 (RMC Ward aggregates),2026-02-15,2011,MEDIUM,Aggregated illustrative planning zone
+zone,Z09,Gudhiyari,area_km2,7.4,km2,DERIVED,RMC Master Plan 2031 GIS zone boundaries,2026-02-15,2021,MEDIUM,Geographic boundary footprint
+zone,Z09,Gudhiyari,vulnerable_elderly_pct,0.10,ratio,DERIVED,Census 2011 Age Cohort Distribution,2026-02-15,2011,MEDIUM,Proportion of population aged 60+
+zone,Z09,Gudhiyari,slum_pct,0.30,ratio,DERIVED,RMC Slum Free City Plan of Action (RAY),2026-02-15,2016,MEDIUM,Proportion of kutcha/tin-roof housing
+zone,Z09,Gudhiyari,green_cover_pct,0.07,ratio,DERIVED,NRSC / ISRO Bhuvan High-Resolution Green Cover,2026-02-15,2021,MEDIUM,Canopy and vegetative area fraction
+zone,Z09,Gudhiyari,avg_building_age_yr,25,years,ASSUMED,RMC Property Tax Assessment estimates,2026-02-15,2022,LOW,Estimated mean building stock age
+zone,Z09,Gudhiyari,ac_penetration_pct,0.15,ratio,ASSUMED,CSERC Domestic Load Survey estimate,2026-02-15,2023,LOW,Household air-conditioning adoption rate
+zone,Z10,Civil Lines,population,48000,persons,DERIVED,Census of India 2011 (RMC Ward aggregates),2026-02-15,2011,MEDIUM,Aggregated illustrative planning zone
+zone,Z10,Civil Lines,area_km2,3.2,km2,DERIVED,RMC Master Plan 2031 GIS zone boundaries,2026-02-15,2021,MEDIUM,Geographic boundary footprint
+zone,Z10,Civil Lines,vulnerable_elderly_pct,0.18,ratio,DERIVED,Census 2011 Age Cohort Distribution,2026-02-15,2011,MEDIUM,Proportion of population aged 60+
+zone,Z10,Civil Lines,slum_pct,0.05,ratio,DERIVED,RMC Slum Free City Plan of Action (RAY),2026-02-15,2016,MEDIUM,Proportion of kutcha/tin-roof housing
+zone,Z10,Civil Lines,green_cover_pct,0.25,ratio,DERIVED,NRSC / ISRO Bhuvan High-Resolution Green Cover,2026-02-15,2021,MEDIUM,Canopy and vegetative area fraction
+zone,Z10,Civil Lines,avg_building_age_yr,40,years,ASSUMED,RMC Property Tax Assessment estimates,2026-02-15,2022,LOW,Estimated mean building stock age
+zone,Z10,Civil Lines,ac_penetration_pct,0.70,ratio,ASSUMED,CSERC Domestic Load Survey estimate,2026-02-15,2023,LOW,Household air-conditioning adoption rate
+zone,Z11,Avanti Vihar,population,63000,persons,DERIVED,Census of India 2011 (RMC Ward aggregates),2026-02-15,2011,MEDIUM,Aggregated illustrative planning zone
+zone,Z11,Avanti Vihar,area_km2,4.1,km2,DERIVED,RMC Master Plan 2031 GIS zone boundaries,2026-02-15,2021,MEDIUM,Geographic boundary footprint
+zone,Z11,Avanti Vihar,vulnerable_elderly_pct,0.11,ratio,DERIVED,Census 2011 Age Cohort Distribution,2026-02-15,2011,MEDIUM,Proportion of population aged 60+
+zone,Z11,Avanti Vihar,slum_pct,0.10,ratio,DERIVED,RMC Slum Free City Plan of Action (RAY),2026-02-15,2016,MEDIUM,Proportion of kutcha/tin-roof housing
+zone,Z11,Avanti Vihar,green_cover_pct,0.20,ratio,DERIVED,NRSC / ISRO Bhuvan High-Resolution Green Cover,2026-02-15,2021,MEDIUM,Canopy and vegetative area fraction
+zone,Z11,Avanti Vihar,avg_building_age_yr,8,years,ASSUMED,RMC Property Tax Assessment estimates,2026-02-15,2022,LOW,Estimated mean building stock age
+zone,Z11,Avanti Vihar,ac_penetration_pct,0.65,ratio,ASSUMED,CSERC Domestic Load Survey estimate,2026-02-15,2023,LOW,Household air-conditioning adoption rate
+zone,Z12,Bhata Para,population,89000,persons,DERIVED,Census of India 2011 (RMC Ward aggregates),2026-02-15,2011,MEDIUM,Aggregated illustrative planning zone
+zone,Z12,Bhata Para,area_km2,8.8,km2,DERIVED,RMC Master Plan 2031 GIS zone boundaries,2026-02-15,2021,MEDIUM,Geographic boundary footprint
+zone,Z12,Bhata Para,vulnerable_elderly_pct,0.07,ratio,DERIVED,Census 2011 Age Cohort Distribution,2026-02-15,2011,MEDIUM,Proportion of population aged 60+
+zone,Z12,Bhata Para,slum_pct,0.42,ratio,DERIVED,RMC Slum Free City Plan of Action (RAY),2026-02-15,2016,MEDIUM,Proportion of kutcha/tin-roof housing
+zone,Z12,Bhata Para,green_cover_pct,0.05,ratio,DERIVED,NRSC / ISRO Bhuvan High-Resolution Green Cover,2026-02-15,2021,MEDIUM,Canopy and vegetative area fraction
+zone,Z12,Bhata Para,avg_building_age_yr,30,years,ASSUMED,RMC Property Tax Assessment estimates,2026-02-15,2022,LOW,Estimated mean building stock age
+zone,Z12,Bhata Para,ac_penetration_pct,0.08,ratio,ASSUMED,CSERC Domestic Load Survey estimate,2026-02-15,2023,LOW,Household air-conditioning adoption rate
+substation,S01,Raipur Main (220 kV),voltage_kv,220,kV,VERIFIED,CSPTCL 220kV Grid Substation Map & Annual Report,2026-02-15,2024,HIGH,Physical 220kV transmission hub with N-1 transformer redundancy
+substation,S01,Raipur Main (220 kV),capacity_mva,500,MVA,VERIFIED,CSPTCL Grid Directory,2026-02-15,2024,HIGH,Main bulk intake transformer capacity
+substation,S01,Raipur Main (220 kV),load_factor_normal,0.72,ratio,ASSUMED,CSPTCL Summer Operating Reports,2026-02-15,2024,MEDIUM,Typical summer daytime load factor
+substation,S01,Raipur Main (220 kV),age_years,28,years,ASSUMED,Utility Asset Vintage Registry,2026-02-15,2024,MEDIUM,Estimated operating age of transformer fleet
+substation,S01,Raipur Main (220 kV),backup_transformer,1,boolean,VERIFIED,CSPTCL Substation Configuration (N-1),2026-02-15,2024,HIGH,Active standby transformer unit
+substation,S02,Mowa GSS (132 kV),voltage_kv,132,kV,VERIFIED,CSPTCL 132kV Grid Map,2026-02-15,2024,HIGH,Physical 132kV grid substation
+substation,S02,Mowa GSS (132 kV),capacity_mva,200,MVA,VERIFIED,CSPTCL Grid Directory,2026-02-15,2024,HIGH,Installed step-down transformation capacity
+substation,S02,Mowa GSS (132 kV),load_factor_normal,0.68,ratio,ASSUMED,Grid Dispatch Logs,2026-02-15,2024,MEDIUM,Normal operating load factor
+substation,S02,Mowa GSS (132 kV),age_years,22,years,ASSUMED,Commissioning records estimate,2026-02-15,2024,MEDIUM,Asset age estimate
+substation,S02,Mowa GSS (132 kV),backup_transformer,1,boolean,VERIFIED,CSPTCL Directory (N-1 redundancy),2026-02-15,2024,HIGH,Standby transformer available
+substation,S03,Amanaka (132 kV),voltage_kv,132,kV,VERIFIED,CSPTCL Grid Directory,2026-02-15,2024,HIGH,Physical 132kV primary substation
+substation,S03,Amanaka (132 kV),capacity_mva,160,MVA,VERIFIED,CSPTCL Grid Directory,2026-02-15,2024,HIGH,Transformation capacity
+substation,S03,Amanaka (132 kV),load_factor_normal,0.75,ratio,ASSUMED,Summer peak loading logs,2026-02-15,2024,MEDIUM,Summer operating load factor
+substation,S03,Amanaka (132 kV),age_years,35,years,ASSUMED,Asset vintage estimate,2026-02-15,2024,MEDIUM,Aging transformer unit
+substation,S03,Amanaka (132 kV),backup_transformer,0,boolean,ASSUMED,Single critical transformer bank,2026-02-15,2024,MEDIUM,No automatic N-1 standby transformer
+substation,S04,Pandri (33 kV),voltage_kv,33,kV,ASSUMED,CSPDCL 33/11kV Distribution Schematics,2026-02-15,2024,MEDIUM,Secondary distribution substation
+substation,S04,Pandri (33 kV),capacity_mva,80,MVA,ASSUMED,CSPDCL Feeder sizing estimate,2026-02-15,2024,MEDIUM,Distribution capacity
+substation,S04,Pandri (33 kV),load_factor_normal,0.70,ratio,ASSUMED,Distribution feeder logs,2026-02-15,2024,MEDIUM,Normal load factor
+substation,S04,Pandri (33 kV),age_years,18,years,ASSUMED,Feeder asset vintage,2026-02-15,2024,MEDIUM,Asset age
+substation,S04,Pandri (33 kV),backup_transformer,1,boolean,ASSUMED,Dual 40 MVA transformer bank,2026-02-15,2024,MEDIUM,Secondary backup available
+substation,S05,Khamardih (33 kV),voltage_kv,33,kV,ASSUMED,CSPDCL Distribution Circle,2026-02-15,2024,MEDIUM,Distribution substation
+substation,S05,Khamardih (33 kV),capacity_mva,50,MVA,ASSUMED,CSPDCL Feeder sizing estimate,2026-02-15,2024,MEDIUM,Distribution capacity
+substation,S05,Khamardih (33 kV),load_factor_normal,0.65,ratio,ASSUMED,Feeder logs,2026-02-15,2024,MEDIUM,Operating load factor
+substation,S05,Khamardih (33 kV),age_years,25,years,ASSUMED,Feeder asset vintage,2026-02-15,2024,MEDIUM,Asset age
+substation,S05,Khamardih (33 kV),backup_transformer,0,boolean,ASSUMED,Radial single-transformer configuration,2026-02-15,2024,MEDIUM,No standby unit
+substation,S06,Gudhiyari (33 kV),voltage_kv,33,kV,ASSUMED,CSPDCL Distribution Circle,2026-02-15,2024,MEDIUM,Distribution substation
+substation,S06,Gudhiyari (33 kV),capacity_mva,60,MVA,ASSUMED,CSPDCL Feeder sizing estimate,2026-02-15,2024,MEDIUM,Distribution capacity
+substation,S06,Gudhiyari (33 kV),load_factor_normal,0.78,ratio,ASSUMED,High density urban feeder logs,2026-02-15,2024,MEDIUM,High baseline load factor
+substation,S06,Gudhiyari (33 kV),age_years,30,years,ASSUMED,Feeder asset vintage,2026-02-15,2024,MEDIUM,Asset age
+substation,S06,Gudhiyari (33 kV),backup_transformer,0,boolean,ASSUMED,Radial single-transformer configuration,2026-02-15,2024,MEDIUM,No standby unit
+water_plant,WP01,Kharun River WTP,capacity_MLD,180,MLD,VERIFIED,RMC Water Supply Master Plan & AMRUT Scheme Project Report,2026-02-15,2022,HIGH,Primary municipal water treatment plant drawing from Kharun River
+water_plant,WP01,Kharun River WTP,backup_generator,1,boolean,VERIFIED,RMC AMRUT Emergency Power Provision,2026-02-15,2022,HIGH,Dedicated 1.5 MVA emergency diesel generator
+water_plant,WP02,Amanaka WTP,capacity_MLD,100,MLD,ASSUMED,RMC Zonal Boosting and Intake Facility,2026-02-15,2022,MEDIUM,Zonal reservoir and booster pump house
+water_plant,WP02,Amanaka WTP,backup_generator,0,boolean,ASSUMED,Municipal pumping station norms,2026-02-15,2022,MEDIUM,Grid-dependent without dedicated continuous DG
+water_plant,WP03,Pandri Boosting Station,capacity_MLD,60,MLD,ASSUMED,RMC Distribution Booster Station,2026-02-15,2022,MEDIUM,Booster pumping station
+water_plant,WP03,Pandri Boosting Station,backup_generator,1,boolean,ASSUMED,Commercial zone standby backup provision,2026-02-15,2022,MEDIUM,Standby generator provision
+water_plant,WP04,Mowa Pumping Station,capacity_MLD,70,MLD,ASSUMED,RMC Distribution Station,2026-02-15,2022,MEDIUM,Distribution pumping station
+water_plant,WP04,Mowa Pumping Station,backup_generator,0,boolean,ASSUMED,Standard municipal grid connection,2026-02-15,2022,MEDIUM,No dedicated backup generator
+water_plant,WP05,Khamardih WTP,capacity_MLD,35,MLD,ASSUMED,RMC Intermediate Pumping Station,2026-02-15,2022,MEDIUM,Intermediate booster facility
+water_plant,WP05,Khamardih WTP,backup_generator,0,boolean,ASSUMED,Standard municipal grid connection,2026-02-15,2022,MEDIUM,No dedicated backup generator
+water_plant,WP06,Gudhiyari WTP,capacity_MLD,55,MLD,ASSUMED,RMC Pumping and Over-Head Tank Feeder,2026-02-15,2022,MEDIUM,Pumping and tank feeder
+water_plant,WP06,Gudhiyari WTP,backup_generator,0,boolean,ASSUMED,Standard municipal grid connection,2026-02-15,2022,MEDIUM,No dedicated backup generator
+hospital,H01,Dr. Ambedkar Memorial Hospital,total_beds,880,beds,VERIFIED,Pt. Jawaharlal Nehru Memorial Medical College Public Registry,2026-02-15,2023,HIGH,Largest government tertiary medical college hospital in Chhattisgarh
+hospital,H01,Dr. Ambedkar Memorial Hospital,icu_beds,45,beds,VERIFIED,JNM Medical College Directorate of Health Services,2026-02-15,2023,HIGH,Critical care and intensive care beds
+hospital,H01,Dr. Ambedkar Memorial Hospital,emergency_capacity,120,patients/day,DERIVED,Emergency department surge intake capacity,2026-02-15,2023,HIGH,Surge intake capacity
+hospital,H01,Dr. Ambedkar Memorial Hospital,backup_power_kva,500,kVA,VERIFIED,Public Works Department Electrical Generator Tender,2026-02-15,2022,HIGH,Dedicated hospital standby generator
+hospital,H01,Dr. Ambedkar Memorial Hospital,backup_hours,12,hours,ASSUMED,On-site fuel storage reserve,2026-02-15,2024,MEDIUM,Operating hours on diesel reserve
+hospital,H02,Ram Krishna Care Hospital,total_beds,350,beds,ASSUMED,Hospital Accreditation Registry estimate,2026-02-15,2023,MEDIUM,Major multi-specialty private tertiary hospital
+hospital,H02,Ram Krishna Care Hospital,icu_beds,30,beds,ASSUMED,Hospital clinical registry estimate,2026-02-15,2023,MEDIUM,ICU bed capacity
+hospital,H02,Ram Krishna Care Hospital,emergency_capacity,60,patients/day,ASSUMED,Emergency room triage capacity,2026-02-15,2023,MEDIUM,Emergency daily intake
+hospital,H02,Ram Krishna Care Hospital,backup_power_kva,250,kVA,ASSUMED,Private hospital backup power norms,2026-02-15,2023,MEDIUM,Standby generator capacity
+hospital,H02,Ram Krishna Care Hospital,backup_hours,8,hours,ASSUMED,Hospital fuel reserve estimate,2026-02-15,2024,MEDIUM,Operating hours on diesel reserve
+hospital,H03,Shri Ramkrishna Hospital,total_beds,200,beds,ASSUMED,Hospital registry estimate,2026-02-15,2023,MEDIUM,Secondary private multi-specialty hospital
+hospital,H03,Shri Ramkrishna Hospital,icu_beds,20,beds,ASSUMED,Hospital registry estimate,2026-02-15,2023,MEDIUM,ICU bed capacity
+hospital,H03,Shri Ramkrishna Hospital,emergency_capacity,40,patients/day,ASSUMED,Emergency department capacity,2026-02-15,2023,MEDIUM,Emergency daily intake
+hospital,H03,Shri Ramkrishna Hospital,backup_power_kva,150,kVA,ASSUMED,Standby generator rating,2026-02-15,2023,MEDIUM,DG set rating
+hospital,H03,Shri Ramkrishna Hospital,backup_hours,6,hours,ASSUMED,Fuel reserve estimate,2026-02-15,2024,MEDIUM,Operating hours on diesel reserve
+hospital,H04,CHC Amanaka,total_beds,30,beds,ASSUMED,Indian Public Health Standards 30-Bed CHC Norms,2026-02-15,2022,MEDIUM,Government Community Health Centre
+hospital,H04,CHC Amanaka,icu_beds,2,beds,ASSUMED,IPHS emergency stabilization bed norm,2026-02-15,2022,MEDIUM,Stabilization beds
+hospital,H04,CHC Amanaka,emergency_capacity,15,patients/day,ASSUMED,Day-care emergency capacity,2026-02-15,2022,MEDIUM,Emergency intake
+hospital,H04,CHC Amanaka,backup_power_kva,30,kVA,ASSUMED,IPHS CHC generator standard,2026-02-15,2022,MEDIUM,DG set rating
+hospital,H04,CHC Amanaka,backup_hours,4,hours,ASSUMED,Fuel storage standard,2026-02-15,2024,LOW,Operating hours on diesel reserve
+hospital,H05,Urban PHC Tikrapara,total_beds,20,beds,ASSUMED,Indian Public Health Standards Urban PHC Norms,2026-02-15,2022,MEDIUM,Government Urban Primary Health Centre
+hospital,H05,Urban PHC Tikrapara,icu_beds,1,beds,ASSUMED,IPHS observation bed norm,2026-02-15,2022,MEDIUM,Observation beds
+hospital,H05,Urban PHC Tikrapara,emergency_capacity,10,patients/day,ASSUMED,Triage capacity norm,2026-02-15,2022,MEDIUM,Emergency intake
+hospital,H05,Urban PHC Tikrapara,backup_power_kva,20,kVA,ASSUMED,Standard PHC generator rating,2026-02-15,2022,MEDIUM,DG set rating
+hospital,H05,Urban PHC Tikrapara,backup_hours,3,hours,ASSUMED,Standard fuel storage,2026-02-15,2024,LOW,Operating hours on diesel reserve
+intervention,INT_01,cooling_centre,cost_per_unit_lakh,2.5,Lakh_INR,ASSUMED,NDMA Heat Action Plan Municipal Model,2026-02-15,2024,MEDIUM,Cost to establish air-conditioned temporary shelter
+intervention,INT_01,cooling_centre,capacity_persons_per_unit,200,persons,ASSUMED,NDMA Heatwave Shelter Capacity Norm,2026-02-15,2024,MEDIUM,Shelter intake capacity per site
+intervention,INT_01,cooling_centre,effectiveness_score,0.70,ratio,ASSUMED,Heuristic hazard reduction score,2026-02-15,2024,LOW,Relative risk mitigation impact
+intervention,INT_01,cooling_centre,electricity_required_kw,15.0,kW,ASSUMED,Cooling equipment operational power,2026-02-15,2024,MEDIUM,Operating electrical load
+intervention,INT_01,cooling_centre,water_required_kld,5.0,kLD,ASSUMED,Drinking water requirement per centre,2026-02-15,2024,MEDIUM,Operating water demand
+intervention,INT_02,power_resilience,cost_per_unit_lakh,8.0,Lakh_INR,ASSUMED,CSPDCL Emergency Procurement Norms,2026-02-15,2024,MEDIUM,Cost per mobile 2 MVA diesel generator deployment
+intervention,INT_02,power_resilience,capacity_mw_per_unit,2.0,MW,ASSUMED,Mobile generator output rating,2026-02-15,2024,MEDIUM,Temporary generation injection
+intervention,INT_02,power_resilience,effectiveness_score,0.85,ratio,ASSUMED,Heuristic reliability boost score,2026-02-15,2024,LOW,Relative feeder reliability impact
+intervention,INT_02,power_resilience,electricity_required_kw,0.0,kW,ASSUMED,Self-generating asset,2026-02-15,2024,HIGH,Zero grid power required
+intervention,INT_02,power_resilience,water_required_kld,0.0,kLD,ASSUMED,No water dependency,2026-02-15,2024,HIGH,Zero water demand
+intervention,INT_03,water_tankers,cost_per_unit_lakh,0.8,Lakh_INR,ASSUMED,RMC Water Tanker Rental Schedule,2026-02-15,2024,MEDIUM,Cost per 10 kL tanker deployment per heatwave period
+intervention,INT_03,water_tankers,capacity_kl_per_unit,10.0,kL,ASSUMED,Standard municipal tanker volume,2026-02-15,2024,MEDIUM,Tanker capacity
+intervention,INT_03,water_tankers,effectiveness_score,0.50,ratio,ASSUMED,Heuristic water relief score,2026-02-15,2024,LOW,Hydration relief impact
+intervention,INT_03,water_tankers,electricity_required_kw,0.0,kW,ASSUMED,Mobile transport asset,2026-02-15,2024,HIGH,Zero grid power required
+intervention,INT_03,water_tankers,water_required_kld,10.0,kLD,ASSUMED,Potable water payload,2026-02-15,2024,HIGH,Daily water payload
+intervention,INT_04,hospital_surge,cost_per_unit_lakh,15.0,Lakh_INR,ASSUMED,Disaster Management Health Surge Model,2026-02-15,2024,MEDIUM,Cost to deploy 50-bed climate-controlled emergency triage tent
+intervention,INT_04,hospital_surge,beds_per_unit,50,beds,ASSUMED,Emergency medical facility standard,2026-02-15,2024,MEDIUM,Bed capacity addition
+intervention,INT_04,hospital_surge,effectiveness_score,0.90,ratio,ASSUMED,Heuristic health surge score,2026-02-15,2024,LOW,Critical care overload relief
+intervention,INT_04,hospital_surge,electricity_required_kw,50.0,kW,ASSUMED,Mobile HVAC and medical equipment load,2026-02-15,2024,MEDIUM,Operating power requirement
+intervention,INT_04,hospital_surge,water_required_kld,20.0,kLD,ASSUMED,Clinical sanitation and hydration requirement,2026-02-15,2024,MEDIUM,Daily water requirement
+intervention,INT_05,jal_jeevan,cost_per_unit_lakh,0.3,Lakh_INR,ASSUMED,RMC Hydration Kiosk / Piau Setup Cost,2026-02-15,2024,MEDIUM,Cost to establish community shaded drinking water station
+intervention,INT_05,jal_jeevan,capacity_persons_per_unit,500,persons,ASSUMED,Daily service capacity,2026-02-15,2024,MEDIUM,Persons served per day
+intervention,INT_05,jal_jeevan,effectiveness_score,0.40,ratio,ASSUMED,Heuristic hydration relief score,2026-02-15,2024,LOW,Dehydration prevention impact
+intervention,INT_05,jal_jeevan,electricity_required_kw,0.0,kW,ASSUMED,Passive shaded kiosk,2026-02-15,2024,HIGH,Zero grid power required
+intervention,INT_05,jal_jeevan,water_required_kld,8.0,kLD,ASSUMED,Daily drinking water dispense,2026-02-15,2024,MEDIUM,Daily water consumption

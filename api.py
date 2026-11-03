@@ -30,8 +30,10 @@ from config import settings
 from data.raipur_data import (
     RAIPUR_ZONES, RAIPUR_SUBSTATIONS, RAIPUR_WATER_PUMPS,
     RAIPUR_HOSPITALS, RAIPUR_CLIMATE, HISTORICAL_HEATWAVES,
-    INTERVENTION_OPTIONS, CSPDCL_PARAMS
+    INTERVENTION_OPTIONS, CSPDCL_PARAMS,
+    get_asset_registry, get_provenance_summary, TERMINOLOGY_DEFINITIONS
 )
+from data.weather_feed import get_current_raipur_weather
 from models.cascade_model import (
     DemandModel, InfrastructureNetwork, MonteCarloCascade,
     InterventionOptimizer, compute_zone_risk_table
@@ -157,6 +159,9 @@ def root():
         "endpoints": [
             "/docs",
             "/api/v1/health",
+            "/api/v1/weather/current",
+            "/api/v1/data/provenance",
+            "/api/v1/data/asset-registry",
             "/api/v1/grid-flow/dc-power-flow",
             "/api/v1/heatwave/7-stages",
             "/api/v1/resilience/continuous-curve",
@@ -381,3 +386,28 @@ def run_classic_simulation(req: SimulationRequest):
     )
     summary["disclaimer"] = "SIMULATION ONLY – NOT AN OFFICIAL WARNING"
     return summary
+
+# ── 12. Live Open-Meteo Weather Connector (Gridded Model)
+@app.get("/api/v1/weather/current")
+def get_weather_observation(force_refresh: bool = Query(False, description="Bypass cache and force HTTP refresh")):
+    wx = get_current_raipur_weather(force_refresh=force_refresh)
+    return wx
+
+# ── 13. Data Provenance Matrix & Audit Checklist
+@app.get("/api/v1/data/provenance")
+def get_data_provenance():
+    return {
+        "summary": get_provenance_summary(),
+        "terminology": TERMINOLOGY_DEFINITIONS,
+        "disclaimer": "SIMULATION ONLY – NOT AN OFFICIAL WARNING"
+    }
+
+# ── 14. Critical Infrastructure Asset Registry & Topology Verification
+@app.get("/api/v1/data/asset-registry")
+def get_asset_registry_endpoint():
+    assets = get_asset_registry()
+    return {
+        "total_assets": len(assets),
+        "assets": assets,
+        "disclaimer": "SIMULATION ONLY – NOT AN OFFICIAL WARNING"
+    }

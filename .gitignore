@@ -33,3 +33,6 @@ Thumbs.db
 *.swo
 .vscode/
 .idea/
+
+# Runtime cache
+data/cache_*.json

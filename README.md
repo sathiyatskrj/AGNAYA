@@ -8,10 +8,10 @@
 [![Python 3.10 | 3.11 | 3.12](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI Microservice](https://img.shields.io/badge/FastAPI-v3.1%20REST%20Endpoints-009688?logo=fastapi&logoColor=white)](http://127.0.0.1:8000/docs)
 [![Streamlit Digital Twin](https://img.shields.io/badge/Streamlit-1.40%20Cockpit-FF4B4B?logo=streamlit&logoColor=white)](http://localhost:8501)
-[![IEEE Standards](https://img.shields.io/badge/Standards-IEEE%20C57.91%20%7C%20IEEE%20738-00629B?logo=ieee&logoColor=white)](https://standards.ieee.org/)
-[![Scientific Verification](https://img.shields.io/badge/Scientific%20Verification-12%2F12%20Passing-10B981?logo=githubactions&logoColor=white)](https://github.com/sathiyatskrj/AGNAYA/actions)
+[![Formulations](https://img.shields.io/badge/Formulations-IEEE%20Std%20C57.91%20%2F%20738-00629B)](https://standards.ieee.org/)
+[![Verification Suite](https://img.shields.io/badge/Verification-Automated%20CI-blue?logo=githubactions&logoColor=white)](https://github.com/sathiyatskrj/AGNAYA/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Data Provenance](https://img.shields.io/badge/Data%20Provenance-CSERC%20FY24--25%20%7C%20CSPTCL%20%7C%20IMD-F59E0B)](#-real-world-chhattisgarh-grounded-data)
+[![Data Provenance](https://img.shields.io/badge/Data%20Provenance-Audited%20Matrix-amber)](#-data-provenance--sourced-infrastructure-matrix)
 
 ---
 
@@ -27,7 +27,7 @@
 - [Executive Overview](#-executive-overview)
 - [System Architecture](#-system-architecture)
 - [Multi-Model Scientific Formulations](#-multi-model-scientific-formulations)
-- [Real-World Chhattisgarh Grounded Data](#-real-world-chhattisgarh-grounded-data)
+- [Data Provenance & Sourced Infrastructure Matrix](#-data-provenance--sourced-infrastructure-matrix)
 - [Operational Cockpit Modules](#-operational-cockpit-modules)
 - [12-Stage Automated Verification Suite](#-12-stage-automated-verification-suite)
 - [FastAPI REST Microservice](#-fastapi-rest-microservice)
@@ -58,7 +58,7 @@ This atmospheric stress acts as an inter-infrastructural stressor triggering com
 flowchart TB
     subgraph SENSORS["1. Atmospheric & Utility Parameter Ingestion"]
         IMD["IMD Historical Records & Open-Meteo<br/>(Ambient Temp, RH, Wind Speed)"]
-        SCADA["CSPTCL Substation Baseline Parameters<br/>(6 Busses, 220/132/33 kV)"]
+        GRID["CSPTCL Substation Baseline Parameters<br/>(6 Busses, 220/132/33 kV)"]
         DEMO["Census / GIS Demographics<br/>(12 Illustrative Zones, Slum %, AC %)"]
     end
 
@@ -85,7 +85,7 @@ flowchart TB
     end
 
     IMD --> A1
-    SCADA --> A2
+    GRID --> A2
     DEMO --> A2
     A1 --> A2 --> A3
     ODE --> DC --> IEEE --> RESIL
@@ -181,21 +181,43 @@ $$\max_{\mathbf{x}} \sum_k v_k \cdot x_k \quad \text{subject to} \quad \sum_k c_
 
 ---
 
-## 📊 Real-World Chhattisgarh Grounded Data
+## 📊 Data Provenance & Sourced Infrastructure Matrix
 
-All parameters are compiled from **CSERC Tariff Orders (FY 2024–25)**, **CSPTCL Substation Records**, **IMD Raipur Climatological Normals**, and **Census 2011 / RMC Surveys**:
+Every parameter in AGNAYA carries an explicit provenance status, source citation, reference year, and confidence level recorded in [`data/DATA_SOURCES.csv`](file:///C:/Users/Bhumika%20Baghel/.gemini/antigravity-ide/scratch/AGNAYA/data/DATA_SOURCES.csv) (187 parameters audited):
 
-### A. CSPTCL Transmission Substations
-| ID | Substation Name | Voltage | Capacity | Normal LF | Cooling Type | Age | Provenance |
+* **VERIFIED (23 parameters):** Sourced directly from statutory filings (CSERC Tariff Order FY2024–25, IMD Station #42809 records, Pt. JNM Medical College public registry, RMC AMRUT Water Master Plan).
+* **DERIVED (61 parameters):** Calculated from verified engineering formulas, census cohort distributions, or GIS spatial boundaries.
+* **ASSUMED (103 parameters):** Engineering rule-of-thumb estimates and secondary feeder approximations pending utility calibration.
+* **SYNTHETIC:** Explicitly labelled fallback or stress-testing scenario values. Never presented as real-world observations.
+
+### A. CSPTCL / CSPDCL Transmission Substations
+| ID | Substation Name | Voltage | Capacity | Normal LF | Cooling Type | Age | Physical Asset? | Link Topology | Provenance |
+|:---|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---|
+| **S01** | Raipur Main Grid Substation | 220/132 kV | 500 MVA | 0.72 | Dual OFAF | 28 yr | **Yes** | Physical (Bulk Hub) | VERIFIED (CSPTCL Grid Map) |
+| **S02** | Mowa Grid Substation | 132/33 kV | 200 MVA | 0.68 | ONAF | 22 yr | **Yes** | Physical (132 kV Link) | VERIFIED (CSPTCL Directory) |
+| **S03** | Amanaka Grid Substation | 132/33 kV | 160 MVA | 0.75 | ONAF | 35 yr | **Yes** | Physical (132 kV Link) | VERIFIED (CSPTCL Directory) |
+| **S04** | Pandri Substation | 33/11 kV | 80 MVA | 0.70 | ONAN | 18 yr | **Yes** | Planning-Assumed | ASSUMED (CSPDCL Feeder) |
+| **S05** | Khamardih Substation | 33/11 kV | 50 MVA | 0.65 | ONAN | 25 yr | **No** (Aggregated Node) | Planning-Assumed | ASSUMED (CSPDCL Feeder) |
+| **S06** | Gudhiyari Substation | 33/11 kV | 60 MVA | 0.78 | ONAN | 30 yr | **Yes** | Planning-Assumed | ASSUMED (CSPDCL Feeder) |
+
+### B. Critical Municipal Lifelines (WTPs & Emergency Healthcare)
+| ID | Asset Name | Class | Capacity / Beds | Emergency Backup | Physical Asset? | Link Topology | Provenance Source |
 |:---|:---|:---:|:---:|:---:|:---:|:---:|:---|
-| **S01** | Raipur Main Grid Substation | 220/132 kV | 500 MVA | 0.72 | Dual OFAF | 28 yr | VERIFIED (CSPTCL Grid Map) |
-| **S02** | Mowa Grid Substation | 132/33 kV | 200 MVA | 0.68 | ONAF | 22 yr | VERIFIED (CSPTCL Directory) |
-| **S03** | Amanaka Grid Substation | 132/33 kV | 160 MVA | 0.75 | ONAF | 35 yr | VERIFIED (CSPTCL Directory) |
-| **S04** | Pandri Substation | 33/11 kV | 80 MVA | 0.70 | ONAN | 18 yr | ASSUMED (CSPDCL Feeder) |
-| **S05** | Khamardih Substation | 33/11 kV | 50 MVA | 0.65 | ONAN | 25 yr | ASSUMED (CSPDCL Feeder) |
-| **S06** | Gudhiyari Substation | 33/11 kV | 60 MVA | 0.78 | ONAN | 30 yr | ASSUMED (CSPDCL Feeder) |
+| **WP01** | Kharun River WTP | Water Plant | 180 MLD | 1.5 MVA DG (Verified) | **Yes** | Physical Intake Feeder | VERIFIED (RMC Water Master Plan) |
+| **WP02** | Amanaka WTP / Booster | Water Plant | 100 MLD | None (Grid Dependent) | **Yes** | Planning-Assumed | ASSUMED (RMC Zonal Pumping) |
+| **WP03** | Pandri Booster Station | Water Plant | 60 MLD | Standby Commercial DG | **Yes** | Planning-Assumed | ASSUMED (RMC Distribution) |
+| **WP04** | Mowa Pumping Station | Water Plant | 70 MLD | None (Grid Dependent) | **Yes** | Planning-Assumed | ASSUMED (RMC Distribution) |
+| **WP05** | Khamardih Booster Node | Water Plant | 35 MLD | None (Grid Dependent) | **No** (Conceptual) | Conceptual Routing | ASSUMED (RMC Intermediate) |
+| **WP06** | Gudhiyari WTP / OHT | Water Plant | 55 MLD | None (Grid Dependent) | **Yes** | Planning-Assumed | ASSUMED (RMC Distribution) |
+| **H01** | Dr. Ambedkar Memorial Hosp | Healthcare | 880 Beds (45 ICU) | 500 kVA DG (12h fuel) | **Yes** | Physical Dual-Circuit | VERIFIED (Pt. JNM Medical College) |
+| **H02** | Ram Krishna Care Hospital | Healthcare | 350 Beds (30 ICU) | 250 kVA DG (8h fuel) | **Yes** | Planning-Assumed | ASSUMED (Hospital Registry) |
+| **H03** | Shri Ramkrishna Hospital | Healthcare | 200 Beds (20 ICU) | 150 kVA DG (6h fuel) | **Yes** | Planning-Assumed | ASSUMED (Hospital Registry) |
+| **H04** | CHC Amanaka | Healthcare | 30 Beds (2 ICU) | 30 kVA DG (4h fuel) | **Yes** | Planning-Assumed | ASSUMED (IPHS 30-Bed Standard) |
+| **H05** | Urban PHC Tikrapara | Healthcare | 20 Beds (1 ICU) | 20 kVA DG (3h fuel) | **Yes** | Planning-Assumed | ASSUMED (IPHS Urban PHC Norms) |
 
-### B. Illustrative Urban Planning Zones
+### C. Illustrative Urban Planning Zones
+*Note: Due to lack of authenticated official GIS boundary shapefiles for Raipur's 70 municipal wards, AGNAYA aggregates wards into 12 illustrative planning zones representing major geographic corridors. Ingestion of official 70-ward GeoJSON boundaries is documented in [ROADMAP.md](file:///C:/Users/Bhumika%20Baghel/.gemini/antigravity-ide/scratch/AGNAYA/ROADMAP.md).*
+
 | Zone ID | Zone Name | Population | Slum Share | AC Access | Green Cover | Substation | Water Pump |
 |:---|:---|:---:|:---:|:---:|:---:|:---:|:---:|
 | **Z01** | Amanaka | 112,000 | 28.0% | 18.0% | 8.0% | S03 | WP02 (100 MLD) |
@@ -210,6 +232,12 @@ All parameters are compiled from **CSERC Tariff Orders (FY 2024–25)**, **CSPTC
 | **Z10** | Civil Lines | 48,000 | 5.0% | 70.0% | 25.0% | S01 | WP01 (180 MLD) |
 | **Z11** | Avanti Vihar | 63,000 | 10.0% | 65.0% | 20.0% | S04 | WP03 (60 MLD) |
 | **Z12** | Bhata Para | 89,000 | 42.0% | 8.0% | 5.0% | S06 | WP06 (55 MLD) |
+
+### D. Weather Connector (Open-Meteo Gridded NWP)
+AGNAYA features an automated connector in [`data/weather_feed.py`](file:///C:/Users/Bhumika%20Baghel/.gemini/antigravity-ide\scratch\AGNAYA\data\weather_feed.py) that queries the Open-Meteo numerical weather prediction API for Raipur coordinates (21.2514° N, 81.6296° E):
+* **Caching:** Implements a 30-minute in-memory and disk cache (`cache_weather.json`) to prevent unnecessary external requests and rate limits.
+* **Clear Attribution:** Visibly labelled as **Open-Meteo gridded model forecast**, strictly distinguishing it from official statutory IMD station telemetry (Station #42809).
+* **Graceful Offline Fallback:** On connection timeout, network failure, or offline mode, the connector automatically activates an explicit `SYNTHETIC/FALLBACK` record based on verified Raipur May climatological normals (42.5°C, 35% RH, 780 W/m² DNI) with timestamps and clear warnings. Never silently invents numbers.
 
 ---
 

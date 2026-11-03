@@ -46,3 +46,4 @@ This roadmap documents research expansions, external data integrations, and adva
 ## 5. Live SCADA / Telemetry Streaming
 - **Current Implementation:** User scenario simulation and hourly Open-Meteo gridded forecast connector.
 - **Why Deferred:** Real-time utility grid operations require authenticated ICCP (Inter-Control Center Communications Protocol) or IEC 60870-5-104 feeds from CSPTCL SLDC.
+
