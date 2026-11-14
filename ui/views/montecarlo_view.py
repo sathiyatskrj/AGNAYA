@@ -6,19 +6,16 @@ MANDATORY DISCLAIMER: SIMULATION ONLY – NOT AN OFFICIAL WARNING.
 """
 
 import streamlit as st
-import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-import plotly.express as px
 
-from models.sensitivity_analysis import SobolSensitivityEngine, SOBOL_PROBLEM
-from models.cascade_model import MonteCarloCascade
+from models.sensitivity_analysis import SobolSensitivityEngine
 
 
 def render_montecarlo_view(T_peak: float, rel_humidity: float, duration_days: int):
-    st.markdown('<div class="section-title">Monte Carlo Uncertainty & Sobol Global Sensitivity</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-head">Monte Carlo Uncertainty & Sobol Global Sensitivity</div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="section-desc">Evaluates parametric uncertainty and variance decomposition using '
+        '<div class="section-subhead">Evaluates parametric uncertainty and variance decomposition using '
         'SALib (Sobol Sensitivity Analysis) and reproducible Monte Carlo sampling (seed=42).</div>',
         unsafe_allow_html=True
     )
@@ -31,14 +28,14 @@ def render_montecarlo_view(T_peak: float, rel_humidity: float, duration_days: in
     with tab_mc:
         c1, c2 = st.columns([1, 2])
         with c1:
-            st.markdown('<div class="section-title">Sampling controls</div>', unsafe_allow_html=True)
-            n_trials = st.slider("Monte Carlo sample iterations", 50, 500, 200, 50, help="Number of seeded stochastic draws")
+            st.markdown('<div class="section-head" style="font-size:13px;">Sampling Controls</div>', unsafe_allow_html=True)
+            n_trials = st.slider("Monte Carlo iterations", 50, 500, 200, 50, help="Number of seeded stochastic draws")
             sim_seed = st.number_input("Deterministic Random Seed", value=42, min_value=1, max_value=9999)
             _ = st.button("Run Uncertainty Evaluation", type="primary", use_container_width=True)
 
             st.markdown("""
-            <div style="background:#161920;border:1px solid #262A33;border-radius:6px;padding:10px;margin-top:12px;font-size:11px;color:#9CA3AF;line-height:1.45;">
-              <b>Documented Distributions:</b><br/>
+            <div class="callout-box" style="margin-top:12px;font-size:11.5px;">
+              <strong style="color:#F8FAFC;">Documented Distributions:</strong><br/>
               &bull; <i>T_ambient:</i> Normal(mean, 1.2°C) bounded [38, 49]<br/>
               &bull; <i>Humidity:</i> Uniform(mean±6%) bounded [15%, 75%]<br/>
               &bull; <i>Outage:</i> Exponential(scale=nominal) bounded [0, 12] h<br/>
@@ -56,24 +53,50 @@ def render_montecarlo_view(T_peak: float, rel_humidity: float, duration_days: in
             )
             intervals = mc_res["intervals"]
 
-            st.markdown(f"**Uncertainty Confidence Intervals ({n_trials} Trials, Seed={sim_seed}):**")
+            st.markdown(f"**Uncertainty Confidence Bounds ({n_trials} Trials, Seed={sim_seed}):**")
             col_m1, col_m2, col_m3 = st.columns(3)
             with col_m1:
                 p_dem = intervals["peak_demand_mw"]
-                st.metric("Peak Demand (MW)", f"{p_dem['p50_median']:.1f}", f"90% CI: [{p_dem['p05']:.1f}, {p_dem['p95']:.1f}]")
+                st.markdown(f"""
+                <div class="bento-tile">
+                  <div class="stat-eyebrow">Peak Demand (P50)</div>
+                  <div class="stat-figure-row">
+                    <span class="stat-number">{p_dem['p50_median']:.1f}</span>
+                    <span class="stat-unit">MW</span>
+                  </div>
+                  <div class="stat-caption">90% CI: [{p_dem['p05']:.1f}, {p_dem['p95']:.1f}]</div>
+                </div>
+                """, unsafe_allow_html=True)
             with col_m2:
                 p_ind = intervals["max_indoor_temp_c"]
-                st.metric("Max Indoor Temp (°C)", f"{p_ind['p50_median']:.1f}", f"90% CI: [{p_ind['p05']:.1f}, {p_ind['p95']:.1f}]")
+                st.markdown(f"""
+                <div class="bento-tile">
+                  <div class="stat-eyebrow">Max Indoor Temp (P50)</div>
+                  <div class="stat-figure-row">
+                    <span class="stat-number warning">{p_ind['p50_median']:.1f}</span>
+                    <span class="stat-unit">°C</span>
+                  </div>
+                  <div class="stat-caption">90% CI: [{p_ind['p05']:.1f}, {p_ind['p95']:.1f}]</div>
+                </div>
+                """, unsafe_allow_html=True)
             with col_m3:
                 p_faa = intervals["transformer_aging_faa"]
-                st.metric("Aging Acceleration (FAA)", f"{p_faa['p50_median']:.2f}x", f"90% CI: [{p_faa['p05']:.2f}, {p_faa['p95']:.2f}]")
+                st.markdown(f"""
+                <div class="bento-tile">
+                  <div class="stat-eyebrow">Aging Acceleration (P50)</div>
+                  <div class="stat-figure-row">
+                    <span class="stat-number critical">{p_faa['p50_median']:.2f}</span>
+                    <span class="stat-unit">x</span>
+                  </div>
+                  <div class="stat-caption">90% CI: [{p_faa['p05']:.2f}, {p_faa['p95']:.2f}]</div>
+                </div>
+                """, unsafe_allow_html=True)
 
-            # Box-plot representation of uncertainty
             df_plot = pd.DataFrame({
-                "Metric": ["Peak Demand (MW)", "Max Indoor Temp (°C)"],
-                "P05": [p_dem["p05"], p_ind["p05"]],
-                "Median (P50)": [p_dem["p50_median"], p_ind["p50_median"]],
-                "P95": [p_dem["p95"], p_ind["p95"]],
+                "Metric": ["Peak Demand (MW)", "Max Indoor Temp (°C)", "Transformer Aging Rate (FAA)"],
+                "P05 (Lower 5%)": [f"{p_dem['p05']:.1f}", f"{p_ind['p05']:.1f}", f"{p_faa['p05']:.2f}x"],
+                "Median (P50)": [f"{p_dem['p50_median']:.1f}", f"{p_ind['p50_median']:.1f}", f"{p_faa['p50_median']:.2f}x"],
+                "P95 (Upper 95%)": [f"{p_dem['p95']:.1f}", f"{p_ind['p95']:.1f}", f"{p_faa['p95']:.2f}x"],
             })
             st.dataframe(df_plot, use_container_width=True, hide_index=True)
 
@@ -81,7 +104,7 @@ def render_montecarlo_view(T_peak: float, rel_humidity: float, duration_days: in
     # SUB-TAB 2: SOBOL VARIANCE DECOMPOSITION (SALib)
     # ─────────────────────────────────────────────────────────────────────────
     with tab_sobol:
-        st.markdown('<div class="section-title">Sobol Global Sensitivity Indices (SALib)</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-head">Sobol Global Sensitivity Indices (SALib)</div>', unsafe_allow_html=True)
         st.markdown(
             "Identifies which input uncertainties drive output variance in city electricity demand, "
             "substation transformer hot-spot rise, and slum indoor temperature entrapment."
@@ -93,7 +116,6 @@ def render_montecarlo_view(T_peak: float, rel_humidity: float, duration_days: in
         idx_hotspot = sobol_res["indices"]["substation_hotspot_c"]
         _ = sobol_res["parameter_names"]
 
-        # Clean parameter display labels
         labels = [
             "Ambient Temp (°C)",
             "Relative Humidity (%)",
@@ -136,13 +158,17 @@ def render_montecarlo_view(T_peak: float, rel_humidity: float, duration_days: in
             title="Total-Order Sobol Sensitivity Indices (ST) by Parameter",
             yaxis_title="Variance Contribution (ST)",
             template="plotly_dark",
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
             height=340,
             margin=dict(l=20, r=20, t=35, b=20)
         )
         st.plotly_chart(fig_sobol, use_container_width=True)
 
-        st.info(
-            "**Key Sensitivity Insight:** Ambient temperature is the primary driver of bulk transmission load surge (ST > 0.85). "
-            "However, for indoor heat entrapment in informal settlements, feeder outage duration accounts for over 40% of variance, "
-            "demonstrating that grid feeder resilience directly determines thermal survivability."
-        )
+        st.markdown("""
+        <div class="callout-box">
+          <strong style="color:#F8FAFC;">Sensitivity Rationale:</strong> Ambient temperature is the primary driver of bulk transmission load surge (ST > 0.85).
+          However, for indoor heat entrapment in informal settlements, feeder outage duration accounts for over 40% of variance,
+          demonstrating that grid feeder resilience directly governs human thermal survivability.
+        </div>
+        """, unsafe_allow_html=True)

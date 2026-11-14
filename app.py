@@ -1,19 +1,18 @@
 """
 AGNAYA - Adaptive Geospatial Network for Heatwave Analytics and Yield Assessment
-Raipur, Chhattisgarh | Municipal & Grid Operations Twin
+Raipur, Chhattisgarh | Municipal & Grid Operations Twin (v3.2)
 
-Synthesized Research Frameworks:
-  - kd365/heatwave-public: Deterministic Multi-Stage Dispatch Pipeline & HiGHS MILP
-  - parisproffitt/GridStressDigitalTwin: 7-Stage Progressive Heatwave Timeline & Transformer Thermal Models
-  - doaamostafa67988/GridPulse-AI: 5-Component Deterministic Risk Engine & Statutory Audit Reports
-  - Nihita49/TAPAS: UTCI Biometeorology, Tin-Roof Heat Trap & Trilingual Public Advisories
-  - emliang/Heat-Analysis: IEEE Std 738-2012 Dynamic Line Rating (DTR) & Catenary Sag Clearance
-  - nabilkhondaker/ClimateSim: Synchronous DC Power Flow (P = B*theta) & System Resilience Curves Q(t)
+Architecture:
+  Mode 1: Executive Command Center (Situational Cockpit, Causal Cascade, Progressive Lifecycle)
+  Mode 2: Spatial & Physical Digital Twins (Geospatial GIS Map, Transformer Aging, DC Power Flow)
+  Mode 3: Interventions, Resilience & Governance (HiGHS MILP, Q(t) Resilience, Sobol Sensitivity, Official Artifacts)
 
-Data Grounding:
-  - CSERC Tariff Order FY 2024-25 (CSPDCL / CSPTCL / CSPGCL)
-  - CSPTCL Substation & Transmission Grid Records (220/132/33 kV)
-  - IMD Climatological Normals 1970–2024 & Census of India 2011 (Raipur Municipal Corporation)
+Standards & Grounding:
+  - IEEE Std C57.91-2011 Clause 7 (Arrhenius Transformer Thermal Aging)
+  - IEEE Std 738-2012 (Dynamic Line Rating & Conductor Catenary Sag)
+  - CSERC Tariff Order FY 2024-25 (CSPDCL / CSPTCL 220/132/33 kV baselines)
+  - IMD Mana Airport #42809 Climatological Normals & All-Time Extreme (47.9°C)
+  - NDMA / RMI India Heat Impact Framework (2026) & IIT Roorkee HSRI
 """
 
 import streamlit as st
@@ -33,7 +32,6 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
-# Centralized Configuration & Basemap Fallbacks
 from config import settings
 
 from data.raipur_data import (
@@ -50,7 +48,6 @@ from models.cascade_model import (
 from models.grid_digital_twin import GridStressNetwork, compute_spatial_load_distribution
 from models.tapas_health import TapasHealthEngine, HAP_MEASURES
 from models.conductor_ampacity import ConductorThermalAmpacity, RAIPUR_TRANSMISSION_CORRIDORS
-from models.agents_pipeline import SpatialClimateAgent, ThreatAssessmentAgent, DispatchCommanderAgent
 from models.climate_analytics import ClimateAnalyticsEngine
 
 # Advanced Synthesized Models
@@ -67,10 +64,12 @@ from ui.views.dispatch_view import render_dispatch_view
 from ui.views.montecarlo_view import render_montecarlo_view
 from ui.views.resilience_view import render_resilience_view
 
+
 @st.cache_data
 def cached_simulate_demand(t_peak: float, duration_days: int):
     dm = DemandModel()
     return dm.simulate(t_peak, duration_days)
+
 
 @st.cache_data
 def get_logo_base64():
@@ -79,6 +78,7 @@ def get_logo_base64():
         with open(logo_path, "rb") as f:
             return base64.b64encode(f.read()).decode()
     return None
+
 
 logo_b64 = get_logo_base64()
 logo_img_path = os.path.join(BASE_DIR, "assets", "agnaya_logo.png")
@@ -101,6 +101,7 @@ if os.path.exists(styles_path):
     with open(styles_path, "r", encoding="utf-8") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
+
 # ══════════════════════════════════════════════════════════════
 # SHARED PLOTLY TEMPLATE (Utility & Municipal Theme)
 # ══════════════════════════════════════════════════════════════
@@ -111,22 +112,22 @@ def apply_utility_chart_theme(fig, height=320, show_legend=True):
         plot_bgcolor="rgba(0,0,0,0)",
         height=height,
         margin=dict(l=16, r=16, t=24, b=16),
-        font=dict(family="Inter, -apple-system, BlinkMacSystemFont, sans-serif", size=12, color="#9CA3AF"),
+        font=dict(family="Inter, -apple-system, BlinkMacSystemFont, sans-serif", size=12, color="#94A3B8"),
         xaxis=dict(
             showgrid=True,
-            gridcolor="#262A33",
+            gridcolor="rgba(255, 255, 255, 0.05)",
             gridwidth=1,
-            linecolor="#262A33",
-            tickfont=dict(color="#9CA3AF", size=11),
-            title_font=dict(color="#D1D5DB", size=12),
+            linecolor="rgba(255, 255, 255, 0.08)",
+            tickfont=dict(color="#94A3B8", size=11),
+            title_font=dict(color="#CBD5E1", size=12),
         ),
         yaxis=dict(
             showgrid=True,
-            gridcolor="#262A33",
+            gridcolor="rgba(255, 255, 255, 0.05)",
             gridwidth=1,
-            linecolor="#262A33",
-            tickfont=dict(color="#9CA3AF", size=11),
-            title_font=dict(color="#D1D5DB", size=12),
+            linecolor="rgba(255, 255, 255, 0.08)",
+            tickfont=dict(color="#94A3B8", size=11),
+            title_font=dict(color="#CBD5E1", size=12),
         ),
         legend=dict(
             orientation="h",
@@ -134,35 +135,38 @@ def apply_utility_chart_theme(fig, height=320, show_legend=True):
             y=1.02,
             xanchor="right",
             x=1,
-            font=dict(color="#D1D5DB", size=11),
+            font=dict(color="#CBD5E1", size=11),
             bgcolor="rgba(0,0,0,0)"
         ) if show_legend else dict(visible=False),
     )
     return fig
 
+
 def render_metric_card(col, label: str, value: str, unit: str = "", caption: str = "", status: str = ""):
-    status_cls = f"status-{status}" if status else ""
-    unit_html = f'<span class="metric-unit">{unit}</span>' if unit else ""
-    caption_html = f'<div class="metric-caption">{caption}</div>' if caption else ""
+    """Backwards-compatible wrapper rendering Bento Stat Tiles."""
+    status_cls = f"{status}" if status else ""
+    unit_html = f'<span class="stat-unit">{unit}</span>' if unit else ""
+    caption_html = f'<div class="stat-caption">{caption}</div>' if caption else ""
     col.markdown(f"""
-    <div class="metric-card">
-      <div class="metric-label">{label}</div>
-      <div class="metric-value-row">
-        <span class="metric-number {status_cls}">{value}</span>
+    <div class="bento-tile">
+      <div class="stat-eyebrow">{label}</div>
+      <div class="stat-figure-row">
+        <span class="stat-number {status_cls}">{value}</span>
         {unit_html}
       </div>
       {caption_html}
     </div>
     """, unsafe_allow_html=True)
 
+
 # ══════════════════════════════════════════════════════════════
-# SIDEBAR: OPERATIONAL PARAMETERS
+# SIDEBAR: OPERATIONAL PARAMETERS & CONTEXT
 # ══════════════════════════════════════════════════════════════
 with st.sidebar:
     st.markdown("""
     <div class="sidebar-title-container">
-      <div class="sidebar-app-name">AGNAYA</div>
-      <div class="sidebar-subtext">Raipur Heatwave & Grid Digital Twin</div>
+      <div class="sidebar-app-name">AGNAYA <span style="font-size:12px;font-weight:400;color:#94A3B8;">v3.2</span></div>
+      <div class="sidebar-subtext">Raipur Infrastructure Digital Twin</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -191,20 +195,20 @@ with st.sidebar:
     st.markdown('<div class="sidebar-section-heading">Open-Meteo Weather Feed</div>', unsafe_allow_html=True)
     live_wx = get_current_raipur_weather()
     is_synth = live_wx.get("is_synthetic_fallback", False)
-    wx_badge_cls = "status-badge-ok" if not is_synth else "status-badge-warning"
+    wx_badge_cls = "stat-tag-ok" if not is_synth else "stat-tag-warning"
     wx_label = "OPEN-METEO NWP" if not is_synth else "SYNTHETIC/FALLBACK"
     wx_time = (live_wx.get("retrieval_timestamp") or "N/A")[:19].replace("T", " ")
 
     st.markdown(f"""
-    <div style="background:#161920;border:1px solid #262A33;border-radius:6px;padding:9px 11px;margin-bottom:10px;">
+    <div style="background:#11151D;border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:10px 12px;margin-bottom:10px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-        <span style="font-size:11px;font-weight:600;color:#9CA3AF;">GRIDDED MODEL</span>
-        <span class="status-badge {wx_badge_cls}" style="font-size:10px;padding:1px 5px;">{wx_label}</span>
+        <span style="font-size:11px;font-weight:600;color:#94A3B8;">GRIDDED NWP</span>
+        <span class="stat-tag {wx_badge_cls}" style="font-size:10px;padding:2px 6px;">{wx_label}</span>
       </div>
-      <div style="font-size:13px;color:#F3F4F6;font-weight:600;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#F8FAFC;font-weight:600;">
         {live_wx.get('temperature_c', 42.5):.1f}°C &middot; {live_wx.get('relative_humidity_pct', 35.0):.0f}% RH &middot; {live_wx.get('wind_speed_ms', 2.8):.1f} m/s
       </div>
-      <div style="font-size:10.5px;color:#6B7280;margin-top:4px;line-height:1.35;">
+      <div style="font-size:10.5px;color:#64748B;margin-top:4px;line-height:1.4;">
         Retrieved: {wx_time} UTC<br/>
         <i>Gridded NWP (21.25°N, 81.63°E). NOT official IMD station data.</i>
       </div>
@@ -260,13 +264,13 @@ with st.sidebar:
 
     prov_sum = get_provenance_summary()
     st.markdown(f"""
-    <div style="font-size:11.5px;color:#9CA3AF;margin-top:20px;padding:10px;background:#161920;border:1px solid #262A33;border-radius:6px;line-height:1.45;">
-      <b style="color:#F3F4F6;">Data Provenance Audit Matrix:</b><br/>
-      • Total Parameters Audited: <b>{prov_sum.get('total_parameters_audited', 187)}</b><br/>
-      • Verified (CSERC/IMD): <b>{prov_sum.get('status_breakdown', {}).get('VERIFIED', 0)}</b><br/>
-      • Derived (GIS/Census): <b>{prov_sum.get('status_breakdown', {}).get('DERIVED', 0)}</b><br/>
-      • Assumed (Rules/Norms): <b>{prov_sum.get('status_breakdown', {}).get('ASSUMED', 0)}</b><br/>
-      <span style="font-size:10.5px;color:#6B7280;">See data/DATA_SOURCES.csv</span>
+    <div style="font-size:11.5px;color:#94A3B8;margin-top:20px;padding:10px;background:#11151D;border:1px solid rgba(255,255,255,0.08);border-radius:6px;line-height:1.5;">
+      <b style="color:#F8FAFC;">Data Provenance Audit Matrix:</b><br/>
+      &bull; Parameters Audited: <b>{prov_sum.get('total_parameters_audited', 187)}</b><br/>
+      &bull; Verified (CSERC/IMD): <b>{prov_sum.get('status_breakdown', {}).get('VERIFIED', 0)}</b><br/>
+      &bull; Derived (GIS/Census): <b>{prov_sum.get('status_breakdown', {}).get('DERIVED', 0)}</b><br/>
+      &bull; Assumed (Rules/Norms): <b>{prov_sum.get('status_breakdown', {}).get('ASSUMED', 0)}</b><br/>
+      <span style="font-size:10.5px;color:#64748B;">Audited in data/DATA_SOURCES.csv</span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -282,327 +286,293 @@ now_ist = datetime.now(timezone(timedelta(hours=5, minutes=30))).strftime("%d %b
 
 if T_peak >= 46.0 or shortfall > 50:
     alert_name = "Critical"
-    alert_badge_cls = "status-badge-critical"
-    alert_dot_cls = "status-dot-critical"
+    alert_tag_cls = "critical"
+    alert_dot_cls = "critical"
 elif T_peak >= 44.0 or shortfall > 0:
     alert_name = "Severe"
-    alert_badge_cls = "status-badge-warning"
-    alert_dot_cls = "status-dot-warning"
+    alert_tag_cls = "warning"
+    alert_dot_cls = "warning"
 elif T_peak >= 42.0:
     alert_name = "Elevated"
-    alert_badge_cls = "status-badge-warning"
-    alert_dot_cls = "status-dot-warning"
+    alert_tag_cls = "warning"
+    alert_dot_cls = "warning"
 else:
     alert_name = "Normal"
-    alert_badge_cls = "status-badge-ok"
-    alert_dot_cls = "status-dot-ok"
+    alert_tag_cls = "ok"
+    alert_dot_cls = "ok"
 
-logo_html = f'<img src="data:image/png;base64,{logo_b64}" style="width:38px;height:38px;border-radius:4px;object-fit:cover;" />' if logo_b64 else ''
+logo_html = f'<img src="data:image/png;base64,{logo_b64}" style="width:36px;height:36px;border-radius:4px;object-fit:cover;" />' if logo_b64 else ''
 
 st.markdown(f"""
-<div class="app-header">
-  <div class="app-header-left">
+<div class="command-header">
+  <div class="command-header-left">
     {logo_html}
-    <div>
-      <h1 class="app-title">AGNAYA — Heatwave & Grid Digital Twin</h1>
-      <p class="app-subtitle">Decision-Support Simulation Prototype &middot; Calibrated to Raipur, Chhattisgarh Infrastructure &middot; SIMULATION ONLY</p>
+    <div class="command-brand-lockup">
+      <div class="command-title">AGNAYA <span style="font-weight:400;font-size:12px;color:#94A3B8;margin-left:6px;">v3.2</span></div>
+      <div class="command-subtitle">Raipur Infrastructure Digital Twin &middot; Municipal &amp; Grid Decision Support</div>
     </div>
   </div>
-  <div class="app-header-status">
-    <div class="status-badge {alert_badge_cls}">
-      <span class="status-dot {alert_dot_cls}"></span>
-      <span>Alert level: {alert_name}</span>
+  <div class="command-header-telemetry">
+    <div class="stat-tag stat-tag-{alert_tag_cls}">
+      <span class="status-dot-sm {alert_dot_cls}"></span>
+      <span>{alert_name.upper()}</span>
     </div>
-    <div class="status-badge status-badge-neutral">
-      <span>Simulated load: <b>{peak_d:.0f} MW</b></span>
+    <div class="stat-tag">
+      <span>PEAK LOAD: <strong>{peak_d:.0f} MW</strong></span>
     </div>
-    <div class="status-badge status-badge-neutral">
+    <div class="stat-tag">
       <span>{now_ist}</span>
     </div>
   </div>
 </div>
 
-<div class="banner-simulation" style="background:#1A1E26;border-left:4px solid #F59E0B;padding:9px 14px;margin:12px 0 16px 0;border-radius:4px;font-size:12px;color:#D1D5DB;line-height:1.45;">
-  <b>SIMULATION ONLY – NOT AN OFFICIAL WARNING.</b> All models, forecasts, risk tiers, and resource allocations are research approximations for municipal planning. Not endorsed by IMD, NDMA, RMC, or CSPDCL/CSPTCL.
+<div class="disclaimer-banner">
+  <strong>SIMULATION ONLY &ndash; NOT AN OFFICIAL WARNING.</strong> All models, forecasts, risk scores, and resource allocations are research approximations for municipal planning. Not endorsed by IMD, NDMA, RMC, or CSPDCL/CSPTCL.
 </div>
 """, unsafe_allow_html=True)
 
-with st.expander("📖 Data Provenance Matrix & Terminology Guidelines (IMD / NDMA / CSERC)", expanded=False):
-    st.markdown("""
-| Terminology | Definition & Source Boundary | Application in AGNAYA | Statutory Authority |
-| :--- | :--- | :--- | :--- |
-| **OBSERVED** | Physical ground-truth measurements recorded by statutory monitoring networks. | IMD Station #42809 records (all-time peak 47.9°C on May 28, 2024); CSERC FY24-25 tariff filings. | India Meteorological Department (IMD) |
-| **FORECAST** | Gridded numerical weather prediction (NWP) model outputs from Open-Meteo API. | Hourly temperature, humidity, and irradiance at 21.2514° N, 81.6296° E (30-min cache). NOT official IMD station telemetry. | Open-Meteo NWP (Gridded Model) |
-| **USER HYPOTHETICAL** | What-if scenario parameters selected via sliders or test suites to evaluate stress limits. | Scenario sliders (38°C–50°C, outage duration, N-1 substation trip contingency). | User-selected stress scenario |
-| **MODEL-CLASSIFIED** | Algorithmic risk tiers and stress indices computed by deterministic physics and engineering models. | Heuristic Heat-Risk Index (HSRI), IEEE Std C57.91 transformer thermal aging acceleration ($F_{AA}$). | Deterministic algorithms (Uncalibrated) |
-| **OFFICIAL WARNING** | **NEVER PRODUCED BY THIS TOOL.** Statutory red/orange warnings, heatwave alerts, or evacuation directives. | Explicitly prohibited by core system rules. All outputs carry mandatory simulation disclaimers. | **IMD / NDMA / SEC / DDMA Exclusively** |
-""")
 
 # ══════════════════════════════════════════════════════════════
-# THE REFINED OPERATIONAL TABS & END-TO-END WALKTHROUGH
+# THE THREE OPERATIONAL MODES (Cognitive Load Limit <= 3)
 # ══════════════════════════════════════════════════════════════
-(
-    tab_e2e,
-    tab_overview,
-    tab_timeline,
-    tab_map,
-    tab_powerflow,
-    tab_substations,
-    tab_alerts,
-    tab_dispatch,
-    tab_montecarlo,
-    tab_resilience
-) = st.tabs([
-    "End-to-End Walkthrough",
-    "Overview",
-    "Timeline",
-    "Map",
-    "Power flow",
-    "Substations",
-    "Alerts",
-    "Dispatch",
-    "Monte Carlo",
-    "Resilience"
-])
+active_mode = st.radio(
+    "Operational Navigation Mode",
+    [
+        "Mode 1: Executive Command Center",
+        "Mode 2: Spatial & Physical Digital Twins",
+        "Mode 3: Interventions, Resilience & Governance"
+    ],
+    horizontal=True,
+    label_visibility="collapsed"
+)
 
-with tab_e2e:
-    render_e2e_walkthrough_view(
-        T_peak=T_peak,
-        rel_humidity=rel_humidity,
-        duration_days=duration_days,
-        power_outage_sim=power_outage_sim,
-        tripped_id=tripped_id,
-        budget_lakh=budget_lakh
-    )
+# ══════════════════════════════════════════════════════════════
+# MODE 1: EXECUTIVE COMMAND CENTER
+# ══════════════════════════════════════════════════════════════
+if active_mode == "Mode 1: Executive Command Center":
+    sub_tab_cockpit, sub_tab_cascade, sub_tab_lifecycle = st.tabs([
+        "Situational Cockpit & Live Feed",
+        "Coupled Causal Cascade Stepper",
+        "Progressive Heatwave Lifecycle (7 Stages)"
+    ])
 
-# ──────────────────────────────────────────────────────────────
-# TAB 1: OVERVIEW
-# ──────────────────────────────────────────────────────────────
-with tab_overview:
-    c1, c2, c3, c4 = st.columns(4)
-    render_metric_card(
-        c1, "Ambient air temperature", f"{T_peak:.1f}", "°C",
-        caption="Raipur Station #42809",
-        status="critical" if T_peak >= 45 else "warning" if T_peak >= 42 else "ok"
-    )
-    render_metric_card(
-        c2, "Peak grid demand", f"{peak_d:.0f}", "MW",
-        caption=f"Baseline normal: {CSPDCL_PARAMS['raipur_normal_demand_mw']} MW",
-        status="warning" if peak_d > cap_normal else "ok"
-    )
-    surge_mw = peak_d - CSPDCL_PARAMS['raipur_normal_demand_mw']
-    surge_pct = (peak_d / CSPDCL_PARAMS['raipur_normal_demand_mw'] - 1.0) * 100
-    render_metric_card(
-        c3, "Demand surge", f"+{surge_mw:.0f}", "MW",
-        caption=f"+{surge_pct:.0f}% above base load",
-        status="critical" if shortfall > 0 else "warning"
-    )
-    render_metric_card(
-        c4, "Grid capacity balance", f"{shortfall:.0f}" if shortfall > 0 else f"{cap_normal - peak_d:.0f}", "MW",
-        caption=f"{'Shortfall beyond threshold' if shortfall > 0 else 'Remaining capacity margin'}",
-        status="critical" if shortfall > 0 else "ok"
-    )
+    with sub_tab_cockpit:
+        c1, c2, c3, c4 = st.columns(4)
+        render_metric_card(
+            c1, "Ambient air temperature", f"{T_peak:.1f}", "°C",
+            caption="Raipur Station #42809",
+            status="critical" if T_peak >= 45 else "warning" if T_peak >= 42 else "ok"
+        )
+        render_metric_card(
+            c2, "Peak grid demand", f"{peak_d:.0f}", "MW",
+            caption=f"Contracted baseline: {CSPDCL_PARAMS['raipur_peak_demand_mw']} MW",
+            status="warning" if peak_d > cap_normal else "ok"
+        )
+        surge_mw = peak_d - CSPDCL_PARAMS['raipur_normal_demand_mw']
+        surge_pct = (peak_d / CSPDCL_PARAMS['raipur_normal_demand_mw'] - 1.0) * 100
+        render_metric_card(
+            c3, "Demand surge", f"+{surge_mw:.0f}", "MW",
+            caption=f"+{surge_pct:.0f}% above base load",
+            status="critical" if shortfall > 0 else "warning"
+        )
+        render_metric_card(
+            c4, "Grid capacity balance", f"{shortfall:.0f}" if shortfall > 0 else f"{cap_normal - peak_d:.0f}", "MW",
+            caption=f"{'Shortfall beyond threshold' if shortfall > 0 else 'Remaining capacity margin'}",
+            status="critical" if shortfall > 0 else "ok"
+        )
 
-    # Historical Precedent Matching
-    similar = [h for h in HISTORICAL_HEATWAVES if abs(h["peak_temp"] - T_peak) < 1.5]
-    if similar:
-        h_ev = sorted(similar, key=lambda x: abs(x["peak_temp"] - T_peak))[0]
+        similar = [h for h in HISTORICAL_HEATWAVES if abs(h["peak_temp"] - T_peak) < 1.5]
+        if similar:
+            h_ev = sorted(similar, key=lambda x: abs(x["peak_temp"] - T_peak))[0]
+            st.markdown(f"""
+            <div class="callout-box">
+              <strong style="color:#F8FAFC;">Historical Precedent ({h_ev['year']}):</strong> Raipur recorded <b>{h_ev['peak_temp']}°C</b> over {h_ev['duration_days']} consecutive days, resulting in approximately <b>{h_ev['deaths_estimated']} heat-related casualties</b> and up to <b>{h_ev['max_outage_hours']}h feeder shedding</b>. Active scenario parameters closely match this empirical event profile.
+            </div>
+            """, unsafe_allow_html=True)
+
+        col_l, col_r = st.columns([3, 2])
+        with col_l:
+            st.markdown('<div class="section-head">Electricity demand trajectory (continuous ODE dynamics)</div>', unsafe_allow_html=True)
+            fig_d = go.Figure()
+            fig_d.add_trace(go.Scatter(
+                x=t_h / 24, y=D_mw, name="Simulated demand",
+                line=dict(color="#3B82F6", width=2.5),
+                fill="tozeroy", fillcolor="rgba(59, 130, 246, 0.08)",
+            ))
+            fig_d.add_hline(
+                y=cap_normal, line_dash="dash", line_color="#EF4444",
+                annotation_text=f"Contracted limit ({cap_normal} MW)",
+                annotation_position="top left",
+                annotation_font=dict(color="#EF4444", size=11)
+            )
+            fig_d.add_hline(
+                y=CSPDCL_PARAMS["raipur_normal_demand_mw"], line_dash="dot", line_color="#64748B",
+                annotation_text="Base demand (310 MW)",
+                annotation_position="bottom left",
+                annotation_font=dict(color="#94A3B8", size=11)
+            )
+            fig_d.update_layout(
+                xaxis_title="Simulation timeline (days)",
+                yaxis_title="Power demand (MW)",
+            )
+            apply_utility_chart_theme(fig_d, height=310, show_legend=False)
+            st.plotly_chart(fig_d, use_container_width=True)
+
+        with col_r:
+            st.markdown('<div class="section-head">Historical extreme heatwaves (IMD Raipur)</div>', unsafe_allow_html=True)
+            hdf = pd.DataFrame(HISTORICAL_HEATWAVES)
+            fig_h = px.scatter(
+                hdf, x="peak_temp", y="deaths_estimated",
+                size="duration_days", color="max_outage_hours",
+                text="year", color_continuous_scale="Reds", size_max=20,
+            )
+            fig_h.update_traces(textposition="top center", marker=dict(line=dict(width=1, color="#334155")))
+            fig_h.add_vline(
+                x=T_peak, line_dash="dash", line_color="#F59E0B",
+                annotation_text=f"Scenario ({T_peak}°C)",
+                annotation_position="top right",
+                annotation_font=dict(color="#F59E0B", size=11)
+            )
+            fig_h.update_layout(
+                xaxis_title="Peak temperature (°C)",
+                yaxis_title="Recorded casualties",
+                coloraxis_colorbar=dict(title="Outage (h)", tickfont=dict(size=10)),
+            )
+            apply_utility_chart_theme(fig_h, height=310, show_legend=False)
+            st.plotly_chart(fig_h, use_container_width=True)
+
+    with sub_tab_cascade:
+        render_e2e_walkthrough_view(
+            T_peak=T_peak,
+            rel_humidity=rel_humidity,
+            duration_days=duration_days,
+            power_outage_sim=power_outage_sim,
+            tripped_id=tripped_id,
+            budget_lakh=budget_lakh
+        )
+
+    with sub_tab_lifecycle:
+        st.markdown('<div class="section-head">Progressive heatwave lifecycle</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-subhead">Simulates seven progressive operational phases—from atmospheric onset and cooling surge to conductor thermal sag, tin-roof heat trapping, and lifeline restoration.</div>', unsafe_allow_html=True)
+
+        sim_heatwave = ProgressiveHeatwaveSimulator()
+        stages = sim_heatwave.get_all_stages()
+
+        selected_stage_idx = st.slider(
+            "Operational stage",
+            min_value=1, max_value=7, value=3,
+            format="Stage %d",
+            help="Select an operational phase to inspect coupled grid, health, and civil response directives."
+        )
+
+        stage_info = sim_heatwave.get_stage_details(selected_stage_idx)
+        stage_eval = sim_heatwave.evaluate_stage(selected_stage_idx)
+
         st.markdown(f"""
-        <div class="note-box">
-          <b>Historical precedent ({h_ev['year']}):</b> Raipur recorded <b>{h_ev['peak_temp']}°C</b> over {h_ev['duration_days']} consecutive days, resulting in approximately <b>{h_ev['deaths_estimated']} heat-related casualties</b> and up to <b>{h_ev['max_outage_hours']}h feeder shedding</b>. Active scenario parameters closely match this empirical event profile.
+        <div class="callout-box">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;color:#94A3B8;letter-spacing:0.05em;">Phase {stage_info['stage_idx']} of 7 &middot; Horizon: {stage_info['time_label']}</div>
+          <div style="font-size:16px;font-weight:600;color:#F8FAFC;margin:4px 0;">{stage_info['name']}</div>
+          <div style="font-size:13px;color:#CBD5E1;line-height:1.6;">{stage_info['description']}</div>
         </div>
         """, unsafe_allow_html=True)
 
-    col_l, col_r = st.columns([3, 2])
-    with col_l:
-        st.markdown('<div class="section-title">Electricity demand trajectory (continuous ODE dynamics)</div>', unsafe_allow_html=True)
-        fig_d = go.Figure()
-        fig_d.add_trace(go.Scatter(
-            x=t_h / 24, y=D_mw, name="Simulated demand",
-            line=dict(color="#3B82F6", width=2.5),
-            fill="tozeroy", fillcolor="rgba(59, 130, 246, 0.08)",
+        tk1, tk2, tk3, tk4 = st.columns(4)
+        render_metric_card(
+            tk1, "Ambient temperature", f"{stage_info['ambient_temp_c']:.1f}", "°C",
+            caption="Citywide mean dry-bulb",
+            status="critical" if stage_info['ambient_temp_c'] >= 44 else "warning"
+        )
+        render_metric_card(
+            tk2, "Demand surge", f"+{stage_info['demand_surge_mw']:.0f}", "MW",
+            caption="Above baseline demand",
+            status="warning" if stage_info['demand_surge_mw'] > 60 else "ok"
+        )
+        render_metric_card(
+            tk3, "Transformer thermal aging", f"{stage_info['transformer_aging_factor']:.1f}", "x",
+            caption="Insulation degradation rate",
+            status="critical" if stage_info['transformer_aging_factor'] >= 4 else "warning"
+        )
+        high_stress_wards = sum(1 for w in stage_eval.get('wards_health', []) if w.get('risk_band') in ['SEVERE', 'HIGH'])
+        render_metric_card(
+            tk4, "High-stress wards", f"{high_stress_wards} / 12", "zones",
+            caption="Zones at High/Severe HSRI",
+            status="critical" if high_stress_wards >= 4 else ("warning" if high_stress_wards > 0 else "ok")
+        )
+
+        st.markdown('<div class="section-head">Multi-asset parameter progression (Stages 1–7)</div>', unsafe_allow_html=True)
+        timeline_df = sim_heatwave.generate_timeline_dataframe()
+        timeline_df["stage_short"] = [f"Stage {i}" for i in timeline_df["stage_idx"]]
+
+        fig_timeline = go.Figure()
+        fig_timeline.add_trace(go.Scatter(
+            x=timeline_df["stage_short"], y=timeline_df["ambient_temp_c"],
+            name="Ambient temp (°C)", line=dict(color="#EF4444", width=2.5),
+            mode="lines+markers", marker=dict(size=7),
+            customdata=timeline_df["stage_name"],
+            hovertemplate="<b>%{customdata}</b><br>Stage: %{x}<br>Ambient Temp: %{y:.1f}°C<extra></extra>"
         ))
-        fig_d.add_hline(
-            y=cap_normal, line_dash="dash", line_color="#EF4444",
-            annotation_text=f"Grid threshold ({cap_normal} MW)",
-            annotation_position="top left",
-            annotation_font=dict(color="#EF4444", size=11)
+        fig_timeline.add_trace(go.Scatter(
+            x=timeline_df["stage_short"], y=timeline_df["demand_surge_mw"],
+            name="Demand surge (MW)", line=dict(color="#3B82F6", width=2, dash="dash"),
+            mode="lines+markers", marker=dict(size=7), yaxis="y2",
+            customdata=timeline_df["stage_name"],
+            hovertemplate="<b>%{customdata}</b><br>Stage: %{x}<br>Demand Surge: +%{y:.0f} MW<extra></extra>"
+        ))
+        fig_timeline.add_trace(go.Scatter(
+            x=timeline_df["stage_short"], y=timeline_df["transformer_aging_factor"],
+            name="Aging acceleration factor (x)", line=dict(color="#F59E0B", width=2, dash="dot"),
+            mode="lines+markers", marker=dict(size=6), yaxis="y3",
+            customdata=timeline_df["stage_name"],
+            hovertemplate="<b>%{customdata}</b><br>Stage: %{x}<br>Aging Rate: %{y:.1f}x<extra></extra>"
+        ))
+
+        active_stage_short = f"Stage {stage_info['stage_idx']}"
+        fig_timeline.add_vline(x=active_stage_short, line_dash="solid", line_color="#CBD5E1", opacity=0.4)
+        fig_timeline.update_layout(
+            xaxis=dict(title="Progressive lifecycle stages", tickangle=0),
+            yaxis=dict(title=dict(text="Ambient temp (°C)", font=dict(color="#EF4444")), tickfont=dict(color="#EF4444")),
+            yaxis2=dict(title=dict(text="Demand surge (MW)", font=dict(color="#3B82F6")), tickfont=dict(color="#3B82F6"), overlaying="y", side="right"),
+            yaxis3=dict(title=dict(text="Aging factor (x)", font=dict(color="#F59E0B")), tickfont=dict(color="#F59E0B"), overlaying="y", side="right", anchor="free", position=0.96),
         )
-        fig_d.add_hline(
-            y=CSPDCL_PARAMS["raipur_normal_demand_mw"], line_dash="dot", line_color="#6B7280",
-            annotation_text="Base demand (310 MW)",
-            annotation_position="bottom left",
-            annotation_font=dict(color="#9CA3AF", size=11)
-        )
-        fig_d.update_layout(
-            xaxis_title="Simulation timeline (days)",
-            yaxis_title="Power demand (MW)",
-        )
-        apply_utility_chart_theme(fig_d, height=310, show_legend=False)
-        st.plotly_chart(fig_d, use_container_width=True)
+        apply_utility_chart_theme(fig_timeline, height=330, show_legend=True)
+        st.plotly_chart(fig_timeline, use_container_width=True)
 
-    with col_r:
-        st.markdown('<div class="section-title">Historical extreme heatwaves (IMD Raipur)</div>', unsafe_allow_html=True)
-        hdf = pd.DataFrame(HISTORICAL_HEATWAVES)
-        fig_h = px.scatter(
-            hdf, x="peak_temp", y="deaths_estimated",
-            size="duration_days", color="max_outage_hours",
-            text="year", color_continuous_scale="Reds", size_max=22,
-        )
-        fig_h.update_traces(textposition="top center", marker=dict(line=dict(width=1, color="#374151")))
-        fig_h.add_vline(
-            x=T_peak, line_dash="dash", line_color="#F59E0B",
-            annotation_text=f"Scenario ({T_peak}°C)",
-            annotation_position="top right",
-            annotation_font=dict(color="#F59E0B", size=11)
-        )
-        fig_h.update_layout(
-            xaxis_title="Peak temperature (°C)",
-            yaxis_title="Recorded casualties",
-            coloraxis_colorbar=dict(title="Outage (h)", tickfont=dict(size=10)),
-        )
-        apply_utility_chart_theme(fig_h, height=310, show_legend=False)
-        st.plotly_chart(fig_h, use_container_width=True)
+        c_casc, c_recom = st.columns(2)
+        with c_casc:
+            st.markdown('<div class="section-head">Cross-asset cascading dependencies</div>', unsafe_allow_html=True)
+            st.markdown(f"""
+            <div class="callout-box">
+              <div style="font-size:12.5px;color:#CBD5E1;line-height:1.6;">
+                <b>Thermal, grid, and public health interactions:</b><br/>
+                {stage_info['cross_asset_cascade']}
+              </div>
+              <div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.08);font-size:11.5px;color:#94A3B8;">
+                <b>Active critical lifelines:</b> {' &bull; '.join(stage_info['active_lifelines'])}
+              </div>
+            </div>
+            """, unsafe_allow_html=True)
 
-# ──────────────────────────────────────────────────────────────
-# TAB 2: TIMELINE
-# ──────────────────────────────────────────────────────────────
-with tab_timeline:
-    st.markdown('<div class="section-title">Progressive heatwave lifecycle</div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-desc">Simulates seven progressive operational phases—from atmospheric onset and cooling surge to conductor thermal sag, tin-roof heat trapping, and lifeline restoration.</div>', unsafe_allow_html=True)
+        with c_recom:
+            st.markdown('<div class="section-head">Operational response directives</div>', unsafe_allow_html=True)
+            recom_items = "".join([f"<li style='margin-bottom:4px;'>{r}</li>" for r in stage_info['recommendations']])
+            st.markdown(f"""
+            <div class="callout-box">
+              <ul style="margin:0;padding-left:18px;font-size:12.5px;color:#CBD5E1;line-height:1.55;">
+                {recom_items}
+              </ul>
+            </div>
+            """, unsafe_allow_html=True)
 
-    sim_heatwave = ProgressiveHeatwaveSimulator()
-    stages = sim_heatwave.get_all_stages()
 
-    selected_stage_idx = st.slider(
-        "Operational stage",
-        min_value=1, max_value=7, value=3,
-        format="Stage %d",
-        help="Select an operational phase to inspect coupled grid, health, and civil response directives."
-    )
-
-    stage_info = sim_heatwave.get_stage_details(selected_stage_idx)
-
-    # Active Stage Overview Card
-    st.markdown(f"""
-    <div class="advisory-card">
-      <div class="advisory-card-header">
-        <div>
-          <div class="advisory-authority">Phase {stage_info['stage_idx']} of 7 &middot; Horizon: {stage_info['time_label']}</div>
-          <div class="advisory-headline">{stage_info['name']}</div>
-        </div>
-        <div class="status-badge status-badge-warning">
-          <span>Active stage</span>
-        </div>
-      </div>
-      <div class="advisory-body">{stage_info['description']}</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    tk1, tk2, tk3, tk4 = st.columns(4)
-    render_metric_card(
-        tk1, "Ambient temperature", f"{stage_info['ambient_temp_c']:.1f}", "°C",
-        caption="Citywide mean dry-bulb",
-        status="critical" if stage_info['ambient_temp_c'] >= 44 else "warning"
-    )
-    render_metric_card(
-        tk2, "Demand surge", f"+{stage_info['demand_surge_mw']:.0f}", "MW",
-        caption="Above baseline demand",
-        status="warning" if stage_info['demand_surge_mw'] > 60 else "ok"
-    )
-    render_metric_card(
-        tk3, "Transformer thermal aging", f"{stage_info['transformer_aging_factor']:.1f}", "x",
-        caption="Insulation degradation rate",
-        status="critical" if stage_info['transformer_aging_factor'] >= 4 else "warning"
-    )
-    high_stress_wards = sum(1 for w in stage_eval['wards_health'] if w.get('risk_band') in ['SEVERE', 'HIGH'])
-    render_metric_card(
-        tk4, "High-stress wards", f"{high_stress_wards} / 12", "zones",
-        caption="Zones at High/Severe HSRI",
-        status="critical" if high_stress_wards >= 4 else ("warning" if high_stress_wards > 0 else "ok")
-    )
-
-    st.markdown('<div class="section-title">Multi-asset parameter progression (Stages 1–7)</div>', unsafe_allow_html=True)
-    timeline_df = sim_heatwave.generate_timeline_dataframe()
-
-    # Short stage names to eliminate overlapping/rotated labels
-    timeline_df["stage_short"] = [f"Stage {i}" for i in timeline_df["stage_idx"]]
-
-    fig_timeline = go.Figure()
-    fig_timeline.add_trace(go.Scatter(
-        x=timeline_df["stage_short"], y=timeline_df["ambient_temp_c"],
-        name="Ambient temp (°C)", line=dict(color="#EF4444", width=2.5),
-        mode="lines+markers", marker=dict(size=7),
-        customdata=timeline_df["stage_name"],
-        hovertemplate="<b>%{customdata}</b><br>Stage: %{x}<br>Ambient Temp: %{y:.1f}°C<extra></extra>"
-    ))
-    fig_timeline.add_trace(go.Scatter(
-        x=timeline_df["stage_short"], y=timeline_df["demand_surge_mw"],
-        name="Demand surge (MW)", line=dict(color="#3B82F6", width=2, dash="dash"),
-        mode="lines+markers", marker=dict(size=7), yaxis="y2",
-        customdata=timeline_df["stage_name"],
-        hovertemplate="<b>%{customdata}</b><br>Stage: %{x}<br>Demand Surge: +%{y:.0f} MW<extra></extra>"
-    ))
-    fig_timeline.add_trace(go.Scatter(
-        x=timeline_df["stage_short"], y=timeline_df["transformer_aging_factor"],
-        name="Aging acceleration factor (x)", line=dict(color="#F59E0B", width=2, dash="dot"),
-        mode="lines+markers", marker=dict(size=6), yaxis="y3",
-        customdata=timeline_df["stage_name"],
-        hovertemplate="<b>%{customdata}</b><br>Stage: %{x}<br>Aging Rate: %{y:.1f}x<extra></extra>"
-    ))
-
-    active_stage_short = f"Stage {stage_info['stage_idx']}"
-    fig_timeline.add_vline(x=active_stage_short, line_dash="solid", line_color="#D1D5DB", opacity=0.5)
-    fig_timeline.add_annotation(
-        x=active_stage_short, y=stage_info["ambient_temp_c"],
-        text=f"Selected: Stage {stage_info['stage_idx']}",
-        showarrow=True, arrowhead=2, arrowsize=1, arrowwidth=1.2, arrowcolor="#D1D5DB",
-        ax=0, ay=-32,
-        font=dict(color="#FFFFFF", size=11, family="Inter"),
-        bgcolor="#1E232D", bordercolor="#323744", borderwidth=1, borderpad=4
-    )
-
-    fig_timeline.update_layout(
-        xaxis=dict(title="Progressive lifecycle stages", tickangle=0),
-        yaxis=dict(title=dict(text="Ambient temp (°C)", font=dict(color="#EF4444")), tickfont=dict(color="#EF4444")),
-        yaxis2=dict(title=dict(text="Demand surge (MW)", font=dict(color="#3B82F6")), tickfont=dict(color="#3B82F6"), overlaying="y", side="right"),
-        yaxis3=dict(title=dict(text="Aging factor (x)", font=dict(color="#F59E0B")), tickfont=dict(color="#F59E0B"), overlaying="y", side="right", anchor="free", position=0.96),
-    )
-    apply_utility_chart_theme(fig_timeline, height=330, show_legend=True)
-    st.plotly_chart(fig_timeline, use_container_width=True)
-
-    c_casc, c_recom = st.columns(2)
-    with c_casc:
-        st.markdown('<div class="section-title">Cross-asset cascading dependencies</div>', unsafe_allow_html=True)
-        st.markdown(f"""
-        <div class="advisory-card">
-          <div style="font-size:13px;color:#D1D5DB;line-height:1.6;">
-            <b>Thermal, grid, and public health interactions:</b><br/>
-            {stage_info['cross_asset_cascade']}
-          </div>
-          <div style="margin-top:12px;padding-top:10px;border-top:1px solid #262A33;font-size:12px;color:#9CA3AF;">
-            <b>Active critical lifelines:</b> {' &bull; '.join(stage_info['active_lifelines'])}
-          </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with c_recom:
-        st.markdown('<div class="section-title">Operational response directives</div>', unsafe_allow_html=True)
-        recom_items = "".join([f"<li style='margin-bottom:4px;'>{r}</li>" for r in stage_info['recommendations']])
-        st.markdown(f"""
-        <div class="advisory-card">
-          <ul class="advisory-actions-list" style="margin:0;padding-left:18px;">
-            {recom_items}
-          </ul>
-        </div>
-        """, unsafe_allow_html=True)
-
-# ──────────────────────────────────────────────────────────────
-# TAB 3: MAP
-# ──────────────────────────────────────────────────────────────
-with tab_map:
-    st.markdown('<div class="section-title">Geospatial Risk Digital Twin (Simulated)</div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-desc">Illustrative GIS layout of Raipur: 220/132/33 kV transmission corridors, substation transformers, water treatment plants, emergency hospitals, and aggregated illustrative planning zones.</div>', unsafe_allow_html=True)
+# ══════════════════════════════════════════════════════════════
+# MODE 2: SPATIAL & PHYSICAL DIGITAL TWINS
+# ══════════════════════════════════════════════════════════════
+elif active_mode == "Mode 2: Spatial & Physical Digital Twins":
+    sub_tab_map, sub_tab_substations, sub_tab_powerflow = st.tabs([
+        "Geospatial Digital Twin (GIS Map)",
+        "Substation Transformer Thermal Twin (IEEE C57.91)",
+        "Transmission Power Flow & Conductor Sag (IEEE 738)"
+    ])
 
     tapas_eng = TapasHealthEngine()
     htsi_data = {w["zone_id"]: w for w in tapas_eng.compute_ward_htsi(T_peak, power_outage_sim)}
@@ -610,227 +580,268 @@ with tab_map:
     gtwin = GridStressNetwork()
     sub_eval = {s["substation_id"]: s for s in gtwin.compute_composite_grid_risk(T_peak, peak_d, tripped_id)}
 
-    m = folium.Map(
-        location=[21.2514, 81.6296],
-        zoom_start=13,
-        tiles=None,
-        control_scale=True,
-    )
+    with sub_tab_map:
+        st.markdown('<div class="section-head">Geospatial Risk Digital Twin (Simulated)</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-subhead">Illustrative GIS layout of Raipur: 220/132/33 kV transmission corridors, substation transformers, water treatment plants, emergency hospitals, and aggregated planning zones.</div>', unsafe_allow_html=True)
 
-    # Basemap tile URLs with keyless fallback
-    if settings.CARTO_API_KEY:
-        dark_tiles = f"https://basemaps.cartocdn.com/rastertiles/dark_all/{{z}}/{{x}}/{{y}}.png?key={settings.CARTO_API_KEY}"
-        light_tiles = f"https://basemaps.cartocdn.com/rastertiles/light_all/{{z}}/{{x}}/{{y}}.png?key={settings.CARTO_API_KEY}"
-    else:
-        dark_tiles = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
-        light_tiles = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
+        m = folium.Map(
+            location=[21.2514, 81.6296],
+            zoom_start=13,
+            tiles=None,
+            control_scale=True,
+        )
 
-    folium.TileLayer(
-        tiles=dark_tiles,
-        attr='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        name="CARTO Dark Matter (Muted)",
-        max_zoom=19,
-        subdomains="abcd",
-        overlay=False,
-        control=True,
-    ).add_to(m)
-
-    folium.TileLayer(
-        tiles=light_tiles,
-        attr='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        name="CARTO Positron (Light)",
-        max_zoom=19,
-        subdomains="abcd",
-        overlay=False,
-        control=True,
-    ).add_to(m)
-
-    folium.TileLayer(
-        tiles="https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-        attr='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        name="OpenStreetMap Standard (Keyless)",
-        max_zoom=19,
-        overlay=False,
-        control=True,
-    ).add_to(m)
-
-    # 1. Thermal Heatmap Layer (Smaller radius, muted gradient)
-    fg_heat = folium.FeatureGroup(name="Thermal risk layer", show=True)
-    heat_points = []
-    for z in RAIPUR_ZONES:
-        hw = htsi_data.get(z["id"], {})
-        est_t = hw.get("est_indoor_temp_c", T_peak)
-        intensity = max(0.2, min(1.2, (est_t - 36.0) / 10.0))
-        heat_points.append([z["lat"], z["lon"], intensity])
-        for dx, dy in [(0.005, 0.004), (-0.005, 0.005), (0.006, -0.005), (-0.005, -0.004)]:
-            heat_points.append([z["lat"] + dx, z["lon"] + dy, intensity * 0.7])
-    # Industrial heat zones
-    heat_points.append([21.2950, 81.5950, 1.1])  # Urla Industrial
-    heat_points.append([21.3200, 81.6300, 1.0])  # Siltara Belt
-    plugins.HeatMap(
-        heat_points, radius=18, blur=14, max_zoom=15, min_opacity=0.3,
-        gradient={0.2: "#3B82F6", 0.5: "#F59E0B", 0.8: "#EF4444", 1.0: "#DC2626"}
-    ).add_to(fg_heat)
-    fg_heat.add_to(m)
-
-    # 2. Transmission Corridors
-    fg_corridors = folium.FeatureGroup(name="Transmission corridors (220/132/33 kV)", show=True)
-    sub_coords = {s["id"]: [s["lat"], s["lon"]] for s in RAIPUR_SUBSTATIONS}
-    corridor_specs = [
-        {"id": "LINE_01", "name": "Bhilai - Raipur Main 220 kV", "from": [21.1938, 81.3509], "to": sub_coords["S01"], "voltage": 220, "conductor": "ACSR Zebra", "rated_amps": 1050, "normal_mw": 340.0, "sub_from": "BHILAI", "sub_to": "S01"},
-        {"id": "LINE_02", "name": "Raipur Main - Mowa 132 kV", "from": sub_coords["S01"], "to": sub_coords["S02"], "voltage": 132, "conductor": "ACSR Panther", "rated_amps": 620, "normal_mw": 115.0, "sub_from": "S01", "sub_to": "S02"},
-        {"id": "LINE_03", "name": "Raipur Main - Amanaka 132 kV", "from": sub_coords["S01"], "to": sub_coords["S03"], "voltage": 132, "conductor": "ACSR Panther", "rated_amps": 620, "normal_mw": 98.0, "sub_from": "S01", "sub_to": "S03"},
-        {"id": "LINE_04", "name": "Mowa - Pandri 33 kV", "from": sub_coords["S02"], "to": sub_coords["S04"], "voltage": 33, "conductor": "ACSR Dog", "rated_amps": 380, "normal_mw": 35.0, "sub_from": "S02", "sub_to": "S04"},
-        {"id": "LINE_05", "name": "Amanaka - Gudhiyari 33 kV", "from": sub_coords["S03"], "to": sub_coords["S06"], "voltage": 33, "conductor": "ACSR Dog", "rated_amps": 380, "normal_mw": 42.0, "sub_from": "S03", "sub_to": "S06"},
-        {"id": "LINE_06", "name": "Pandri - Khamardih 33 kV", "from": sub_coords["S04"], "to": sub_coords["S05"], "voltage": 33, "conductor": "ACSR Dog", "rated_amps": 380, "normal_mw": 28.0, "sub_from": "S04", "sub_to": "S05"},
-        {"id": "LINE_07", "name": "Mandir Hasaud - Pandri 132 kV", "from": [21.2589, 81.7750], "to": sub_coords["S04"], "voltage": 132, "conductor": "ACSR Panther", "rated_amps": 620, "normal_mw": 85.0, "sub_from": "MANDIR_HASAUD", "sub_to": "S04"},
-    ]
-
-    for corr in corridor_specs:
-        derated_amps = corr["rated_amps"] * max(0.65, 1.0 - (T_peak - 40.0) * 0.015)
-        derate_pct = max(0.0, (1.0 - derated_amps / corr["rated_amps"]) * 100.0)
-        line_tripped = (tripped_id in [corr["sub_from"], corr["sub_to"]])
-
-        if line_tripped:
-            line_col = "#EF4444"
-            dash = "6, 6"
-            st_label = "Contingency trip"
-            flow_mw = 0.0
-        elif derate_pct > 8.0:
-            line_col = "#F59E0B"
-            dash = None
-            st_label = f"Derated (-{derate_pct:.1f}%)"
-            flow_mw = corr["normal_mw"] * (peak_d / 310.0) * 0.85
+        if settings.CARTO_API_KEY:
+            dark_tiles = f"https://basemaps.cartocdn.com/rastertiles/dark_all/{{z}}/{{x}}/{{y}}.png?key={settings.CARTO_API_KEY}"
+            light_tiles = f"https://basemaps.cartocdn.com/rastertiles/light_all/{{z}}/{{x}}/{{y}}.png?key={settings.CARTO_API_KEY}"
         else:
-            line_col = "#3B82F6"
-            dash = None
-            st_label = "Normal"
-            flow_mw = corr["normal_mw"] * (peak_d / 310.0) * 0.85
+            dark_tiles = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
+            light_tiles = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
 
-        folium.PolyLine(
-            locations=[corr["from"], corr["to"]],
-            color=line_col, weight=4 if corr["voltage"] >= 132 else 2.5,
-            opacity=0.85, dash_array=dash,
-            tooltip=folium.Tooltip(
-                f"<b>{corr['name']}</b><br/>"
-                f"Status: {st_label}<br/>"
-                f"Voltage: {corr['voltage']} kV | Normal Flow: {flow_mw:.1f} MW<br/>"
-                f"Ampacity: {derated_amps:.0f} A (-{derate_pct:.1f}%)"
-            )
-        ).add_to(fg_corridors)
-    fg_corridors.add_to(m)
+        folium.TileLayer(
+            tiles=dark_tiles,
+            attr='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            name="CARTO Dark Matter (Muted)",
+            max_zoom=19,
+            subdomains="abcd",
+            overlay=False,
+            control=True,
+        ).add_to(m)
 
-    # 3. Municipal Wards
-    fg_zones = folium.FeatureGroup(name="Municipal wards", show=True)
-    for z in RAIPUR_ZONES:
-        hw = htsi_data.get(z["id"], {})
-        b_col = "#EF4444" if hw.get("risk_band") == "SEVERE" else "#F59E0B" if hw.get("risk_band") == "HIGH" else "#10B981"
-        folium.CircleMarker(
-            location=[z["lat"], z["lon"]],
-            radius=max(8, min(16, z["population"] / 9000)),
-            color=b_col, fill=True, fill_color=b_col, fill_opacity=0.35, weight=1.5,
-            tooltip=folium.Tooltip(
-                f"<b>{z['name']} ({z['id']})</b><br/>"
-                f"Population: {z['population']:,} | Slum Density: {z['slum_pct']*100:.0f}%<br/>"
-                f"HTSI Score: {hw.get('htsi_score', 0):.1f} ({hw.get('risk_band', 'N/A')})<br/>"
-                f"Est. Indoor Temp: {hw.get('est_indoor_temp_c', 0):.1f}°C (+{hw.get('tin_roof_penalty_c', 0):.1f}°C trap)<br/>"
-                f"Served by: {z['substation']}"
-            ),
-        ).add_to(fg_zones)
-    fg_zones.add_to(m)
+        folium.TileLayer(
+            tiles=light_tiles,
+            attr='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            name="CARTO Positron (Light)",
+            max_zoom=19,
+            subdomains="abcd",
+            overlay=False,
+            control=True,
+        ).add_to(m)
 
-    # 4. Substations (Clean circular markers)
-    fg_subs = folium.FeatureGroup(name="CSPTCL Substations", show=True)
-    for s in RAIPUR_SUBSTATIONS:
-        se = sub_eval.get(s["id"], {})
-        is_t = (s["id"] == tripped_id)
-        hp = se.get("hotspot_temp_c", 90.0)
-        ld = se.get("effective_load_pct", s["load_factor_normal"] * 100)
-        marker_color = "#EF4444" if is_t else "#F59E0B" if hp > 115 else "#10B981"
+        folium.TileLayer(
+            tiles="https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+            attr='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            name="OpenStreetMap Standard (Keyless)",
+            max_zoom=19,
+            overlay=False,
+            control=True,
+        ).add_to(m)
 
-        folium.CircleMarker(
-            location=[s["lat"], s["lon"]],
-            radius=8,
-            color=marker_color,
-            fill=True,
-            fill_color=marker_color,
-            fill_opacity=0.9,
-            weight=2,
-            tooltip=folium.Tooltip(
-                f"<b>{s['name']} ({s['voltage_kv']} kV)</b><br/>"
-                f"Status: {'Tripped (N-1)' if is_t else 'High thermal load' if hp > 115 else 'Normal'}<br/>"
-                f"Load: {ld:.0f}% | Hot-spot: {hp:.1f}°C"
-            ),
-        ).add_to(fg_subs)
-    fg_subs.add_to(m)
+        # Thermal Layer
+        fg_heat = folium.FeatureGroup(name="Thermal risk layer", show=True)
+        heat_points = []
+        for z in RAIPUR_ZONES:
+            hw = htsi_data.get(z["id"], {})
+            est_t = hw.get("est_indoor_temp_c", T_peak)
+            intensity = max(0.2, min(1.2, (est_t - 36.0) / 10.0))
+            heat_points.append([z["lat"], z["lon"], intensity])
+            for dx, dy in [(0.005, 0.004), (-0.005, 0.005), (0.006, -0.005), (-0.005, -0.004)]:
+                heat_points.append([z["lat"] + dx, z["lon"] + dy, intensity * 0.7])
+        heat_points.append([21.2950, 81.5950, 1.1])
+        heat_points.append([21.3200, 81.6300, 1.0])
+        plugins.HeatMap(
+            heat_points, radius=18, blur=14, max_zoom=15, min_opacity=0.3,
+            gradient={0.2: "#3B82F6", 0.5: "#F59E0B", 0.8: "#EF4444", 1.0: "#DC2626"}
+        ).add_to(fg_heat)
+        fg_heat.add_to(m)
 
-    # 5. Lifelines (Water & Hospitals)
-    fg_water = folium.FeatureGroup(name="Water treatment plants", show=False)
-    for wp in RAIPUR_WATER_PUMPS:
-        folium.Marker(
-            location=[wp["lat"], wp["lon"]],
-            icon=folium.Icon(icon="tint", prefix="fa", color="blue"),
-            tooltip=f"{wp['name']} ({wp['capacity_MLD']} MLD)",
-        ).add_to(fg_water)
-    fg_water.add_to(m)
+        # Corridors Layer
+        fg_corridors = folium.FeatureGroup(name="Transmission corridors (220/132/33 kV)", show=True)
+        sub_coords = {s["id"]: [s["lat"], s["lon"]] for s in RAIPUR_SUBSTATIONS}
+        corridor_specs = [
+            {"id": "LINE_01", "name": "Bhilai - Raipur Main 220 kV", "from": [21.1938, 81.3509], "to": sub_coords["S01"], "voltage": 220, "conductor": "ACSR Zebra", "rated_amps": 1050, "normal_mw": 340.0, "sub_from": "BHILAI", "sub_to": "S01"},
+            {"id": "LINE_02", "name": "Raipur Main - Mowa 132 kV", "from": sub_coords["S01"], "to": sub_coords["S02"], "voltage": 132, "conductor": "ACSR Panther", "rated_amps": 620, "normal_mw": 115.0, "sub_from": "S01", "sub_to": "S02"},
+            {"id": "LINE_03", "name": "Raipur Main - Amanaka 132 kV", "from": sub_coords["S01"], "to": sub_coords["S03"], "voltage": 132, "conductor": "ACSR Panther", "rated_amps": 620, "normal_mw": 98.0, "sub_from": "S01", "sub_to": "S03"},
+            {"id": "LINE_04", "name": "Mowa - Pandri 33 kV", "from": sub_coords["S02"], "to": sub_coords["S04"], "voltage": 33, "conductor": "ACSR Dog", "rated_amps": 380, "normal_mw": 35.0, "sub_from": "S02", "sub_to": "S04"},
+            {"id": "LINE_05", "name": "Amanaka - Gudhiyari 33 kV", "from": sub_coords["S03"], "to": sub_coords["S06"], "voltage": 33, "conductor": "ACSR Dog", "rated_amps": 380, "normal_mw": 42.0, "sub_from": "S03", "sub_to": "S06"},
+            {"id": "LINE_06", "name": "Pandri - Khamardih 33 kV", "from": sub_coords["S04"], "to": sub_coords["S05"], "voltage": 33, "conductor": "ACSR Dog", "rated_amps": 380, "normal_mw": 28.0, "sub_from": "S04", "sub_to": "S05"},
+            {"id": "LINE_07", "name": "Mandir Hasaud - Pandri 132 kV", "from": [21.2589, 81.7750], "to": sub_coords["S04"], "voltage": 132, "conductor": "ACSR Panther", "rated_amps": 620, "normal_mw": 85.0, "sub_from": "MANDIR_HASAUD", "sub_to": "S04"},
+        ]
 
-    fg_hosp = folium.FeatureGroup(name="Emergency hospitals", show=False)
-    for h in RAIPUR_HOSPITALS:
-        folium.Marker(
-            location=[h["lat"], h["lon"]],
-            icon=folium.Icon(icon="plus", prefix="fa", color="gray"),
-            tooltip=f"{h['name']} ({h['total_beds']} beds)",
-        ).add_to(fg_hosp)
-    fg_hosp.add_to(m)
+        for corr in corridor_specs:
+            derated_amps = corr["rated_amps"] * max(0.65, 1.0 - (T_peak - 40.0) * 0.015)
+            derate_pct = max(0.0, (1.0 - derated_amps / corr["rated_amps"]) * 100.0)
+            line_tripped = (tripped_id in [corr["sub_from"], corr["sub_to"]])
 
-    plugins.Fullscreen(position="topleft").add_to(m)
-    folium.LayerControl(position="topright", collapsed=False).add_to(m)
+            if line_tripped:
+                line_col = "#EF4444"
+                dash = "6, 6"
+                st_label = "Contingency trip"
+                flow_mw = 0.0
+            elif derate_pct > 8.0:
+                line_col = "#F59E0B"
+                dash = None
+                st_label = f"Derated (-{derate_pct:.1f}%)"
+                flow_mw = corr["normal_mw"] * (peak_d / 310.0) * 0.85
+            else:
+                line_col = "#3B82F6"
+                dash = None
+                st_label = "Normal"
+                flow_mw = corr["normal_mw"] * (peak_d / 310.0) * 0.85
 
-    col_map, col_side = st.columns([3.2, 1.1])
-    with col_map:
-        components.html(m._repr_html_(), height=620, scrolling=False)
+            folium.PolyLine(
+                locations=[corr["from"], corr["to"]],
+                color=line_col, weight=4 if corr["voltage"] >= 132 else 2.5,
+                opacity=0.85, dash_array=dash,
+                tooltip=folium.Tooltip(
+                    f"<b>{corr['name']}</b><br/>"
+                    f"Status: {st_label}<br/>"
+                    f"Voltage: {corr['voltage']} kV | Flow: {flow_mw:.1f} MW<br/>"
+                    f"Ampacity: {derated_amps:.0f} A (-{derate_pct:.1f}%)"
+                )
+            ).add_to(fg_corridors)
+        fg_corridors.add_to(m)
 
-    with col_side:
-        st.markdown('<div class="section-title">Substation Grid Status (Simulated)</div>', unsafe_allow_html=True)
+        # Zones Layer
+        fg_zones = folium.FeatureGroup(name="Municipal wards", show=True)
+        for z in RAIPUR_ZONES:
+            hw = htsi_data.get(z["id"], {})
+            b_col = "#EF4444" if hw.get("risk_band") == "SEVERE" else "#F59E0B" if hw.get("risk_band") == "HIGH" else "#10B981"
+            folium.CircleMarker(
+                location=[z["lat"], z["lon"]],
+                radius=max(8, min(16, z["population"] / 9000)),
+                color=b_col, fill=True, fill_color=b_col, fill_opacity=0.35, weight=1.5,
+                tooltip=folium.Tooltip(
+                    f"<b>{z['name']} ({z['id']})</b><br/>"
+                    f"Population: {z['population']:,} | Slum Density: {z['slum_pct']*100:.0f}%<br/>"
+                    f"HTSI Score: {hw.get('htsi_score', 0):.1f} ({hw.get('risk_band', 'N/A')})<br/>"
+                    f"Est. Indoor Temp: {hw.get('est_indoor_temp_c', 0):.1f}°C (+{hw.get('tin_roof_penalty_c', 0):.1f}°C trap)<br/>"
+                    f"Served by: {z['substation']}"
+                ),
+            ).add_to(fg_zones)
+        fg_zones.add_to(m)
+
+        # Substations Layer
+        fg_subs = folium.FeatureGroup(name="CSPTCL Substations", show=True)
         for s in RAIPUR_SUBSTATIONS:
             se = sub_eval.get(s["id"], {})
             is_t = (s["id"] == tripped_id)
             hp = se.get("hotspot_temp_c", 90.0)
             ld = se.get("effective_load_pct", s["load_factor_normal"] * 100)
-            st_class = "status-badge-critical" if is_t else "status-badge-warning" if hp > 115 else "status-badge-ok"
-            st_text = "Tripped" if is_t else "High temp" if hp > 115 else "Normal"
-            st.markdown(f"""
-            <div style="background:#161920;border:1px solid #262A33;padding:9px 12px;border-radius:6px;margin-bottom:8px;">
-              <div style="display:flex;justify-content:space-between;align-items:center;">
-                <span style="font-weight:600;font-size:13px;color:#F3F4F6;">{s['name'][:20]}</span>
-                <span class="status-badge {st_class}" style="padding:2px 6px;font-size:11px;">{st_text}</span>
-              </div>
-              <div style="color:#9CA3AF;font-size:12px;margin-top:4px;">
-                Load: {ld:.0f}% &middot; Hotspot: <span style="font-family:'JetBrains Mono',monospace;">{hp:.1f}°C</span>
-              </div>
-            </div>
-            """, unsafe_allow_html=True)
+            marker_color = "#EF4444" if is_t else "#F59E0B" if hp > 115 else "#10B981"
 
-    # Map Legend & Asset Registry Check
-    st.markdown("""
-    <div style="background:#161920;border:1px solid #262A33;border-radius:6px;padding:12px;margin-top:16px;">
-      <div style="font-size:12px;font-weight:600;color:#F3F4F6;margin-bottom:6px;">MAP LEGEND & ASSET TOPOLOGY STATUS</div>
-      <div style="display:flex;flex-wrap:wrap;gap:14px;font-size:11.5px;color:#9CA3AF;">
-        <span><b style="color:#EF4444;">&bull; Red:</b> Tripped (N-1) Contingency</span>
-        <span><b style="color:#F59E0B;">&bull; Orange:</b> Thermal Overload (Hotspot &gt; 115°C or Load &gt; 90%)</span>
-        <span><b style="color:#10B981;">&bull; Green:</b> Normal Operations</span>
-        <span><b style="color:#3B82F6;">&bull; Water Drops:</b> WTP / Boosting Station (WP01 Kharun 180 MLD is Verified Physical)</span>
-        <span><b style="color:#9CA3AF;">&bull; Plus Markers:</b> Emergency Healthcare (H01 Dr. Ambedkar 880 beds is Verified Physical)</span>
-        <span><b style="color:#A78BFA;">&bull; Polygons:</b> Illustrative Planning Zones (Aggregated Planning Areas)</span>
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
+            folium.CircleMarker(
+                location=[s["lat"], s["lon"]],
+                radius=8,
+                color=marker_color,
+                fill=True,
+                fill_color=marker_color,
+                fill_opacity=0.9,
+                weight=2,
+                tooltip=folium.Tooltip(
+                    f"<b>{s['name']} ({s['voltage_kv']} kV)</b><br/>"
+                    f"Status: {'Tripped (N-1)' if is_t else 'High thermal load' if hp > 115 else 'Normal'}<br/>"
+                    f"Load: {ld:.0f}% | Hot-spot: {hp:.1f}°C"
+                ),
+            ).add_to(fg_subs)
+        fg_subs.add_to(m)
 
-    with st.expander("🔍 Asset Registry Verification Checklist (Substations, WTPs & Hospitals)", expanded=False):
-        reg_items = get_asset_registry()
-        reg_df_map = pd.DataFrame(reg_items)
+        # Lifelines Layer
+        fg_water = folium.FeatureGroup(name="Water treatment plants", show=False)
+        for wp in RAIPUR_WATER_PUMPS:
+            folium.Marker(
+                location=[wp["lat"], wp["lon"]],
+                icon=folium.Icon(icon="tint", prefix="fa", color="blue"),
+                tooltip=f"{wp['name']} ({wp['capacity_MLD']} MLD)",
+            ).add_to(fg_water)
+        fg_water.add_to(m)
+
+        fg_hosp = folium.FeatureGroup(name="Emergency hospitals", show=False)
+        for h in RAIPUR_HOSPITALS:
+            folium.Marker(
+                location=[h["lat"], h["lon"]],
+                icon=folium.Icon(icon="plus", prefix="fa", color="gray"),
+                tooltip=f"{h['name']} ({h['total_beds']} beds)",
+            ).add_to(fg_hosp)
+        fg_hosp.add_to(m)
+
+        plugins.Fullscreen(position="topleft").add_to(m)
+        folium.LayerControl(position="topright", collapsed=False).add_to(m)
+
+        col_map, col_side = st.columns([3.2, 1.1])
+        with col_map:
+            components.html(m._repr_html_(), height=620, scrolling=False)
+
+        with col_side:
+            st.markdown('<div class="section-head" style="font-size:13px;">Substation Telemetry</div>', unsafe_allow_html=True)
+            for s in RAIPUR_SUBSTATIONS:
+                se = sub_eval.get(s["id"], {})
+                is_t = (s["id"] == tripped_id)
+                hp = se.get("hotspot_temp_c", 90.0)
+                ld = se.get("effective_load_pct", s["load_factor_normal"] * 100)
+                st_class = "critical" if is_t else "warning" if hp > 115 else "ok"
+                st_text = "Tripped" if is_t else "High temp" if hp > 115 else "Normal"
+                st.markdown(f"""
+                <div class="bento-tile" style="padding:10px 12px;margin-bottom:8px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-weight:600;font-size:12.5px;color:#F8FAFC;">{s['name'][:20]}</span>
+                    <span class="stat-tag stat-tag-{st_class}" style="padding:1px 5px;font-size:10.5px;">{st_text}</span>
+                  </div>
+                  <div style="color:#94A3B8;font-size:11.5px;margin-top:4px;">
+                    Load: {ld:.0f}% &middot; Hotspot: <span style="font-family:'JetBrains Mono',monospace;">{hp:.1f}°C</span>
+                  </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+    with sub_tab_substations:
+        st.markdown('<div class="section-head">Substation transformer digital twin</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-subhead">Thermal models per IEEE C57.91-2011 Clause 7: winding hot-spot temperature rise, top-oil thermal response, spatial neighbor overload stress, and insulation aging acceleration factor (F_AA).</div>', unsafe_allow_html=True)
+
+        sub_eval_list = list(sub_eval.values())
+        sc1, sc2, sc3, sc4 = st.columns(4)
+        avg_hotspot = np.mean([s["hotspot_temp_c"] for s in sub_eval_list if not s["tripped"]])
+        crit_subs = sum(1 for s in sub_eval_list if s["risk_level"] == "CRITICAL" and not s["tripped"])
+        max_aging = max(s["aging_factor"] for s in sub_eval_list if not s["tripped"])
+
+        render_metric_card(
+            sc1, "Average hot-spot temperature", f"{avg_hotspot:.1f}", "°C",
+            caption="Baseline aging limit: 110°C",
+            status="warning" if avg_hotspot >= 105 else "ok"
+        )
+        render_metric_card(
+            sc2, "Transformers under stress", f"{crit_subs}", f"/ {len(sub_eval_list)}",
+            caption="Load > 90% or Hotspot > 115°C",
+            status="critical" if crit_subs > 0 else "ok"
+        )
+        render_metric_card(
+            sc3, "Peak aging acceleration", f"{max_aging:.1f}", "x",
+            caption="Relative to nominal Arrhenius rate",
+            status="critical" if max_aging >= 5 else "warning"
+        )
+        render_metric_card(
+            sc4, "Simulated N-1 contingency", f"{tripped_id or 'None'}", "",
+            caption="Load redirected to adjacent buses",
+            status="warning" if tripped_id else "ok"
+        )
+
+        st.markdown('<div class="section-head">Substation Digital Twin Status (Simulated)</div>', unsafe_allow_html=True)
+        sub_df = pd.DataFrame(sub_eval_list)
         st.dataframe(
-            reg_df_map[[
+            sub_df[[
+                "substation_id", "name", "voltage_kv", "capacity_mva", "load_ratio",
+                "load_mw_approx", "hotspot_temp_c", "top_oil_temp_c", "aging_factor", "risk_level"
+            ]],
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "substation_id": st.column_config.TextColumn("ID", width="small"),
+                "name": st.column_config.TextColumn("Substation name"),
+                "voltage_kv": st.column_config.NumberColumn("Voltage", format="%d kV"),
+                "capacity_mva": st.column_config.NumberColumn("Capacity", format="%.0f MVA"),
+                "load_ratio": st.column_config.ProgressColumn("Load ratio", format="%.2f", min_value=0.0, max_value=1.5),
+                "load_mw_approx": st.column_config.NumberColumn("Load (MW)", format="%.1f"),
+                "hotspot_temp_c": st.column_config.NumberColumn("Hotspot temp", format="%.1f °C"),
+                "top_oil_temp_c": st.column_config.NumberColumn("Top-oil temp", format="%.1f °C"),
+                "aging_factor": st.column_config.NumberColumn("Aging acceleration", format="%.2fx"),
+                "risk_level": st.column_config.TextColumn("Status")
+            }
+        )
+
+        st.markdown('<div class="section-head">Critical Infrastructure Asset Registry & Data Provenance</div>', unsafe_allow_html=True)
+        reg_items = get_asset_registry()
+        reg_df = pd.DataFrame(reg_items)
+        st.dataframe(
+            reg_df[[
                 "asset_id", "name", "asset_class", "is_real_identifiable_asset",
                 "capacity_display", "capacity_status", "link_type", "status", "confidence"
             ]],
@@ -849,260 +860,174 @@ with tab_map:
             }
         )
 
-# ──────────────────────────────────────────────────────────────
-# TAB 4: POWER FLOW
-# ──────────────────────────────────────────────────────────────
-with tab_powerflow:
-    st.markdown('<div class="section-title">Transmission power flow & conductor clearance</div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-desc">Fast DC power flow solution ([P] = [B][&theta;]) across Raipur\'s 6-bus transmission network paired with IEEE Std 738-2012 dynamic line rating (DTR) and catenary conductor sag calculations.</div>', unsafe_allow_html=True)
+    with sub_tab_powerflow:
+        st.markdown('<div class="section-head">Transmission power flow & conductor clearance</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-subhead">Fast DC power flow solution ([P] = [B][&theta;]) across Raipur\'s 6-bus transmission network paired with IEEE Std 738-2012 dynamic line rating (DTR) and catenary conductor sag calculations.</div>', unsafe_allow_html=True)
 
-    pf_engine = DCPowerFlowEngine()
+        pf_engine = DCPowerFlowEngine()
 
-    c_pf1, c_pf2 = st.columns([2, 1])
-    with c_pf1:
-        line_choices = ["None"] + [f"{l['line_id']}: {l['name']}" for l in pf_engine.lines]
-        chosen_line_trip = st.selectbox("Simulate line outage (N-1 contingency)", line_choices, index=0)
-        tripped_line_key = chosen_line_trip.split(":")[0] if chosen_line_trip != "None" else None
+        c_pf1, c_pf2 = st.columns([2, 1])
+        with c_pf1:
+            line_choices = ["None"] + [f"{l['line_id']}: {l['name']}" for l in pf_engine.lines]
+            chosen_line_trip = st.selectbox("Simulate line outage (N-1 contingency)", line_choices, index=0)
+            tripped_line_key = chosen_line_trip.split(":")[0] if chosen_line_trip != "None" else None
 
-    with c_pf2:
-        wind_speed_slider = st.slider("Conductor cross-wind speed (m/s)", 0.2, 5.0, 1.2, 0.2, help="Wind perpendicular to conductors provides convective cooling.")
+        with c_pf2:
+            wind_speed_slider = st.slider("Conductor cross-wind speed (m/s)", 0.2, 5.0, 1.2, 0.2, help="Wind perpendicular to conductors provides convective cooling.")
 
-    base_pf = pf_engine.solve_dc_power_flow(total_demand_mw=peak_d, tripped_line_id=None)
-    contingency_pf = pf_engine.solve_dc_power_flow(total_demand_mw=peak_d, tripped_line_id=tripped_line_key)
-    dtr_results = pf_engine.compute_ieee738_dtr(ambient_temp_c=T_peak, wind_speed_ms=wind_speed_slider)
+        base_pf = pf_engine.solve_dc_power_flow(total_demand_mw=peak_d, tripped_line_id=None)
+        contingency_pf = pf_engine.solve_dc_power_flow(total_demand_mw=peak_d, tripped_line_id=tripped_line_key)
+        dtr_results = pf_engine.compute_ieee738_dtr(ambient_temp_c=T_peak, wind_speed_ms=wind_speed_slider)
 
-    pk1, pk2, pk3, pk4 = st.columns(4)
-    max_flow_pct = max(contingency_pf["line_loadings_pct"].values()) if contingency_pf["line_loadings_pct"] else 0.0
-    overloaded_count = len(contingency_pf["overloaded_lines"])
-    avg_derating = np.mean([d["derating_pct"] for d in dtr_results])
-    crit_sag = sum(1 for d in dtr_results if d["sag_risk"] == "CRITICAL")
+        pk1, pk2, pk3, pk4 = st.columns(4)
+        max_flow_pct = max(contingency_pf["line_loadings_pct"].values()) if contingency_pf["line_loadings_pct"] else 0.0
+        overloaded_count = len(contingency_pf["overloaded_lines"])
+        avg_derating = np.mean([d["derating_pct"] for d in dtr_results])
+        crit_sag = sum(1 for d in dtr_results if d["sag_risk"] == "CRITICAL")
 
-    render_metric_card(
-        pk1, "Max line loading", f"{max_flow_pct:.1f}", "%",
-        caption="Highest loaded corridor",
-        status="critical" if max_flow_pct >= 100 else "warning" if max_flow_pct >= 85 else "ok"
-    )
-    render_metric_card(
-        pk2, "Overloaded corridors", f"{overloaded_count}", "lines",
-        caption="Exceeding thermal ampacity",
-        status="critical" if overloaded_count > 0 else "ok"
-    )
-    render_metric_card(
-        pk3, "Average thermal derating", f"-{avg_derating:.1f}", "%",
-        caption=f"At {T_peak:.1f}°C ambient",
-        status="warning"
-    )
-    render_metric_card(
-        pk4, "Sag clearance alerts", f"{crit_sag}", "spans",
-        caption="Ground clearance below limit",
-        status="critical" if crit_sag > 0 else "ok"
-    )
-
-    st.markdown('<div class="section-title">Transmission corridor loading: Normal vs. Post-contingency</div>', unsafe_allow_html=True)
-    flow_comp_rows = []
-    for l in pf_engine.lines:
-        lid = l["line_id"]
-        # Short clean name
-        short_name = l["name"].replace("Transmission Line", "").replace("Interconnector", "").strip()
-        flow_comp_rows.append({
-            "Line": f"{lid}: {short_name}",
-            "Base loading (%)": base_pf["line_loadings_pct"].get(lid, 0.0),
-            "Contingency loading (%)": contingency_pf["line_loadings_pct"].get(lid, 0.0),
-            "Rating MW": l["rating_mw"],
-            "Flow MW": contingency_pf["line_flows_mw"].get(lid, 0.0)
-        })
-    fdf = pd.DataFrame(flow_comp_rows)
-
-    fig_flows = go.Figure()
-    fig_flows.add_trace(go.Bar(
-        x=fdf["Line"], y=fdf["Base loading (%)"], name="Base loading (all lines in service)",
-        marker_color="#3B82F6"
-    ))
-    fig_flows.add_trace(go.Bar(
-        x=fdf["Line"], y=fdf["Contingency loading (%)"], name=f"Contingency loading ({tripped_line_key or 'None'})",
-        marker_color="#EF4444"
-    ))
-    fig_flows.add_hline(y=100.0, line_dash="dash", line_color="#EF4444", annotation_text="100% Thermal rating limit")
-    fig_flows.add_hline(y=80.0, line_dash="dot", line_color="#F59E0B", annotation_text="80% Operational threshold")
-    fig_flows.update_layout(
-        barmode="group",
-        yaxis_title="Line loading (%)",
-        xaxis_title="CSPTCL Transmission corridors",
-    )
-    apply_utility_chart_theme(fig_flows, height=310, show_legend=True)
-    st.plotly_chart(fig_flows, use_container_width=True)
-
-    c_ang, c_sag = st.columns([1, 2.2])
-    with c_ang:
-        st.markdown('<div class="section-title">Bus voltage angles (&theta;)</div>', unsafe_allow_html=True)
-        bus_angles = [
-            {"Bus": b, "Angle (deg)": ang}
-            for b, ang in contingency_pf["bus_angles_deg"].items()
-        ]
-        st.dataframe(
-            pd.DataFrame(bus_angles),
-            use_container_width=True,
-            hide_index=True,
-            column_config={
-                "Bus": st.column_config.TextColumn("Substation bus"),
-                "Angle (deg)": st.column_config.NumberColumn("Phase angle (°)", format="%.2f°")
-            }
+        render_metric_card(
+            pk1, "Max line loading", f"{max_flow_pct:.1f}", "%",
+            caption="Highest loaded corridor",
+            status="critical" if max_flow_pct >= 100 else "warning" if max_flow_pct >= 85 else "ok"
+        )
+        render_metric_card(
+            pk2, "Overloaded corridors", f"{overloaded_count}", "lines",
+            caption="Exceeding thermal ampacity",
+            status="critical" if overloaded_count > 0 else "ok"
+        )
+        render_metric_card(
+            pk3, "Average thermal derating", f"-{avg_derating:.1f}", "%",
+            caption=f"At {T_peak:.1f}°C ambient",
+            status="warning"
+        )
+        render_metric_card(
+            pk4, "Sag clearance alerts", f"{crit_sag}", "spans",
+            caption="Ground clearance below limit",
+            status="critical" if crit_sag > 0 else "ok"
         )
 
-    with c_sag:
-        st.markdown('<div class="section-title">IEEE Std 738 DTR & conductor sag clearance</div>', unsafe_allow_html=True)
-        sag_table = [
-            {
-                "Line": d["name"][:24],
-                "Conductor": d["conductor"],
-                "Static MVA": d["static_rating_mva"],
-                "DTR MVA": d["dtr_rating_mva"],
-                "Derating": d["derating_pct"],
-                "Mid-Span Sag": d["sag_clearance_m"],
-                "Risk": d["sag_risk"]
-            }
-            for d in dtr_results
-        ]
-        st.dataframe(
-            pd.DataFrame(sag_table),
-            use_container_width=True,
-            hide_index=True,
-            column_config={
-                "Line": st.column_config.TextColumn("Corridor"),
-                "Conductor": st.column_config.TextColumn("Conductor type"),
-                "Static MVA": st.column_config.NumberColumn("Static MVA", format="%.0f"),
-                "DTR MVA": st.column_config.NumberColumn("DTR MVA", format="%.0f"),
-                "Derating": st.column_config.NumberColumn("Derating", format="-%.1f%%"),
-                "Mid-Span Sag": st.column_config.NumberColumn("Ground clearance", format="%.2f m"),
-                "Risk": st.column_config.TextColumn("Clearance status")
-            }
+        st.markdown('<div class="section-head">Transmission corridor loading: Normal vs. Post-contingency</div>', unsafe_allow_html=True)
+        flow_comp_rows = []
+        for l in pf_engine.lines:
+            lid = l["line_id"]
+            short_name = l["name"].replace("Transmission Line", "").replace("Interconnector", "").strip()
+            flow_comp_rows.append({
+                "Line": f"{lid}: {short_name}",
+                "Base loading (%)": base_pf["line_loadings_pct"].get(lid, 0.0),
+                "Contingency loading (%)": contingency_pf["line_loadings_pct"].get(lid, 0.0),
+                "Rating MW": l["rating_mw"],
+                "Flow MW": contingency_pf["line_flows_mw"].get(lid, 0.0)
+            })
+        fdf = pd.DataFrame(flow_comp_rows)
+
+        fig_flows = go.Figure()
+        fig_flows.add_trace(go.Bar(
+            x=fdf["Line"], y=fdf["Base loading (%)"], name="Base loading (all lines in service)",
+            marker_color="#3B82F6"
+        ))
+        fig_flows.add_trace(go.Bar(
+            x=fdf["Line"], y=fdf["Contingency loading (%)"], name=f"Contingency loading ({tripped_line_key or 'None'})",
+            marker_color="#EF4444"
+        ))
+        fig_flows.add_hline(y=100.0, line_dash="dash", line_color="#EF4444", annotation_text="100% Thermal rating limit")
+        fig_flows.add_hline(y=80.0, line_dash="dot", line_color="#F59E0B", annotation_text="80% Operational threshold")
+        fig_flows.update_layout(
+            barmode="group",
+            yaxis_title="Line loading (%)",
+            xaxis_title="CSPTCL Transmission corridors",
         )
+        apply_utility_chart_theme(fig_flows, height=310, show_legend=True)
+        st.plotly_chart(fig_flows, use_container_width=True)
 
-# ──────────────────────────────────────────────────────────────
-# TAB 5: SUBSTATIONS
-# ──────────────────────────────────────────────────────────────
-with tab_substations:
-    st.markdown('<div class="section-title">Substation transformer digital twin</div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-desc">Thermal models per IEEE C57.91-2011: winding hot-spot temperature rise, top-oil thermal response, spatial neighbor overload stress, and insulation aging acceleration factor (F_AA).</div>', unsafe_allow_html=True)
+        c_ang, c_sag = st.columns([1, 2.2])
+        with c_ang:
+            st.markdown('<div class="section-head">Bus voltage angles (&theta;)</div>', unsafe_allow_html=True)
+            bus_angles = [
+                {"Bus": b, "Angle (deg)": ang}
+                for b, ang in contingency_pf["bus_angles_deg"].items()
+            ]
+            st.dataframe(
+                pd.DataFrame(bus_angles),
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Bus": st.column_config.TextColumn("Substation bus"),
+                    "Angle (deg)": st.column_config.NumberColumn("Phase angle (°)", format="%.2f°")
+                }
+            )
 
-    sub_eval_list = list(sub_eval.values())
-    sc1, sc2, sc3, sc4 = st.columns(4)
-    avg_hotspot = np.mean([s["hotspot_temp_c"] for s in sub_eval_list if not s["tripped"]])
-    crit_subs = sum(1 for s in sub_eval_list if s["risk_level"] == "CRITICAL" and not s["tripped"])
-    max_aging = max(s["aging_factor"] for s in sub_eval_list if not s["tripped"])
+        with c_sag:
+            st.markdown('<div class="section-head">IEEE Std 738 DTR & conductor sag clearance</div>', unsafe_allow_html=True)
+            sag_table = [
+                {
+                    "Line": d["name"][:24],
+                    "Conductor": d["conductor"],
+                    "Static MVA": d["static_rating_mva"],
+                    "DTR MVA": d["dtr_rating_mva"],
+                    "Derating": d["derating_pct"],
+                    "Mid-Span Sag": d["sag_clearance_m"],
+                    "Risk": d["sag_risk"]
+                }
+                for d in dtr_results
+            ]
+            st.dataframe(
+                pd.DataFrame(sag_table),
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Line": st.column_config.TextColumn("Corridor"),
+                    "Conductor": st.column_config.TextColumn("Conductor type"),
+                    "Static MVA": st.column_config.NumberColumn("Static MVA", format="%.0f"),
+                    "DTR MVA": st.column_config.NumberColumn("DTR MVA", format="%.0f"),
+                    "Derating": st.column_config.NumberColumn("Derating", format="-%.1f%%"),
+                    "Mid-Span Sag": st.column_config.NumberColumn("Ground clearance", format="%.2f m"),
+                    "Risk": st.column_config.TextColumn("Clearance status")
+                }
+            )
 
-    render_metric_card(
-        sc1, "Average hot-spot temperature", f"{avg_hotspot:.1f}", "°C",
-        caption="Baseline aging limit: 110°C",
-        status="warning" if avg_hotspot >= 105 else "ok"
-    )
-    render_metric_card(
-        sc2, "Transformers under stress", f"{crit_subs}", f"/ {len(sub_eval_list)}",
-        caption="Load > 90% or Hotspot > 115°C",
-        status="critical" if crit_subs > 0 else "ok"
-    )
-    render_metric_card(
-        sc3, "Peak aging acceleration", f"{max_aging:.1f}", "x",
-        caption="Relative to nominal rate",
-        status="critical" if max_aging >= 5 else "warning"
-    )
-    render_metric_card(
-        sc4, "Simulated N-1 contingency", f"{tripped_id or 'None'}", "",
-        caption="Load redirected to adjacent buses",
-        status="warning" if tripped_id else "ok"
-    )
 
-    st.markdown('<div class="section-title">Substation Digital Twin Status (Simulated)</div>', unsafe_allow_html=True)
-    sub_df = pd.DataFrame(sub_eval_list)
-    st.dataframe(
-        sub_df[[
-            "substation_id", "name", "voltage_kv", "capacity_mva", "load_ratio",
-            "load_mw_approx", "hotspot_temp_c", "top_oil_temp_c", "aging_factor", "risk_level"
-        ]],
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-            "substation_id": st.column_config.TextColumn("ID", width="small"),
-            "name": st.column_config.TextColumn("Substation name"),
-            "voltage_kv": st.column_config.NumberColumn("Voltage", format="%d kV"),
-            "capacity_mva": st.column_config.NumberColumn("Capacity", format="%.0f MVA"),
-            "load_ratio": st.column_config.ProgressColumn("Load ratio", format="%.2f", min_value=0.0, max_value=1.5),
-            "load_mw_approx": st.column_config.NumberColumn("Load (MW)", format="%.1f"),
-            "hotspot_temp_c": st.column_config.NumberColumn("Hotspot temp", format="%.1f °C"),
-            "top_oil_temp_c": st.column_config.NumberColumn("Top-oil temp", format="%.1f °C"),
-            "aging_factor": st.column_config.NumberColumn("Aging acceleration", format="%.2fx"),
-            "risk_level": st.column_config.TextColumn("Status")
-        }
-    )
+# ══════════════════════════════════════════════════════════════
+# MODE 3: INTERVENTIONS, RESILIENCE & GOVERNANCE
+# ══════════════════════════════════════════════════════════════
+elif active_mode == "Mode 3: Interventions, Resilience & Governance":
+    sub_tab_dispatch, sub_tab_resilience, sub_tab_sobol, sub_tab_artifacts = st.tabs([
+        "Deterministic Dispatch & HiGHS MILP",
+        "Continuous System Resilience Q(t)",
+        "Uncertainty & Sobol Global Sensitivity",
+        "Official Artifacts Hub & Provenance"
+    ])
 
-    st.markdown('<div class="section-title">Transmission corridor thermal ratings (IEEE Std 738-2012)</div>', unsafe_allow_html=True)
-    lines_eval = cond_eng.evaluate_all_corridors(T_peak)
-    lines_df = pd.DataFrame(lines_eval)
-    st.dataframe(
-        lines_df[[
-            "corridor_id", "name", "voltage_kv", "conductor_type", "rated_capacity_mw",
-            "derated_capacity_mw", "derating_percentage", "normal_flow_mw", "loading_percentage", "status"
-        ]],
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-            "corridor_id": st.column_config.TextColumn("ID", width="small"),
-            "name": st.column_config.TextColumn("Corridor name"),
-            "voltage_kv": st.column_config.NumberColumn("Voltage", format="%d kV"),
-            "conductor_type": st.column_config.TextColumn("Conductor"),
-            "rated_capacity_mw": st.column_config.NumberColumn("Static rating", format="%.1f MW"),
-            "derated_capacity_mw": st.column_config.NumberColumn("DTR rating", format="%.1f MW"),
-            "derating_percentage": st.column_config.NumberColumn("Derating", format="%.1f%%"),
-            "normal_flow_mw": st.column_config.NumberColumn("Flow (MW)", format="%.1f"),
-            "loading_percentage": st.column_config.ProgressColumn("Loading", format="%.1f%%", min_value=0.0, max_value=120.0),
-            "status": st.column_config.TextColumn("Status")
-        }
-    )
+    with sub_tab_dispatch:
+        render_dispatch_view(T_peak, rel_humidity, budget_lakh)
 
-    st.markdown('<div class="section-title">Critical Infrastructure Asset Registry & Data Provenance</div>', unsafe_allow_html=True)
-    reg_items = get_asset_registry()
-    reg_df = pd.DataFrame(reg_items)
-    st.dataframe(
-        reg_df[[
-            "asset_id", "name", "asset_class", "is_real_identifiable_asset",
-            "capacity_display", "capacity_status", "link_type", "status", "confidence"
-        ]],
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-            "asset_id": st.column_config.TextColumn("ID", width="small"),
-            "name": st.column_config.TextColumn("Asset Name"),
-            "asset_class": st.column_config.TextColumn("Class"),
-            "is_real_identifiable_asset": st.column_config.CheckboxColumn("Physical Asset?"),
-            "capacity_display": st.column_config.TextColumn("Capacity / Sizing"),
-            "capacity_status": st.column_config.TextColumn("Capacity Certainty"),
-            "link_type": st.column_config.TextColumn("Topology Link"),
-            "status": st.column_config.TextColumn("Data Provenance"),
-            "confidence": st.column_config.TextColumn("Confidence"),
-        }
-    )
+    with sub_tab_resilience:
+        render_resilience_view(T_peak, duration_days, tripped_id, budget_lakh)
 
-# ──────────────────────────────────────────────────────────────
-# TABS 6-9: DELEGATED TO MODULAR UI VIEWS
-# ──────────────────────────────────────────────────────────────
-with tab_alerts:
-    render_alerts_view(T_peak, rel_humidity, power_outage_sim, tripped_id)
+    with sub_tab_sobol:
+        render_montecarlo_view(T_peak, rel_humidity, duration_days)
 
-with tab_dispatch:
-    render_dispatch_view(T_peak, rel_humidity, budget_lakh)
+    with sub_tab_artifacts:
+        render_alerts_view(T_peak, rel_humidity, power_outage_sim, tripped_id)
 
-with tab_montecarlo:
-    render_montecarlo_view(T_peak, rel_humidity, duration_days)
+        st.markdown("---")
+        st.markdown('<div class="section-head">Statutory Data Provenance Matrix (187 Parameters Audited)</div>', unsafe_allow_html=True)
+        st.markdown("""
+| Terminology | Definition & Source Boundary | Application in AGNAYA | Statutory Authority |
+| :--- | :--- | :--- | :--- |
+| **OBSERVED** | Physical ground-truth measurements recorded by statutory monitoring networks. | IMD Station #42809 records (all-time peak 47.9°C on May 28, 2024); CSERC FY24-25 tariff filings. | India Meteorological Department (IMD) |
+| **FORECAST** | Gridded numerical weather prediction (NWP) model outputs from Open-Meteo API. | Hourly temperature, humidity, and irradiance at 21.2514° N, 81.6296° E (30-min cache). NOT official IMD station telemetry. | Open-Meteo NWP (Gridded Model) |
+| **USER HYPOTHETICAL** | What-if scenario parameters selected via sliders or test suites to evaluate stress limits. | Scenario sliders (38°C–50°C, outage duration, N-1 substation trip contingency). | User-selected stress scenario |
+| **MODEL-CLASSIFIED** | Algorithmic risk tiers and stress indices computed by deterministic physics and engineering models. | Heuristic Heat-Risk Index (HSRI), IEEE Std C57.91 transformer thermal aging acceleration ($F_{AA}$). | Deterministic algorithms (Uncalibrated) |
+| **OFFICIAL WARNING** | **NEVER PRODUCED BY THIS TOOL.** Statutory red/orange warnings, heatwave alerts, or evacuation directives. | Explicitly prohibited by core system rules. All outputs carry mandatory simulation disclaimers. | **IMD / NDMA / SEC / DDMA Exclusively** |
+""")
 
-with tab_resilience:
-    render_resilience_view(T_peak, duration_days, tripped_id, budget_lakh)
 
 # ══════════════════════════════════════════════════════════════
 # FOOTER
 # ══════════════════════════════════════════════════════════════
 st.markdown("""
 <div class="app-footer">
-  <div>Data sources: CSERC Tariff Order FY 2024–25 &middot; CSPTCL Grid Records &middot; IMD Climatological Normals 1970–2024 &middot; Census of India 2011</div>
-  <div>AGNAYA v3.1 &middot; Decision-Support Prototype &middot; SIMULATION ONLY &ndash; NOT AN OFFICIAL WARNING</div>
+  <div>Data Grounding: CSERC Tariff Order FY 2024–25 &middot; CSPTCL Grid Records &middot; IMD Climatological Normals 1970–2024 &middot; Census of India 2011</div>
+  <div>AGNAYA v3.2 &middot; Municipal &amp; Utility Decision-Support Prototype &middot; SIMULATION ONLY &ndash; NOT AN OFFICIAL WARNING</div>
 </div>
 """, unsafe_allow_html=True)

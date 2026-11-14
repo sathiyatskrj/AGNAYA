@@ -3,20 +3,18 @@ AGNAYA - End-to-End Scenario Walkthrough & Planning View
 Step-by-step coupled causal cascade:
 Scenario -> Demand & Grid Stress -> Zone Risk -> Baseline vs ONE Intervention -> Plain Explanation & Limitations.
 
-Includes "How This Could Help Raipur" and "Data Gaps" planning panels.
+Includes "Executive Planning Context" and "Data Requirements" panels.
 MANDATORY DISCLAIMER: SIMULATION ONLY – NOT AN OFFICIAL WARNING.
 """
 
 import streamlit as st
 import numpy as np
-import pandas as pd
 import plotly.graph_objects as go
 
 from data.raipur_data import (
-    RAIPUR_ZONES, RAIPUR_SUBSTATIONS, RAIPUR_WATER_PUMPS,
-    RAIPUR_HOSPITALS, CSPDCL_PARAMS, INTERVENTION_OPTIONS
+    RAIPUR_ZONES, CSPDCL_PARAMS
 )
-from models.cascade_model import DemandModel, calculate_indoor_temp
+from models.cascade_model import DemandModel
 from models.grid_digital_twin import GridStressNetwork
 from models.tapas_health import TapasHealthEngine
 from models.system_resilience import SystemResilienceEngine
@@ -33,23 +31,23 @@ def render_e2e_walkthrough_view(
     tripped_id: str | None,
     budget_lakh: float
 ):
-    st.markdown('<div class="section-title">End-to-End Cascading Scenario Walkthrough</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-head">End-to-End Cascading Scenario Walkthrough</div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="section-desc">Trace how a single summer meteorological scenario propagates through electricity demand, '
+        '<div class="section-subhead">Trace how a single summer meteorological scenario propagates through electricity demand, '
         'transformer degradation, tin-roof indoor heat traps, and municipal water dependencies &mdash; and evaluate '
         'the exact benefit of targeted interventions.</div>',
         unsafe_allow_html=True
     )
 
     # ─────────────────────────────────────────────────────────────────────────
-    # PLANNING PANELS: "How This Could Help Raipur" & "Data Gaps"
+    # PLANNING PANELS: "Executive Context" & "Data Requirements"
     # ─────────────────────────────────────────────────────────────────────────
     c_help, c_gaps = st.columns(2)
     with c_help:
         st.markdown("""
-        <div style="background:#161920;border:1px solid #262A33;border-radius:6px;padding:12px;margin-bottom:16px;">
-          <b style="color:#F3F4F6;font-size:13px;">🏛️ How This Decision-Support Prototype Could Help Raipur</b>
-          <div style="font-size:11.5px;color:#9CA3AF;margin-top:6px;line-height:1.5;">
+        <div class="callout-box">
+          <strong style="color:#F8FAFC;font-size:13px;">Executive Planning Context: Municipal Decision Support</strong>
+          <div style="font-size:12px;color:#94A3B8;margin-top:6px;line-height:1.55;">
             <b>1. Substation Prioritization:</b> Identifies which 132/33 kV substations (e.g. S03 Amanaka) lack automatic N-1 transformer redundancy and face extreme hot-spot degradation.<br/>
             <b>2. Lifeline Protection:</b> Pinpoints water supply dependencies &mdash; ensuring Kharun River WTP (180 MLD) and zonal boosting pumps maintain backup power.<br/>
             <b>3. Slum Heat Entrapment:</b> Pinpoints dense informal settlements (Tikrapara, Bhata Para, Gudhiyari) where tin roofs amplify indoor heat during power cuts.<br/>
@@ -60,13 +58,13 @@ def render_e2e_walkthrough_view(
 
     with c_gaps:
         st.markdown("""
-        <div style="background:#161920;border:1px solid #262A33;border-radius:6px;padding:12px;margin-bottom:16px;">
-          <b style="color:#F3F4F6;font-size:13px;">📋 Extra Data Raipur Municipal Corporation & CSPDCL Would Need</b>
-          <div style="font-size:11.5px;color:#9CA3AF;margin-top:6px;line-height:1.5;">
-            <b>• SLDC Feeder Telemetry:</b> Authenticated SCADA feed (IEC 60870-5-104) for real-time 33/11 kV feeder loadings.<br/>
-            <b>• Official 70-Ward GeoJSON:</b> Authenticated municipal GIS ward boundaries to migrate from illustrative aggregated zones.<br/>
-            <b>• In-Situ Indoor Dataloggers:</b> Low-cost temperature/humidity sensors in CGI tin-roof homes to validate thermal transfer.<br/>
-            <b>• Clinical Registry Access:</b> Heat-related morbidity and emergency department admission records from Pt. JNM Medical College & AIIMS Raipur.
+        <div class="callout-box">
+          <strong style="color:#F8FAFC;font-size:13px;">Data Requirements: Production SCADA & Telemetry Gaps</strong>
+          <div style="font-size:12px;color:#94A3B8;margin-top:6px;line-height:1.55;">
+            <b>&bull; SLDC Feeder Telemetry:</b> Authenticated SCADA feed (IEC 60870-5-104) for real-time 33/11 kV feeder loadings.<br/>
+            <b>&bull; Official 70-Ward GeoJSON:</b> Authenticated municipal GIS ward boundaries to migrate from illustrative aggregated zones.<br/>
+            <b>&bull; In-Situ Indoor Dataloggers:</b> Low-cost temperature/humidity sensors in CGI tin-roof homes to validate thermal transfer.<br/>
+            <b>&bull; Clinical Registry Access:</b> Heat-related morbidity and emergency department admission records from Pt. JNM Medical College & AIIMS Raipur.
           </div>
         </div>
         """, unsafe_allow_html=True)
@@ -99,9 +97,41 @@ def render_e2e_walkthrough_view(
     max_aging = max(s["aging_factor"] for s in sub_eval)
 
     col_g1, col_g2, col_g3 = st.columns(3)
-    col_g1.metric("Peak Electricity Demand", f"{peak_d:.1f} MW", f"+{shortfall:.1f} MW above 420 MW limit", delta_color="inverse")
-    col_g2.metric("Peak Transformer Hotspot", f"{max_hotspot:.1f} °C", f"{max_aging:.1f}x Aging Rate", delta_color="inverse")
-    col_g3.metric("Kharun River WTP Status", "180 MLD (Protected)", "1.5 MVA Backup DG Online" if not tripped_id or tripped_id != "S01" else "Grid Tripped / DG Active")
+    with col_g1:
+        st.markdown(f"""
+        <div class="bento-tile">
+          <div class="stat-eyebrow">Peak Grid Demand</div>
+          <div class="stat-figure-row">
+            <span class="stat-number {'critical' if shortfall > 0 else 'ok'}">{peak_d:.1f}</span>
+            <span class="stat-unit">MW</span>
+          </div>
+          <div class="stat-caption">+{shortfall:.1f} MW above 420 MW contracted limit</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col_g2:
+        st.markdown(f"""
+        <div class="bento-tile">
+          <div class="stat-eyebrow">Transformer Hotspot Rise</div>
+          <div class="stat-figure-row">
+            <span class="stat-number {'critical' if max_hotspot > 120 else 'warning'}">{max_hotspot:.1f}</span>
+            <span class="stat-unit">°C</span>
+          </div>
+          <div class="stat-caption">{max_aging:.1f}x nominal Arrhenius aging rate</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col_g3:
+        st.markdown(f"""
+        <div class="bento-tile">
+          <div class="stat-eyebrow">Kharun River WTP Priority</div>
+          <div class="stat-figure-row">
+            <span class="stat-number ok">180</span>
+            <span class="stat-unit">MLD</span>
+          </div>
+          <div class="stat-caption">{"Dedicated feeder online" if not tripped_id or tripped_id != "S01" else "Grid Tripped / DG Active"}</div>
+        </div>
+        """, unsafe_allow_html=True)
 
     # ─────────────────────────────────────────────────────────────────────────
     # STEP 3: ZONE RISK MATRIX
@@ -163,12 +193,56 @@ def render_e2e_walkthrough_view(
     dividend = resil_res["resilience_dividend_pct"]
 
     col_r1, col_r2, col_r3, col_r4 = st.columns(4)
-    col_r1.metric("Baseline Deficit", f"{base_auc:.2f} h", "Unmitigated loss")
-    col_r2.metric("Protected Deficit", f"{shield_auc:.2f} h", "With intervention")
-    col_r3.metric("Deficit Hours Saved", f"{saved_auc:.2f} h", "Net reduction", delta_color="normal")
-    col_r4.metric("Resilience Dividend", f"+{dividend:.1f}%", "Overall gain", delta_color="normal")
+    with col_r1:
+        st.markdown(f"""
+        <div class="bento-tile">
+          <div class="stat-eyebrow">Baseline Deficit</div>
+          <div class="stat-figure-row">
+            <span class="stat-number critical">{base_auc:.2f}</span>
+            <span class="stat-unit">h</span>
+          </div>
+          <div class="stat-caption">Unmitigated lifeline deficit</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col_r2:
+        st.markdown(f"""
+        <div class="bento-tile">
+          <div class="stat-eyebrow">Protected Deficit</div>
+          <div class="stat-figure-row">
+            <span class="stat-number">{shield_auc:.2f}</span>
+            <span class="stat-unit">h</span>
+          </div>
+          <div class="stat-caption">With active intervention</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col_r3:
+        st.markdown(f"""
+        <div class="bento-tile">
+          <div class="stat-eyebrow">Deficit Hours Saved</div>
+          <div class="stat-figure-row">
+            <span class="stat-number ok">{saved_auc:.2f}</span>
+            <span class="stat-unit">h</span>
+          </div>
+          <div class="stat-caption">Net disruption reduction</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col_r4:
+        st.markdown(f"""
+        <div class="bento-tile">
+          <div class="stat-eyebrow">Resilience Dividend</div>
+          <div class="stat-figure-row">
+            <span class="stat-number ok">+{dividend:.1f}</span>
+            <span class="stat-unit">%</span>
+          </div>
+          <div class="stat-caption">Overall lifeline protection</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    st.info(f"**Intervention Mechanics:** {rationale}")
+    st.markdown(f"""
+    <div class="callout-box" style="margin-top:14px;">
+      <b>Intervention Mechanics:</b> {rationale}
+    </div>
+    """, unsafe_allow_html=True)
 
     # Resilience Curves Plot
     t_arr = np.array(resil_res["timeline_hours"])
@@ -190,6 +264,8 @@ def render_e2e_walkthrough_view(
         yaxis_title="Lifeline Availability Index [0 - 1.0]",
         yaxis=dict(range=[0.0, 1.05]),
         template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
         height=320,
         margin=dict(l=20, r=20, t=35, b=20)
     )
@@ -216,19 +292,21 @@ def render_e2e_walkthrough_view(
     narrative_text = DeterministicNarrativeGenerator.generate_narrative(expl_inputs)
 
     st.markdown(f"""
-    <div style="background:#161920;border:1px solid #262A33;border-radius:6px;padding:12px;margin-bottom:12px;line-height:1.55;font-size:12.5px;color:#E5E7EB;">
-      <b>Causal Chain Explanation:</b><br/>
-      {narrative_text}
+    <div class="callout-box" style="margin-bottom:14px;">
+      <strong style="color:#F8FAFC;">Deterministic Causal Chain Narrative:</strong><br/>
+      <div style="margin-top:6px;line-height:1.6;color:#CBD5E1;">{narrative_text}</div>
     </div>
     """, unsafe_allow_html=True)
 
-    st.warning("""
-    **What This Result Cannot Prove (Methodological Limitations):**
-    1. **Not Clinical Mortality:** The Heuristic Heat-Risk Index (HSRI) is an empirical indicator. It does not predict medical mortality or heat-stroke rates without epidemiological calibration against Pt. JNM Medical College emergency registries.
-    2. **Secondary Phase Outages:** Transmission models simulate bulk 220/132/33 kV flows. Local low-voltage (415V/230V) distribution phase imbalances or blown pole-mounted fuses cannot be modeled without utility AMI/SCADA telemetry.
-    3. **Microclimate Resolution:** Zone-wide indoor temperatures are simplified estimates pending in-situ data logger deployment (see `docs/PILOT.md`).
-    4. **Not Official Directives:** Never use this simulation to issue public evacuation orders or statutory heat alerts.
-    """)
+    st.markdown("""
+    <div class="disclaimer-banner">
+      <strong>Methodological & Statutory Limitations:</strong><br/>
+      1. <b>Not Clinical Mortality:</b> The Heuristic Heat-Risk Index (HSRI) is an empirical indicator. It does not predict medical mortality or heat-stroke rates without epidemiological calibration against Pt. JNM Medical College emergency registries.<br/>
+      2. <b>Secondary Phase Outages:</b> Transmission models simulate bulk 220/132/33 kV flows. Local low-voltage (415V/230V) distribution phase imbalances or blown pole-mounted fuses cannot be modeled without utility AMI/SCADA telemetry.<br/>
+      3. <b>Microclimate Resolution:</b> Zone-wide indoor temperatures are simplified estimates pending in-situ data logger deployment (see docs/PILOT.md).<br/>
+      4. <b>Not Official Directives:</b> Never use this simulation to issue public evacuation orders or statutory heat alerts.
+    </div>
+    """, unsafe_allow_html=True)
 
     # ─────────────────────────────────────────────────────────────────────────
     # DOWNLOAD ARTIFACTS: PDF BRIEFS & CAP XML
@@ -249,7 +327,7 @@ def render_e2e_walkthrough_view(
         }
     )
     c_pdf1.download_button(
-        label=f"📄 Ward Brief ({top_z['zone_id']} PDF)",
+        label=f"Export Ward Brief ({top_z['zone_id']} PDF)",
         data=ward_pdf_bytes,
         file_name=f"Ward_Brief_{top_z['zone_id']}_{T_peak:.1f}C.pdf",
         mime="application/pdf",
@@ -268,7 +346,7 @@ def render_e2e_walkthrough_view(
         allocated_fleet=fleet_dict
     )
     c_pdf2.download_button(
-        label="📑 Municipal SITREP (PDF)",
+        label="Export Municipal SITREP (PDF)",
         data=sitrep_pdf_bytes,
         file_name=f"Municipal_SITREP_Raipur_{T_peak:.1f}C.pdf",
         mime="application/pdf",
@@ -286,7 +364,7 @@ def render_e2e_walkthrough_view(
         tripped_substation=tripped_id
     )
     c_xml.download_button(
-        label="🚨 OASIS CAP 1.2 XML Alert",
+        label="Export OASIS CAP v1.2 XML",
         data=cap_xml_str,
         file_name=f"CAP_Alert_Raipur_{T_peak:.1f}C.xml",
         mime="application/xml",

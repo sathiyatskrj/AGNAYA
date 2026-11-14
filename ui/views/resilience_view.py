@@ -15,9 +15,9 @@ from data.raipur_data import RAIPUR_ZONES
 
 
 def render_resilience_view(T_peak: float, duration_days: int, tripped_id: str | None, budget_lakh: float):
-    st.markdown('<div class="section-title">Continuous System Resilience & Lifeline Trajectory Q(t)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-head">Continuous System Resilience & Lifeline Trajectory Q(t)</div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="section-desc">Tracks dynamic performance retention across power (45%), water supply (30%), '
+        '<div class="section-subhead">Tracks dynamic performance retention across power (45%), water supply (30%), '
         'and healthcare (25%) lifelines, computing exact unrounded Area Under Curve (AUC) deficit hours.</div>',
         unsafe_allow_html=True
     )
@@ -36,11 +36,55 @@ def render_resilience_view(T_peak: float, duration_days: int, tripped_id: str | 
     saved_auc = sim_res["disruption_hours_saved"]
     dividend = sim_res["resilience_dividend_pct"]
 
+    # Bento KPI Tiles
     r1, r2, r3, r4 = st.columns(4)
-    r1.metric("Baseline Deficit", f"{base_auc:.2f} h", "Unmitigated loss")
-    r2.metric("Shielded Deficit", f"{shield_auc:.2f} h", "With MILP dispatch")
-    r3.metric("Disruption Hours Saved", f"{saved_auc:.2f} h", "Net deficit reduction", delta_color="normal")
-    r4.metric("Resilience Dividend", f"+{dividend:.1f}%", "Overall lifeline protection", delta_color="normal")
+    with r1:
+        st.markdown(f"""
+        <div class="bento-tile">
+          <div class="stat-eyebrow">Baseline Deficit</div>
+          <div class="stat-figure-row">
+            <span class="stat-number critical">{base_auc:.2f}</span>
+            <span class="stat-unit">h</span>
+          </div>
+          <div class="stat-caption">Unmitigated lifeline loss</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with r2:
+        st.markdown(f"""
+        <div class="bento-tile">
+          <div class="stat-eyebrow">Shielded Deficit</div>
+          <div class="stat-figure-row">
+            <span class="stat-number">{shield_auc:.2f}</span>
+            <span class="stat-unit">h</span>
+          </div>
+          <div class="stat-caption">With active MILP fleet</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with r3:
+        st.markdown(f"""
+        <div class="bento-tile">
+          <div class="stat-eyebrow">Disruption Saved</div>
+          <div class="stat-figure-row">
+            <span class="stat-number ok">{saved_auc:.2f}</span>
+            <span class="stat-unit">h</span>
+          </div>
+          <div class="stat-caption">Net disruption reduction</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with r4:
+        st.markdown(f"""
+        <div class="bento-tile">
+          <div class="stat-eyebrow">Resilience Dividend</div>
+          <div class="stat-figure-row">
+            <span class="stat-number ok">+{dividend:.1f}</span>
+            <span class="stat-unit">%</span>
+          </div>
+          <div class="stat-caption">Overall lifeline retention</div>
+        </div>
+        """, unsafe_allow_html=True)
 
     st.markdown("---")
 
@@ -64,7 +108,9 @@ def render_resilience_view(T_peak: float, duration_days: int, tripped_id: str | 
         yaxis_title="Lifeline Availability Index Q(t) [0.0 - 1.0]",
         yaxis=dict(range=[0.0, 1.05]),
         template="plotly_dark",
-        height=350,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        height=340,
         margin=dict(l=20, r=20, t=35, b=20)
     )
     st.plotly_chart(fig, use_container_width=True)
@@ -72,7 +118,7 @@ def render_resilience_view(T_peak: float, duration_days: int, tripped_id: str | 
     st.markdown("---")
 
     # PDF SITREP Export Section
-    st.markdown('<div class="section-title">Boardroom Audit & Municipal SITREP PDF Export</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-head">Boardroom Audit & Municipal SITREP PDF Export</div>', unsafe_allow_html=True)
     st.markdown(
         "Generate a formal, publication-quality 2-page Situation Report (SITREP) synthesizing all "
         "atmospheric, electrical, demographic, and intervention metrics with explicit data provenance tags."
@@ -80,10 +126,13 @@ def render_resilience_view(T_peak: float, duration_days: int, tripped_id: str | 
 
     c_info, c_btn = st.columns([2.5, 1])
     with c_info:
-        st.info(
-            "**SITREP Content:** Includes peak load shortfall against 420 MW contracted limit, substation hot-spot aging factors, "
-            "Kharun River WTP 180 MLD dependency status, HiGHS MILP budget allocation, key planning questions, and scientific limitations."
-        )
+        st.markdown("""
+        <div class="callout-box">
+          <strong style="color:#F8FAFC;">SITREP Document Scope:</strong><br/>
+          Synthesizes peak electricity shortfall vs 420 MW contracted limit, substation hot-spot aging factors,
+          Kharun River WTP 180 MLD dependency status, HiGHS MILP budget allocation, key planning questions, and scientific limitations.
+        </div>
+        """, unsafe_allow_html=True)
     with c_btn:
         sitrep_bytes = generate_sitrep_pdf(
             {
@@ -99,7 +148,7 @@ def render_resilience_view(T_peak: float, duration_days: int, tripped_id: str | 
             allocated_fleet=fleet
         )
         st.download_button(
-            label="📑 Download Municipal SITREP (PDF)",
+            label="Export Municipal SITREP (PDF)",
             data=sitrep_bytes,
             file_name=f"Municipal_SITREP_Raipur_{T_peak:.1f}C.pdf",
             mime="application/pdf",
