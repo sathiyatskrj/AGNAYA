@@ -35,12 +35,12 @@ def run_multi_model_tests():
     print(" AGNAYA V3.1: Rigorous Multi-Model Scientific Verification Suite")
     print("=" * 75)
     passed_checks = 0
-    total_checks = 14
+    total_checks = 15
 
     # ─────────────────────────────────────────────────────────────────────────
-    # [1/14] Data Assets & Grounded Parameters
+    # [1/15] Data Assets & Grounded Parameters
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[1/14] Verifying Raipur Infrastructure Baseline & Data Provenance Matrix...")
+    print("\n[1/15] Verifying Raipur Infrastructure Baseline & Data Provenance Matrix...")
     from data.raipur_data import (
         RAIPUR_ZONES, RAIPUR_SUBSTATIONS, RAIPUR_WATER_PUMPS,
         RAIPUR_HOSPITALS, CSPDCL_PARAMS, OBSERVED_CLIMATE_RECORDS,
@@ -119,9 +119,9 @@ def run_multi_model_tests():
     passed_checks += 1
 
     # ─────────────────────────────────────────────────────────────────────────
-    # [2/14] Demand Dynamics Saturating ODE
+    # [2/15] Demand Dynamics Saturating ODE
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[2/14] Testing Saturating Electricity Demand ODE Dynamics...")
+    print("\n[2/15] Testing Saturating Electricity Demand ODE Dynamics...")
     from models.cascade_model import DemandModel
     dm = DemandModel()
     t, D = dm.simulate(T_peak_celsius=46.5, duration_days=3)
@@ -146,9 +146,9 @@ def run_multi_model_tests():
     passed_checks += 1
 
     # ─────────────────────────────────────────────────────────────────────────
-    # [3/14] Infrastructure Dependency Graph
+    # [3/15] Infrastructure Dependency Graph
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[3/14] Testing Infrastructure Dependency Graph (NetworkX)...")
+    print("\n[3/15] Testing Infrastructure Dependency Graph (NetworkX)...")
     from models.cascade_model import InfrastructureNetwork
     net = InfrastructureNetwork()
     assert net.G.number_of_nodes() == 29, f"Expected 29 nodes, got {net.G.number_of_nodes()}"
@@ -172,9 +172,9 @@ def run_multi_model_tests():
     passed_checks += 1
 
     # ─────────────────────────────────────────────────────────────────────────
-    # [4/14] Transformer Digital Twin (IEEE Std C57.91-2011 Clause 7)
+    # [4/15] Transformer Digital Twin (IEEE Std C57.91-2011 Clause 7)
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[4/14] Testing Transformer Hot-Spot & Aging Twin (IEEE Std C57.91-2011 Clause 7)...")
+    print("\n[4/15] Testing Transformer Hot-Spot & Aging Twin (IEEE Std C57.91-2011 Clause 7)...")
     from models.grid_digital_twin import TransformerDigitalTwin, GridStressNetwork
     s01_data = next(s for s in RAIPUR_SUBSTATIONS if s["id"] == "S01")
     twin = TransformerDigitalTwin(s01_data)
@@ -204,9 +204,9 @@ def run_multi_model_tests():
     passed_checks += 1
 
     # ─────────────────────────────────────────────────────────────────────────
-    # [5/14] Conductor Dynamic Line Rating (IEEE Std 738-2012 via linerate)
+    # [5/15] Conductor Dynamic Line Rating (IEEE Std 738-2012 via linerate)
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[5/14] Testing Conductor Dynamic Line Rating (IEEE Std 738-2012 via linerate)...")
+    print("\n[5/15] Testing Conductor Dynamic Line Rating (IEEE Std 738-2012 via linerate)...")
     from models.conductor_ampacity import ConductorThermalAmpacity, LinerateAmpacityAdapter, compute_ieee738_ampacity_legacy
     adapter = LinerateAmpacityAdapter()
     amp_40 = adapter.compute_ampacity("ACSR Zebra", ambient_temp_c=40.0, wind_speed_ms=1.0)
@@ -231,9 +231,9 @@ def run_multi_model_tests():
     passed_checks += 1
 
     # ─────────────────────────────────────────────────────────────────────────
-    # [6/14] TAPAS Heuristic Heat-Risk Index & Indoor Temperature
+    # [6/15] TAPAS Heuristic Heat-Risk Index & Indoor Temperature
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[6/14] Testing TAPAS Heuristic Heat-Risk Index (HSRI) & Indoor Temperature...")
+    print("\n[6/15] Testing TAPAS Heuristic Heat-Risk Index (HSRI) & Indoor Temperature...")
     from models.tapas_health import TapasHealthEngine
     from models.cascade_model import calculate_indoor_temp, classify_risk_band
 
@@ -259,9 +259,9 @@ def run_multi_model_tests():
     passed_checks += 1
 
     # ─────────────────────────────────────────────────────────────────────────
-    # [7/14] Deterministic 3-Stage Dispatch Pipeline (HiGHS MILP)
+    # [7/15] Deterministic 3-Stage Dispatch Pipeline (HiGHS MILP)
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[7/14] Testing Deterministic 3-Stage Dispatch Pipeline & HiGHS MILP...")
+    print("\n[7/15] Testing Deterministic 3-Stage Dispatch Pipeline & HiGHS MILP...")
     from models.agents_pipeline import (
         SpatialClimateStage, ThreatAssessmentStage, ResourceDispatchStage,
         DeterministicDispatchPipeline
@@ -284,9 +284,9 @@ def run_multi_model_tests():
     passed_checks += 1
 
     # ─────────────────────────────────────────────────────────────────────────
-    # [8/14] Climate EVT Return Periods
+    # [8/15] Climate EVT Return Periods
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[8/14] Testing Climate Extremes & Gumbel Return Periods...")
+    print("\n[8/15] Testing Climate Extremes & Gumbel Return Periods...")
     from models.climate_analytics import ClimateAnalyticsEngine
     clim = ClimateAnalyticsEngine()
     rp = clim.compute_return_period(46.5)
@@ -302,9 +302,9 @@ def run_multi_model_tests():
     passed_checks += 1
 
     # ─────────────────────────────────────────────────────────────────────────
-    # [9/14] Synchronous DC Power Flow
+    # [9/15] Synchronous DC Power Flow
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[9/14] Testing Synchronous DC Power Flow & Catenary Line Sag...")
+    print("\n[9/15] Testing Synchronous DC Power Flow & Catenary Line Sag...")
     from models.grid_power_flow import DCPowerFlowEngine
     pf = DCPowerFlowEngine()
     pf_res = pf.solve_power_flow(ambient_temp_c=46.5, total_city_load_mw=450.0, tripped_substation_id='S01')
@@ -320,9 +320,9 @@ def run_multi_model_tests():
     passed_checks += 1
 
     # ─────────────────────────────────────────────────────────────────────────
-    # [10/14] 7-Stage Progressive Heatwave Lifecycle
+    # [10/15] 7-Stage Progressive Heatwave Lifecycle
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[10/14] Testing 7-Stage Progressive Heatwave Lifecycle Simulator...")
+    print("\n[10/15] Testing 7-Stage Progressive Heatwave Lifecycle Simulator...")
     from models.progressive_heatwave import ProgressiveHeatwaveSimulator
     sim = ProgressiveHeatwaveSimulator()
     assert sim.get_stage_count() == 7
@@ -336,9 +336,9 @@ def run_multi_model_tests():
     passed_checks += 1
 
     # ─────────────────────────────────────────────────────────────────────────
-    # [11/14] Continuous System Resilience & Exact AUC Arithmetic
+    # [11/15] Continuous System Resilience & Exact AUC Arithmetic
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[11/14] Testing Continuous System Resilience & AUC Deficit Arithmetic...")
+    print("\n[11/15] Testing Continuous System Resilience & AUC Deficit Arithmetic...")
     from models.system_resilience import SystemResilienceEngine
     sre = SystemResilienceEngine()
     ev = sre.evaluate_resilience_curves(ambient_peak_c=46.5, duration_days=5)
@@ -360,9 +360,9 @@ def run_multi_model_tests():
     passed_checks += 1
 
     # ─────────────────────────────────────────────────────────────────────────
-    # [12/14] Biometeorology (pythermalcomfort) & Trilingual Alerts
+    # [12/15] Biometeorology (pythermalcomfort) & Trilingual Alerts
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[12/14] Testing Biometeorology (pythermalcomfort) & Trilingual Broadcasts...")
+    print("\n[12/15] Testing Biometeorology (pythermalcomfort) & Trilingual Broadcasts...")
     from models.trilingual_alerts import TrilingualAlertGenerator, PyThermalComfortAdapter
     biomet = PyThermalComfortAdapter()
     m = biomet.compute_all_metrics(tdb=45.0, rh=30.0, v=1.2)
@@ -385,9 +385,9 @@ def run_multi_model_tests():
     passed_checks += 1
 
     # ─────────────────────────────────────────────────────────────────────────
-    # [13/14] Sobol Sensitivity Analysis (SALib) & Uncertainty Bounds
+    # [13/15] Sobol Sensitivity Analysis (SALib) & Uncertainty Bounds
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[13/14] Testing Sobol Global Sensitivity Analysis (SALib) & Monte Carlo Intervals...")
+    print("\n[13/15] Testing Sobol Global Sensitivity Analysis (SALib) & Monte Carlo Intervals...")
     from models.sensitivity_analysis import SobolSensitivityEngine, SOBOL_PROBLEM
     sobol_eng = SobolSensitivityEngine(seed=42)
     sobol_res = sobol_eng.run_sobol_analysis(n_samples=32)
@@ -409,9 +409,9 @@ def run_multi_model_tests():
     passed_checks += 1
 
     # ─────────────────────────────────────────────────────────────────────────
-    # [14/14] CAP v1.2 XML, ReportLab PDFs & Rule 5 Deterministic Number Guard
+    # [14/15] CAP v1.2 XML, ReportLab PDFs & Rule 5 Deterministic Number Guard
     # ─────────────────────────────────────────────────────────────────────────
-    print("\n[14/14] Testing CAP v1.2 XML, ReportLab Executive PDFs & Rule 5 Number Guard...")
+    print("\n[14/15] Testing CAP v1.2 XML, ReportLab Executive PDFs & Rule 5 Number Guard...")
     from models.cap_alerts import CAPAlertGenerator
     from models.pdf_reports import generate_ward_brief_pdf, generate_sitrep_pdf
     from models.llm_explainer import DeterministicNumberGuard, DeterministicNarrativeGenerator
@@ -483,6 +483,51 @@ def run_multi_model_tests():
     print(f"  [PASS] OASIS CAP v1.2 XML verified: status=Draft, trilingual info blocks present.")
     print(f"  [PASS] ReportLab PDFs generated: Ward Brief ({len(ward_brief_bytes)} bytes), SITREP ({len(sitrep_bytes)} bytes).")
     print(f"  [PASS] Rule 5 DeterministicNumberGuard verified: valid passes, hallucinations (42, 318) strictly rejected.")
+    passed_checks += 1
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # [15/15] Indoor Logger Validation Harness & Microclimatic Calibration
+    # ─────────────────────────────────────────────────────────────────────────
+    print("\n[15/15] Testing Indoor Microclimate Logger Validation & Calibration Engine...")
+    from models.indoor_calibration import IndoorLoggerValidationEngine, ROOF_MATERIAL_FACTORS
+    logger_engine = IndoorLoggerValidationEngine()
+    csv_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "sample_indoor_loggers.csv")
+    assert os.path.exists(csv_file), "Missing data/sample_indoor_loggers.csv"
+    
+    df_log = logger_engine.load_logger_data(csv_file)
+    assert len(df_log) >= 300, f"Expected >= 300 observations, got {len(df_log)}"
+    assert "roof_factor" in df_log.columns
+    assert set(df_log["roof_type"].unique()) >= {"tin_cgi", "asbestos_cement", "pucca_concrete"}
+
+    # Baseline evaluation
+    base_eval = logger_engine.evaluate_model(df_log)
+    assert base_eval["num_observations"] == len(df_log)
+    assert 0.5 <= base_eval["mae"] <= 5.0, f"Baseline MAE outside physical bounds: {base_eval['mae']}"
+    assert 0.5 <= base_eval["rmse"] <= 6.0, f"Baseline RMSE outside physical bounds: {base_eval['rmse']}"
+    assert "by_roof_type" in base_eval
+
+    # Calibration routine
+    cal_res = logger_engine.calibrate(df_log, loss="cauchy")
+    assert cal_res["status"] == "CALIBRATION_COMPLETE"
+    assert cal_res["optimization_success"] is True
+    assert cal_res["calibrated_metrics"]["mae"] < base_eval["mae"], "Calibration must reduce MAE"
+    assert cal_res["calibrated_metrics"]["rmse"] < base_eval["rmse"], "Calibration must reduce RMSE"
+    assert "SIMULATION ONLY – NOT AN OFFICIAL WARNING" in cal_res["disclaimer"]
+
+    # Prediction function
+    t_pred_tin = logger_engine.predict_indoor_temperature(45.0, "tin_cgi", 0.08, outage_hours=2.0, calibrated_params=cal_res["calibrated_parameters"])
+    t_pred_pucca = logger_engine.predict_indoor_temperature(45.0, "pucca_concrete", 0.08, outage_hours=2.0, calibrated_params=cal_res["calibrated_parameters"])
+    assert t_pred_tin > t_pred_pucca, f"Tin roof ({t_pred_tin} C) must be hotter than pucca concrete ({t_pred_pucca} C)"
+
+    # Verify Field Pilot Protocol exists
+    pilot_doc = os.path.join(os.path.dirname(os.path.abspath(__file__)), "docs", "PILOT.md")
+    assert os.path.exists(pilot_doc), "docs/PILOT.md must exist"
+
+    print(f"  [PASS] IndoorLoggerValidationEngine loaded {len(df_log)} observations from sample_indoor_loggers.csv.")
+    print(f"  [PASS] Baseline error: MAE={base_eval['mae']:.2f} C, RMSE={base_eval['rmse']:.2f} C, Bias={base_eval['mean_bias_error']:+.2f} C.")
+    print(f"  [PASS] Calibrated error: MAE={cal_res['calibrated_metrics']['mae']:.2f} C (down {cal_res['improvement_pct']['mae_reduction_pct']}%), RMSE={cal_res['calibrated_metrics']['rmse']:.2f} C.")
+    print(f"  [PASS] Material differential verified: Tin CGI ({t_pred_tin} C) > Pucca Concrete ({t_pred_pucca} C).")
+    print(f"  [PASS] docs/PILOT.md protocol verified.")
     passed_checks += 1
 
     print("\n" + "=" * 75)

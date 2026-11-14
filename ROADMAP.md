@@ -23,14 +23,12 @@ This roadmap documents research expansions, external data integrations, and adva
 
 ---
 
-## 3. In-Situ Indoor Temperature Field Calibration (Phase 4 Pilot)
-- **Current Implementation:** Empirical simplified model:
-  $$T_{\text{indoor}} = T_{\text{ambient}} + 4.0 \times \kappa_{\text{slum}} - 4.0 \times \kappa_{\text{green}} + \min(6.5, 0.8 \times t_{\text{outage}})$$
-- **Why Deferred:** Microclimatic thermal transfer inside informal *kutcha* dwellings with uninsulated corrugated galvanized iron (CGI) tin roofs requires physical calibration against ground-truth in-situ logger data.
-- **Planned Work:**
-  - Deployment of 5–10 low-cost IoT temperature/humidity dataloggers in Birgaon, Gudhiyari, and Urla.
-  - Measurement of indoor-outdoor thermal lag ($\Delta t$) and roof radiation transfer coefficients.
-  - Parameter optimization via RMSE/MAE minimization.
+## 3. In-Situ Indoor Temperature Field Calibration (Phase 4 Pilot Hook Implemented)
+- **Current Status:** Calibration pipeline (`models/indoor_calibration.py`), standardized CSV schema (`data/sample_indoor_loggers.csv`), demonstration calibration script (`notebooks/01_indoor_temperature_calibration.py`), and field pilot protocol ([`docs/PILOT.md`](file:///C:/Users/Bhumika%20Baghel/.gemini/antigravity-ide/scratch/AGNAYA/docs/PILOT.md)) completed.
+- **Physical Pilot Activation Requirements:**
+  1. Institutional ethical review / community approval with ward committees in Birgaon, Gudhiyari, Tikrapara, and Urla.
+  2. Procurement and deployment of 8–10 calibrated BLE/USB temperature/RH data loggers ($\pm 0.3^\circ\text{C}$ accuracy) in tin-roof dwellings during pre-monsoon peak heat (April 15 – June 15).
+  3. Ingestion of raw field CSVs into `IndoorLoggerValidationEngine` to upgrade empirical coefficients from `ASSUMED` to `VERIFIED (FIELD PILOT)`.
 
 ---
 

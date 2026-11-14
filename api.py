@@ -494,3 +494,16 @@ def export_sitrep_pdf(
         media_type="application/pdf",
         headers={"Content-Disposition": "attachment; filename=sitrep_raipur.pdf"}
     )
+
+# ── 19. Indoor Logger Validation & Microclimate Calibration Endpoint
+@app.get("/api/v1/validation/indoor-calibration", dependencies=[Depends(verify_api_key)])
+def run_indoor_logger_calibration():
+    from models.indoor_calibration import IndoorLoggerValidationEngine
+    engine = IndoorLoggerValidationEngine()
+    csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "sample_indoor_loggers.csv")
+    if not os.path.exists(csv_path):
+        raise HTTPException(status_code=404, detail="Sample indoor loggers data not found")
+    df = engine.load_logger_data(csv_path)
+    cal_res = engine.calibrate(df, loss="cauchy")
+    return cal_res
+
