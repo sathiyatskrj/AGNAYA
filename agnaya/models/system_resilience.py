@@ -168,3 +168,29 @@ class SystemResilienceEngine:
     def compare_resilience_curves(self, peak_temp_c: float, duration_days: int = 3) -> Dict[str, Any]:
         """Provides normalized resilience curve comparison for UI and API."""
         return self.evaluate_resilience_curves(ambient_peak_c=peak_temp_c, duration_days=duration_days)
+
+    def simulate_resilience(
+        self,
+        T_peak: float = 45.0,
+        duration_days: int = 5,
+        interventions: Dict[str, Any] | None = None,
+        tripped_substation: str | None = None,
+        n_points: int = 72,
+    ) -> Dict[str, Any]:
+        """
+        Adapter method for scenario runners, walkthroughs, and UI views.
+        Provides both flat and nested key structures for complete backwards compatibility.
+        """
+        res = self.evaluate_resilience_curves(
+            ambient_peak_c=T_peak,
+            duration_days=duration_days,
+            n_points=n_points,
+            with_interventions=True
+        )
+        res["timeline_hours"] = res["hours"]
+        res["q_baseline"] = res["baseline"]["q_composite"]
+        res["q_shielded"] = res["shielded"]["q_composite"]
+        res["auc_deficit_hours_baseline"] = res["baseline"]["auc_loss_hours_unrounded"]
+        res["auc_deficit_hours_shielded"] = res["shielded"]["auc_loss_hours_unrounded"]
+        res["resilience_dividend_pct"] = res["resilience_gain_pct"]
+        return res
