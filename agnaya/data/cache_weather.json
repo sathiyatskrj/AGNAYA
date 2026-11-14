@@ -1,0 +1,19 @@
+{
+  "status": "OPEN_METEO_GRIDDED_FORECAST",
+  "is_synthetic_fallback": false,
+  "provider": "Open-Meteo Gridded Numerical Weather Model",
+  "station_or_model": "Open-Meteo Seamless NWP (lat 21.2514, lon 81.6296)",
+  "latitude": 21.2514,
+  "longitude": 81.6296,
+  "temperature_c": 23.6,
+  "relative_humidity_pct": 98.0,
+  "apparent_temperature_c": 29.0,
+  "wind_speed_ms": 0.39,
+  "direct_normal_irradiance_wm2": 0.0,
+  "surface_pressure_hpa": 980.9,
+  "retrieval_timestamp": "2026-11-03T19:42:21.278123+00:00",
+  "cache_age_seconds": 0.0,
+  "disclaimer": "SIMULATION ONLY \u2013 NOT AN OFFICIAL WARNING",
+  "notes": "Open-Meteo gridded forecast data for Raipur. NOT official IMD station telemetry.",
+  "_cached_at_epoch": 1793734943.290713
+}

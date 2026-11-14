@@ -160,7 +160,7 @@ class ConductorPhysicsEngine:
         q_joule = (current_amps ** 2) * r_amb
 
         # 3. Convective cooling q_c (Morgan / IEEE 738 formulation)
-        air_density = 1.15  # kg/m³ at Raipur 300m elevation
+        _ = 1.15  # air_density kg/m³ at Raipur 300m elevation
         kinematic_viscosity = 1.78e-5  # m²/s
         reynolds = (wind_speed_ms * d_m) / kinematic_viscosity
         nusselt = 0.641 * (reynolds ** 0.471) if reynolds > 0 else 0.5
@@ -384,7 +384,6 @@ class DCPowerFlowEngine:
 
         # Calculate branch flows and dynamic thermal ratings
         line_results = []
-        total_grid_loss_mw = 0.0
         congested_count = 0
 
         for br in self.branches:

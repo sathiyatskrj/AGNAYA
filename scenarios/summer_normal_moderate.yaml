@@ -1,0 +1,25 @@
+version: "1.0"
+scenario_id: "SCN-NORM-CLIM-42C"
+name: "Raipur Climatological Normal Summer"
+description: "Baseline summer conditions representing 30-year IMD climatological normal peak (42.4°C) with nominal grid operation and zero transmission line contingencies."
+provenance: "CLIMATOLOGICAL_NORMAL"
+
+# Meteorological Drivers
+ambient_temp_c: 42.4
+relative_humidity_pct: 38.0
+duration_days: 3
+
+# Infrastructure Stress
+power_outage_hours: 0.0
+tripped_substation: null
+
+# Simulation Parameters
+random_seed: 42
+budget_lakh: 40.0
+
+interventions:
+  cooling_centre: 2
+  water_tankers: 10
+  jal_jeevan: 15
+
+disclaimer: "SIMULATION ONLY – NOT AN OFFICIAL WARNING"

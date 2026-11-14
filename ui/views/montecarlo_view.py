@@ -34,7 +34,7 @@ def render_montecarlo_view(T_peak: float, rel_humidity: float, duration_days: in
             st.markdown('<div class="section-title">Sampling controls</div>', unsafe_allow_html=True)
             n_trials = st.slider("Monte Carlo sample iterations", 50, 500, 200, 50, help="Number of seeded stochastic draws")
             sim_seed = st.number_input("Deterministic Random Seed", value=42, min_value=1, max_value=9999)
-            run_btn = st.button("Run Uncertainty Evaluation", type="primary", use_container_width=True)
+            _ = st.button("Run Uncertainty Evaluation", type="primary", use_container_width=True)
 
             st.markdown("""
             <div style="background:#161920;border:1px solid #262A33;border-radius:6px;padding:10px;margin-top:12px;font-size:11px;color:#9CA3AF;line-height:1.45;">
@@ -91,7 +91,7 @@ def render_montecarlo_view(T_peak: float, rel_humidity: float, duration_days: in
         idx_demand = sobol_res["indices"]["peak_demand_mw"]
         idx_indoor = sobol_res["indices"]["max_indoor_temp_c"]
         idx_hotspot = sobol_res["indices"]["substation_hotspot_c"]
-        param_names = sobol_res["parameter_names"]
+        _ = sobol_res["parameter_names"]
 
         # Clean parameter display labels
         labels = [

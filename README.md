@@ -243,10 +243,11 @@ AGNAYA features an automated connector in [`data/weather_feed.py`](file:///C:/Us
 
 ## 🖥️ Operational Cockpit Modules
 
-The Streamlit operations console (`app.py`) provides 9 purpose-built operational screens:
+The Streamlit operations console (`app.py`) provides 10 purpose-built operational screens:
 
 | Tab | Operational Module | Core Capabilities |
 |:---:|:---|:---|
+| **00** | **End-to-End Walkthrough** | 5-step scenario stepper, municipal planning panels, baseline vs. ONE defined intervention, PDF briefs and CAP v1.2 XML exports. |
 | **01** | **Overview** | Situation status, peak demand surge, historical precedent correlation, continuous ODE load trajectory. |
 | **02** | **Timeline** | 7-stage progressive disaster simulator with multi-asset parameter scrubbers. |
 | **03** | **Map** | Keyless basemap fallbacks (OpenStreetMap / CartoDB Positron) without exposed secrets. Thermal UHI plume, IEEE 738 line derating, and lifeline assets. |
@@ -254,17 +255,40 @@ The Streamlit operations console (`app.py`) provides 9 purpose-built operational
 | **05** | **Substations** | IEEE Std C57.91-2011 Clause 7 transformer thermal digital twin with hot-spot rises and Arrhenius aging factors $F_{AA}$. |
 | **06** | **Alerts** | Biometeorological UTCI and WBGT metrics via `pythermalcomfort`, tin-roof trap estimates, and draft trilingual broadcast previews. |
 | **07** | **Dispatch** | Deterministic 3-Stage Dispatch Pipeline with SciPy HiGHS MILP optimizing resource allocation. |
-| **08** | **Monte Carlo** | Stochastic cascading failure simulator across 100–1,000 trials with parameter distributions. |
+| **08** | **Monte Carlo** | Stochastic cascading failure simulator and SALib Sobol global variance sensitivity analysis ($S_1, S_T$). |
 | **09** | **Resilience** | Continuous performance trajectories $Q(t)$, exact AUC deficit reduction, and boardroom audit summaries. |
 
 ---
 
-## 🧪 12-Stage Automated Verification Suite
+## 🚀 Headless Execution & CLI Service
+
+AGNAYA v3.1 can execute versioned simulation scenarios completely headless without Streamlit:
+
+```bash
+# Install in editable mode
+pip install -e .
+
+# Execute versioned scenario YAML
+python -m agnaya.services.scenario_runner scenarios/may_2024_all_time_peak.yaml
+
+# Output machine-readable JSON
+python -m agnaya.services.scenario_runner scenarios/summer_normal_moderate.yaml --json
+```
+
+---
+
+## 🧪 15-Stage Automated Scientific Verification & Pytest Suite
 
 Run the full scientific verification suite with a single command:
 
 ```bash
 python test_system.py
+```
+
+Or run the modular `pytest` test suite with code coverage:
+
+```bash
+pytest tests/ -v --cov=agnaya --cov-report=term
 ```
 
 ### Verification Output:
@@ -273,61 +297,77 @@ python test_system.py
  AGNAYA V3.1: Rigorous Multi-Model Scientific Verification Suite
 ===========================================================================
 
-[1/12] Verifying Raipur Infrastructure Baseline & Data Provenance...
+[1/15] Verifying Raipur Infrastructure Baseline & Data Provenance...
   [PASS] 12 Zones, 6 Substations, 6 WTPs (WP01=180 MLD), 5 Hospitals verified.
   [PASS] All-time record verified: 47.9 deg C (IMD 2024-05-28).
   [PASS] CSPDCL baselines: 310 MW (base) / 420 MW (contracted summer) / 620 MW (emergency ceiling).
 
-[2/12] Testing Saturating Electricity Demand ODE Dynamics...
+[2/15] Testing Saturating Electricity Demand ODE Dynamics...
   [PASS] Saturating ODE verified. Peak demand at 46.5 deg C: 475.9 MW (bounded <= 620 MW ceiling).
   [PASS] Shortfall against 420 MW contracted limit: 55.9 MW. Monotonicity confirmed.
 
-[3/12] Testing Infrastructure Dependency Graph (NetworkX)...
+[3/15] Testing Infrastructure Dependency Graph (NetworkX)...
   [PASS] Directed Graph verified: 29 nodes, 37 edges.
   [PASS] Failure propagation verified: S01 preserves WP01 (generator ok); S03 trips WP02 (no generator).
   [PASS] Top critical substation: Raipur Main (220 kV).
 
-[4/12] Testing Transformer Hot-Spot & Aging Twin (IEEE Std C57.91-2011 Clause 7)...
+[4/15] Testing Transformer Hot-Spot & Aging Twin (IEEE Std C57.91-2011 Clause 7)...
   [PASS] IEEE C57.91 Clause 7 verified: F_AA(110 C) = 1.0000, F_AA(120 C) = 2.71, F_AA(130.5 C) = 7.30.
   [PASS] Discontinuous 80 C cutoff removed. Evaluated 6 substation twins.
 
-[5/12] Testing Conductor Dynamic Line Rating (IEEE Std 738-2012 via linerate)...
+[5/15] Testing Conductor Dynamic Line Rating (IEEE Std 738-2012 via linerate)...
   [PASS] linerate IEEE 738 steady-state solver verified. ACSR Zebra at 40 C: 859.9 A -> 46.5 C: 761.2 A.
   [PASS] Monotonic derating confirmed across all 5 corridors. Legacy comparison retained.
 
-[6/12] Testing TAPAS Heuristic Heat-Risk Index (HSRI) & Indoor Temperature...
+[6/15] Testing TAPAS Heuristic Heat-Risk Index (HSRI) & Indoor Temperature...
   [PASS] Standardized indoor temp verified: Slum=48.9 deg C vs Green=44.2 deg C.
   [PASS] 12 Zones scored under HSRI framework. Uncalibrated mortality removed from primary outputs.
   [PASS] Mandatory simulation disclaimer verified.
 
-[7/12] Testing Deterministic 3-Stage Dispatch Pipeline & HiGHS MILP...
+[7/15] Testing Deterministic 3-Stage Dispatch Pipeline & HiGHS MILP...
   [PASS] Deterministic 3-stage pipeline executed successfully.
   [PASS] HiGHS MILP budget constraint verified: Cost 58.5 Lakh <= Budget 60.0 Lakh.
   [PASS] Units allocated: {'cooling_centre': 5, 'power_resilience': 3, 'water_tankers': 20, 'hospital_surge': 0, 'jal_jeevan': 20}.
 
-[8/12] Testing Climate Extremes & Gumbel Return Periods...
+[8/15] Testing Climate Extremes & Gumbel Return Periods...
   [PASS] Gumbel EVT return period for 46.5 deg C: 15.7 yrs.
   [PASS] Return period for 47.9 deg C: 47.0 yrs. Monotonicity verified.
 
-[9/12] Testing Synchronous DC Power Flow & Catenary Line Sag...
+[9/15] Testing Synchronous DC Power Flow & Catenary Line Sag...
   [PASS] 6-Bus DC power flow solved under S01 N-1 trip contingency.
   [PASS] Minimum roadway ground clearance: 6.18 m (statutory minimum >= 6.1 m).
 
-[10/12] Testing 7-Stage Progressive Heatwave Lifecycle Simulator...
+[10/15] Testing 7-Stage Progressive Heatwave Lifecycle Simulator...
   [PASS] 7 Progressive heatwave milestones initialized and evaluated.
   [PASS] Peak stage load: 468.0 MW (Stage 1 base: 325.0 MW).
 
-[11/12] Continuous System Resilience & AUC Deficit Arithmetic...
+[11/15] Testing Continuous System Resilience & AUC Deficit Arithmetic...
   [PASS] Unrounded AUC arithmetic verified: 17.07 h (base) - 2.46 h (shield) = 14.62 h saved.
   [PASS] Resilience dividend: 85.6%. Coupled to DemandModel saturating ODE.
 
-[12/12] Testing Biometeorology (pythermalcomfort) & Trilingual Broadcasts...
+[12/15] Testing Biometeorology (pythermalcomfort) & Trilingual Broadcasts...
   [PASS] pythermalcomfort metrics verified: UTCI=46.9 C, WBGT=34.7 C, Wet-bulb=29.7 C.
   [PASS] Mandatory simulation disclaimer verified across English, Hindi, and Chhattisgarhi texts.
   [PASS] Native-speaker review flags confirmed on vernacular drafts.
 
+[13/15] Testing Sobol Global Sensitivity Analysis (SALib) & Monte Carlo Intervals...
+  [PASS] SALib Sobol decomposition verified (n_samples=32). ST(T_amb) = 1.013.
+  [PASS] Monte Carlo confidence bounds: P05=437.8 MW, Median=463.9 MW, P95=482.6 MW.
+
+[14/15] Testing CAP v1.2 XML, ReportLab Executive PDFs & Rule 5 Number Guard...
+  [PASS] OASIS CAP v1.2 XML verified: status=Draft, trilingual info blocks present.
+  [PASS] ReportLab PDFs generated: Ward Brief (4323 bytes), SITREP (4776 bytes).
+  [PASS] Rule 5 DeterministicNumberGuard verified: valid passes, hallucinations (42, 318) strictly rejected.
+
+[15/15] Testing Indoor Microclimate Logger Validation & Calibration Engine...
+  [PASS] IndoorLoggerValidationEngine loaded 384 observations from sample_indoor_loggers.csv.
+  [PASS] Baseline error: MAE=1.74 C, RMSE=2.07 C, Bias=+0.17 C.
+  [PASS] Calibrated error: MAE=1.18 C (down 32.3%), RMSE=1.73 C.
+  [PASS] Material differential verified: Tin CGI (49.0 C) > Pucca Concrete (48.1 C).
+  [PASS] docs/PILOT.md protocol verified.
+
 ===========================================================================
- SCIENTIFIC VERIFICATION COMPLETE: 12/12 ENGINES VERIFIED & INVARIANTS SATISFIED
+ SCIENTIFIC VERIFICATION COMPLETE: 15/15 ENGINES VERIFIED & INVARIANTS SATISFIED
 ===========================================================================
 ```
 

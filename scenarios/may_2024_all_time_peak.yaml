@@ -1,0 +1,26 @@
+version: "1.0"
+scenario_id: "SCN-HIST-2024-05-28"
+name: "May 2024 All-Time Extreme Heatwave Peak"
+description: "Reconstruction of the May 28, 2024 all-time temperature record (47.9°C) recorded at IMD Station #42809 Mana Airport, combined with an N-1 transmission contingency on S01 Raipur Main."
+provenance: "HISTORICAL_OBSERVED"
+
+# Meteorological Drivers
+ambient_temp_c: 47.9
+relative_humidity_pct: 26.0
+duration_days: 5
+
+# Infrastructure Stress
+power_outage_hours: 2.0
+tripped_substation: "S01"
+
+# Simulation Parameters
+random_seed: 42
+budget_lakh: 60.0
+
+interventions:
+  cooling_centre: 5
+  power_resilience: 3
+  water_tankers: 20
+  jal_jeevan: 20
+
+disclaimer: "SIMULATION ONLY – NOT AN OFFICIAL WARNING"

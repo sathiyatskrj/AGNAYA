@@ -18,10 +18,14 @@ __pycache__/
 .pytest_cache/
 .coverage
 htmlcov/
+.mypy_cache/
+.ruff_cache/
 
 # Executables & Build Artifacts (Large binaries)
 build/
 dist/
+*.egg-info/
+*.egg
 *.exe
 *.pkg
 *.spec.bak

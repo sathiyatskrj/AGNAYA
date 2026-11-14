@@ -1,0 +1,26 @@
+version: "1.0"
+scenario_id: "SCN-STRESS-COMPOUND-01"
+name: "Compound Extended Heatwave & Prolonged Feeder Blackout"
+description: "Synthetic stress testing scenario evaluating 7 days of 46.5°C acute heat with severe 6-hour distribution feeder outages in informal settlements and S01 substation tripping."
+provenance: "SYNTHETIC_STRESS_TEST"
+
+# Meteorological Drivers
+ambient_temp_c: 46.5
+relative_humidity_pct: 30.0
+duration_days: 7
+
+# Infrastructure Stress
+power_outage_hours: 6.0
+tripped_substation: "S01"
+
+# Simulation Parameters
+random_seed: 42
+budget_lakh: 80.0
+
+interventions:
+  cooling_centre: 6
+  power_resilience: 4
+  water_tankers: 25
+  jal_jeevan: 25
+
+disclaimer: "SIMULATION ONLY – NOT AN OFFICIAL WARNING"

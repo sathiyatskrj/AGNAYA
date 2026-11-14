@@ -350,7 +350,7 @@ class MonteCarloCascade:
             # Track which substations fail this simulation
             sub_failed = {}
             for s in RAIPUR_SUBSTATIONS:
-                cap_derated = self.demand_model.transformer_capacity_at_temp(s, T_peak)
+                _ = self.demand_model.transformer_capacity_at_temp(s, T_peak)
                 load_frac = s["load_factor_normal"] * (peak_demand / CSPDCL_PARAMS["raipur_normal_demand_mw"])
                 load_frac = min(1.2, load_frac)
                 p_fail = self._transformer_fail_prob(s, load_frac, T_peak)

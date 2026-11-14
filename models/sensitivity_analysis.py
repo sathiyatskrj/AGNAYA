@@ -77,7 +77,7 @@ class SobolSensitivityEngine:
 
         for i, row in enumerate(param_values):
             t_amb = float(row[0])
-            rh = float(row[1])
+            _ = float(row[1])  # rh
             outage_h = float(row[2])
             sub_lf = float(row[3])
 
@@ -156,7 +156,7 @@ class SobolSensitivityEngine:
 
         # Seeded random draws
         t_samples = np.clip(self.rng.normal(t_mean, 1.2, n_trials), 38.0, 49.0)
-        rh_samples = np.clip(self.rng.uniform(rh_mean - 6.0, rh_mean + 6.0, n_trials), 15.0, 75.0)
+        _ = np.clip(self.rng.uniform(rh_mean - 6.0, rh_mean + 6.0, n_trials), 15.0, 75.0)  # rh_samples
         scale_val = max(0.5, outage_hours)
         outage_samples = np.clip(self.rng.exponential(scale_val, n_trials), 0.0, 12.0)
         lf_samples = self.rng.uniform(0.65, 0.85, n_trials)

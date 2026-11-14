@@ -173,7 +173,7 @@ class LLMExplainerEngine:
                 "Explain what these computed numbers mean in 3 concise paragraphs."
             )
             # Query LLM (Gemini or proxy)
-            # For demonstration and test stability, if call fails or key is invalid, fallback cleanly
+            _ = prompt
             response_text = deterministic_narrative  # Fallback baseline
 
             # Strict Rule 5 Validation
