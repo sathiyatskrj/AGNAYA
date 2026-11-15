@@ -15,6 +15,7 @@ from pathlib import Path
 import streamlit as st
 import streamlit.components.v1 as components
 from data.raipur_opencitymodel import get_raipur_opencitymodel
+from data.smartcity_assets import get_smartcity_assets
 
 
 def render_city_simulation_view(
@@ -38,6 +39,10 @@ def render_city_simulation_view(
     # Fetch verified OpenCityModel dataset for Raipur
     raipur_city_json = get_raipur_opencitymodel()
     city_json_str = json.dumps(raipur_city_json)
+
+    # Fetch verified FBX 7.x assets from Cycle4Change-SmartCityRaipur
+    smartcity_assets = get_smartcity_assets()
+    smartcity_assets_json = json.dumps(smartcity_assets)
 
     # Load Raipur Smart City logo
     base_dir = Path(__file__).resolve().parent.parent.parent
@@ -400,8 +405,10 @@ def render_city_simulation_view(
           border-radius: 3px;
         }}
       </style>
-      <!-- Three.js from reliable CDNs -->
+      <!-- Three.js and Loaders from reliable CDNs -->
       <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/fflate@0.7.4/umd/index.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     </head>
     <body>
@@ -513,6 +520,7 @@ def render_city_simulation_view(
         }};
 
         const RAIPUR_CITY_JSON = {city_json_str};
+        const SMARTCITY_ASSETS = {smartcity_assets_json};
 
         let isPlaying = true;
         let simSpeed = 1.0;
@@ -964,6 +972,248 @@ def render_city_simulation_view(
           }}
         }});
         scene.add(cityObjectsGroup);
+
+        // ═════════════════════════════════════════════════════════════════════
+        // AUTHENTIC RAIPUR SMART CITY FBX ASSETS & SKELETAL ANIMATIONS
+        // Cloned from AkshaySharmaDEV/Cycle4Change-SmartCityRaipur
+        // ═════════════════════════════════════════════════════════════════════
+        const animMixers = [];
+        const walkingCitizens = [];
+        const activeCyclists = [];
+
+        function parseBase64FBX(b64Str) {{
+          if (!b64Str) return null;
+          const bin = window.atob(b64Str);
+          const len = bin.length;
+          const bytes = new Uint8Array(len);
+          for (let i = 0; i < len; i++) {{
+            bytes[i] = bin.charCodeAt(i);
+          }}
+          return bytes.buffer;
+        }}
+
+        let fbxLoader = null;
+        if (typeof THREE.FBXLoader === 'function') {{
+          fbxLoader = new THREE.FBXLoader();
+        }}
+
+        function loadSmartCityFBX(key, onLoad) {{
+          if (!fbxLoader || !SMARTCITY_ASSETS || !SMARTCITY_ASSETS[key]) return;
+          try {{
+            const buf = parseBase64FBX(SMARTCITY_ASSETS[key]);
+            const obj = fbxLoader.parse(buf, '');
+            if (onLoad) onLoad(obj);
+          }} catch (e) {{
+            console.warn("Could not parse FBX asset: " + key, e);
+          }}
+        }}
+
+        // 1. Authentic Ghadi Chowk (Raipur Historic Clock Tower & Superstructure)
+        loadSmartCityFBX('ghadi_chowk', (model) => {{
+          model.scale.set(0.0012, 0.0012, 0.0012);
+          model.position.set(0, 0, 0);
+          model.traverse(c => {{
+            if (c.isMesh) {{
+              c.castShadow = true;
+              c.receiveShadow = true;
+              c.material = new THREE.MeshStandardMaterial({{
+                color: 0xd97706,
+                roughness: 0.55,
+                metalness: 0.15
+              }});
+            }}
+          }});
+          scene.add(model);
+        }});
+
+        loadSmartCityFBX('pro_clocktower', (tower) => {{
+          tower.scale.set(0.0045, 0.0045, 0.0045);
+          tower.position.set(0, 0, 0);
+          tower.traverse(c => {{
+            if (c.isMesh) {{
+              c.castShadow = true;
+              c.material = new THREE.MeshStandardMaterial({{ color: 0xb45309, roughness: 0.6 }});
+            }}
+          }});
+          scene.add(tower);
+        }});
+
+        // 2. Authentic "Mor Raipur" (मोर रायपुर) 3D Civic Monument at Telibandha
+        loadSmartCityFBX('mor_raipur', (mor) => {{
+          mor.scale.set(0.015, 0.015, 0.015);
+          mor.position.set(145, 0.25, 40);
+          mor.rotation.y = -Math.PI / 4;
+          mor.traverse(c => {{
+            if (c.isMesh) {{
+              c.castShadow = true;
+              c.material = new THREE.MeshStandardMaterial({{
+                color: 0x10b981,
+                roughness: 0.35,
+                metalness: 0.45
+              }});
+            }}
+          }});
+          scene.add(mor);
+        }});
+
+        // 3. Authentic Telibandha Marine Drive Lakefront Promenade
+        loadSmartCityFBX('marine_drive', (md) => {{
+          md.scale.set(0.0022, 0.0022, 0.0022);
+          md.position.set(165, 0.16, 72);
+          md.rotation.y = Math.PI / 2;
+          md.traverse(c => {{
+            if (c.isMesh) {{
+              c.receiveShadow = true;
+              c.material = new THREE.MeshStandardMaterial({{
+                color: 0xf1f5f9,
+                roughness: 0.75
+              }});
+            }}
+          }});
+          scene.add(md);
+        }});
+
+        // 4. Cycles4Change Protected Corridor Divider Railings
+        loadSmartCityFBX('divider_railing', (railing) => {{
+          railing.scale.set(0.0035, 0.0035, 0.0035);
+          railing.traverse(c => {{
+            if (c.isMesh) {{
+              c.castShadow = true;
+              c.material = new THREE.MeshStandardMaterial({{ color: 0x334155, metalness: 0.7 }});
+            }}
+          }});
+          for (let rx = -180; rx <= 140; rx += 16) {{
+            const clone = railing.clone();
+            clone.position.set(rx, 0.22, 2.5);
+            scene.add(clone);
+          }}
+        }});
+
+        // 5. Smart Traffic Light Poles at Key Junctions
+        loadSmartCityFBX('traffic_light', (tlight) => {{
+          tlight.scale.set(0.011, 0.011, 0.011);
+          tlight.traverse(c => {{
+            if (c.isMesh) {{
+              c.castShadow = true;
+              c.material = new THREE.MeshStandardMaterial({{ color: 0x1e293b, roughness: 0.5 }});
+            }}
+          }});
+          const junctions = [
+            [-16, 0.12, -12],
+            [16, 0.12, 12],
+            [-96, 0.12, 24],
+            [128, 0.12, 48]
+          ];
+          junctions.forEach(([jx, jy, jz]) => {{
+            const tl = tlight.clone();
+            tl.position.set(jx, jy, jz);
+            scene.add(tl);
+          }});
+        }});
+
+        // 6. Animated Walking Citizens (Skeletal Mixers) on Marine Drive
+        loadSmartCityFBX('walking_citizen', (citizen) => {{
+          citizen.scale.set(0.022, 0.022, 0.022);
+          citizen.position.set(160, 0.2, 50);
+          citizen.traverse(c => {{
+            if (c.isMesh) {{
+              c.castShadow = true;
+              c.material = new THREE.MeshStandardMaterial({{ color: 0x3b82f6, roughness: 0.5 }});
+            }}
+          }});
+          if (citizen.animations && citizen.animations.length > 0) {{
+            const m = new THREE.AnimationMixer(citizen);
+            m.clipAction(citizen.animations[0]).play();
+            animMixers.push(m);
+          }}
+          scene.add(citizen);
+          walkingCitizens.push({{ obj: citizen, minZ: 42, maxZ: 96, speed: 0.18, dir: 1 }});
+
+          const c2 = citizen.clone();
+          c2.scale.set(0.022, 0.022, 0.022);
+          c2.position.set(172, 0.2, 85);
+          c2.traverse(c => {{
+            if (c.isMesh) c.material = new THREE.MeshStandardMaterial({{ color: 0xf472b6, roughness: 0.5 }});
+          }});
+          if (citizen.animations && citizen.animations.length > 0) {{
+            const m2 = new THREE.AnimationMixer(c2);
+            m2.clipAction(citizen.animations[0]).play();
+            animMixers.push(m2);
+          }}
+          scene.add(c2);
+          walkingCitizens.push({{ obj: c2, minZ: 42, maxZ: 96, speed: 0.15, dir: -1 }});
+        }});
+
+        // 7. Animated Cyclist Rider (Skeletal Mixer) on Cycles4Change Track
+        loadSmartCityFBX('cycling_rider', (cyclist) => {{
+          cyclist.scale.set(0.020, 0.020, 0.020);
+          cyclist.position.set(-60, 0.22, 5);
+          cyclist.rotation.y = Math.PI / 2;
+          cyclist.traverse(c => {{
+            if (c.isMesh) {{
+              c.castShadow = true;
+              c.material = new THREE.MeshStandardMaterial({{ color: 0x10b981, roughness: 0.4 }});
+            }}
+          }});
+          if (cyclist.animations && cyclist.animations.length > 0) {{
+            const m = new THREE.AnimationMixer(cyclist);
+            m.clipAction(cyclist.animations[0]).play();
+            animMixers.push(m);
+          }}
+          scene.add(cyclist);
+          activeCyclists.push({{ obj: cyclist, minX: -200, maxX: 160, speed: 0.45 }});
+        }});
+
+        // 8. Sitting Citizen at Telibandha Promenade Bench
+        loadSmartCityFBX('sitting_citizen', (sitter) => {{
+          sitter.scale.set(0.020, 0.020, 0.020);
+          sitter.position.set(152, 0.2, 48);
+          sitter.rotation.y = -Math.PI / 3;
+          sitter.traverse(c => {{
+            if (c.isMesh) {{
+              c.castShadow = true;
+              c.material = new THREE.MeshStandardMaterial({{ color: 0xa855f7, roughness: 0.5 }});
+            }}
+          }});
+          scene.add(sitter);
+        }});
+
+        // 9. Authentic Raipur Apartment Blocks
+        loadSmartCityFBX('apartment', (apt) => {{
+          apt.scale.set(0.007, 0.007, 0.007);
+          apt.position.set(-40, 0.1, -50);
+          apt.traverse(c => {{
+            if (c.isMesh) {{
+              c.castShadow = true;
+              c.receiveShadow = true;
+            }}
+          }});
+          scene.add(apt);
+
+          const apt2 = apt.clone();
+          apt2.position.set(60, 0.1, -45);
+          scene.add(apt2);
+        }});
+
+        // 10. Authentic Civilian City Car (Toyota Prius) in Traffic
+        loadSmartCityFBX('prius', (car) => {{
+          car.scale.set(0.022, 0.022, 0.022);
+          car.position.set(-80, 0.25, 0);
+          car.traverse(c => {{
+            if (c.isMesh) {{
+              c.castShadow = true;
+              c.material = new THREE.MeshStandardMaterial({{ color: 0x2563eb, roughness: 0.25, metalness: 0.75 }});
+            }}
+          }});
+          scene.add(car);
+          cityTraffic.push({{
+            group: car,
+            speed: 0.55,
+            direction: 1,
+            startX: -190,
+            endX: 160
+          }});
+        }});
 
         // ═════════════════════════════════════════════════════════════════════
         // RSCL SMART SENSOR POLES & CYCLISTS
@@ -1461,6 +1711,29 @@ def render_city_simulation_view(
             c.group.position.x += c.speed;
             if (c.group.position.x > c.endX) {{
               c.group.position.x = c.startX;
+            }}
+          }});
+
+          // Animate Skeletal Animation Mixers (Walking Citizens & Cycling Riders)
+          animMixers.forEach(m => m.update(delta));
+
+          // Animate Walking Pedestrians along Telibandha Marine Drive Promenade
+          walkingCitizens.forEach(w => {{
+            w.obj.position.z += w.speed * w.dir;
+            if (w.obj.position.z > w.maxZ) {{
+              w.dir = -1;
+              w.obj.rotation.y = Math.PI;
+            }} else if (w.obj.position.z < w.minZ) {{
+              w.dir = 1;
+              w.obj.rotation.y = 0;
+            }}
+          }});
+
+          // Animate Active Cyclists along Cycles4Change Track
+          activeCyclists.forEach(c => {{
+            c.obj.position.x += c.speed;
+            if (c.obj.position.x > c.maxX) {{
+              c.obj.position.x = c.minX;
             }}
           }});
 
