@@ -533,10 +533,10 @@ def render_city_simulation_view(
 
         // Atmospheric Sky Colors
         const skyPalette = {{
-          day: new THREE.Color(0x60a5fa),     // Bright Sunny Blue Sky
+          day: new THREE.Color(0x38bdf8),     // Radiant Sunny Blue Sky
           warm: new THREE.Color(0xfb923c),    // Golden Hour Warmth
-          heat: new THREE.Color(0xef4444),    // Scorching Heat Dome
-          crisis: new THREE.Color(0x7f1d1d)   // Heavy Inversion Red
+          heat: new THREE.Color(0xf97316),    // Scorching Indian Summer Heat Dome (Vivid Amber)
+          crisis: new THREE.Color(0xef4444)   // Severe Heatwave Inversion
         }};
         scene.background = skyPalette.day.clone();
         scene.fog = new THREE.FogExp2(0xdbeafe, 0.0016);
@@ -1348,6 +1348,24 @@ def render_city_simulation_view(
           fbxLoader = new THREE.FBXLoader();
         }}
 
+        function normalizeAndScaleFBX(obj, targetHeight, targetWidth, targetDepth) {{
+          if (!obj) return 1.0;
+          const box = new THREE.Box3().setFromObject(obj);
+          const size = box.getSize(new THREE.Vector3());
+          let scale = 1.0;
+          if (targetHeight && size.y > 0.0001) {{
+            scale = targetHeight / size.y;
+          }} else if (targetWidth && size.x > 0.0001) {{
+            scale = targetWidth / size.x;
+          }} else if (targetDepth && size.z > 0.0001) {{
+            scale = targetDepth / size.z;
+          }}
+          obj.scale.set(scale, scale, scale);
+          const scaledBox = new THREE.Box3().setFromObject(obj);
+          obj.position.y -= scaledBox.min.y;
+          return scale;
+        }}
+
         function loadSmartCityFBX(key, onLoad) {{
           if (!fbxLoader || !SMARTCITY_ASSETS || !SMARTCITY_ASSETS[key]) return;
           try {{
@@ -1359,9 +1377,9 @@ def render_city_simulation_view(
           }}
         }}
 
-        // 1. Authentic Ghadi Chowk (Raipur Historic Clock Tower & Superstructure)
+        // 1. Authentic Ghadi Chowk (Raipur Historic Clock Tower Landmark)
         loadSmartCityFBX('ghadi_chowk', (model) => {{
-          model.scale.set(0.0012, 0.0012, 0.0012);
+          normalizeAndScaleFBX(model, 32.0);
           model.position.set(0, 0, 0);
           model.traverse(c => {{
             if (c.isMesh) {{
@@ -1369,8 +1387,8 @@ def render_city_simulation_view(
               c.receiveShadow = true;
               c.material = new THREE.MeshStandardMaterial({{
                 color: 0xd97706,
-                roughness: 0.55,
-                metalness: 0.15
+                roughness: 0.45,
+                metalness: 0.25
               }});
             }}
           }});
@@ -1378,12 +1396,12 @@ def render_city_simulation_view(
         }});
 
         loadSmartCityFBX('pro_clocktower', (tower) => {{
-          tower.scale.set(0.0045, 0.0045, 0.0045);
-          tower.position.set(0, 0, 0);
+          normalizeAndScaleFBX(tower, 28.0);
+          tower.position.set(22, 0, -18);
           tower.traverse(c => {{
             if (c.isMesh) {{
               c.castShadow = true;
-              c.material = new THREE.MeshStandardMaterial({{ color: 0xb45309, roughness: 0.6 }});
+              c.material = new THREE.MeshStandardMaterial({{ color: 0xb45309, roughness: 0.55 }});
             }}
           }});
           scene.add(tower);
@@ -1391,7 +1409,7 @@ def render_city_simulation_view(
 
         // 2. Authentic "Mor Raipur" (मोर रायपुर) 3D Civic Monument at Telibandha
         loadSmartCityFBX('mor_raipur', (mor) => {{
-          mor.scale.set(0.015, 0.015, 0.015);
+          normalizeAndScaleFBX(mor, 6.0, 14.0);
           mor.position.set(145, 0.25, 40);
           mor.rotation.y = -Math.PI / 4;
           mor.traverse(c => {{
@@ -1409,7 +1427,7 @@ def render_city_simulation_view(
 
         // 3. Authentic Telibandha Marine Drive Lakefront Promenade
         loadSmartCityFBX('marine_drive', (md) => {{
-          md.scale.set(0.0022, 0.0022, 0.0022);
+          normalizeAndScaleFBX(md, null, 65.0);
           md.position.set(165, 0.16, 72);
           md.rotation.y = Math.PI / 2;
           md.traverse(c => {{
@@ -1426,7 +1444,7 @@ def render_city_simulation_view(
 
         // 4. Cycles4Change Protected Corridor Divider Railings
         loadSmartCityFBX('divider_railing', (railing) => {{
-          railing.scale.set(0.0035, 0.0035, 0.0035);
+          normalizeAndScaleFBX(railing, 1.2);
           railing.traverse(c => {{
             if (c.isMesh) {{
               c.castShadow = true;
@@ -1442,7 +1460,7 @@ def render_city_simulation_view(
 
         // 5. Smart Traffic Light Poles at Key Junctions
         loadSmartCityFBX('traffic_light', (tlight) => {{
-          tlight.scale.set(0.011, 0.011, 0.011);
+          normalizeAndScaleFBX(tlight, 6.5);
           tlight.traverse(c => {{
             if (c.isMesh) {{
               c.castShadow = true;
@@ -1464,7 +1482,7 @@ def render_city_simulation_view(
 
         // 6. Animated Walking Citizens (Skeletal Mixers) on Marine Drive
         loadSmartCityFBX('walking_citizen', (citizen) => {{
-          citizen.scale.set(0.022, 0.022, 0.022);
+          normalizeAndScaleFBX(citizen, 1.8);
           citizen.position.set(160, 0.2, 50);
           citizen.traverse(c => {{
             if (c.isMesh) {{
@@ -1481,7 +1499,7 @@ def render_city_simulation_view(
           walkingCitizens.push({{ obj: citizen, minZ: 42, maxZ: 96, speed: 0.18, dir: 1 }});
 
           const c2 = citizen.clone();
-          c2.scale.set(0.022, 0.022, 0.022);
+          normalizeAndScaleFBX(c2, 1.8);
           c2.position.set(172, 0.2, 85);
           c2.traverse(c => {{
             if (c.isMesh) c.material = new THREE.MeshStandardMaterial({{ color: 0xf472b6, roughness: 0.5 }});
@@ -1497,7 +1515,7 @@ def render_city_simulation_view(
 
         // 7. Animated Cyclist Rider (Skeletal Mixer) on Cycles4Change Track
         loadSmartCityFBX('cycling_rider', (cyclist) => {{
-          cyclist.scale.set(0.020, 0.020, 0.020);
+          normalizeAndScaleFBX(cyclist, 1.7);
           cyclist.position.set(-60, 0.22, 5);
           cyclist.rotation.y = Math.PI / 2;
           cyclist.traverse(c => {{
@@ -1517,7 +1535,7 @@ def render_city_simulation_view(
 
         // 8. Sitting Citizen at Telibandha Promenade Bench
         loadSmartCityFBX('sitting_citizen', (sitter) => {{
-          sitter.scale.set(0.020, 0.020, 0.020);
+          normalizeAndScaleFBX(sitter, 1.2);
           sitter.position.set(152, 0.2, 48);
           sitter.rotation.y = -Math.PI / 3;
           sitter.traverse(c => {{
@@ -1531,7 +1549,7 @@ def render_city_simulation_view(
 
         // 9. Authentic Raipur Apartment Blocks
         loadSmartCityFBX('apartment', (apt) => {{
-          apt.scale.set(0.007, 0.007, 0.007);
+          normalizeAndScaleFBX(apt, 24.0);
           apt.position.set(-40, 0.1, -50);
           apt.traverse(c => {{
             if (c.isMesh) {{
@@ -1548,7 +1566,7 @@ def render_city_simulation_view(
 
         // 10. Authentic Civilian City Car (Toyota Prius) in Traffic
         loadSmartCityFBX('prius', (car) => {{
-          car.scale.set(0.022, 0.022, 0.022);
+          normalizeAndScaleFBX(car, null, null, 4.6);
           car.position.set(-80, 0.25, 0);
           car.traverse(c => {{
             if (c.isMesh) {{
@@ -1804,8 +1822,8 @@ def render_city_simulation_view(
         function switchCam(mode) {{
           document.querySelectorAll('.cam-pill').forEach(p => p.classList.remove('active'));
           if (mode === 's03') {{
-            targetCamPos.set(-70, 36, 185);
-            currentCamTarget.set(s03Pos.x, s03Pos.y, s03Pos.z);
+            targetCamPos.set(-75, 42, 115);
+            currentCamTarget.set(s03Pos.x, s03Pos.y + 4, s03Pos.z);
           }} else if (mode === 'ghadi') {{
             targetCamPos.set(24, 30, 34);
             currentCamTarget.set(0, 14, 0); // Ghadi Chowk Tower
@@ -1838,13 +1856,17 @@ def render_city_simulation_view(
         const initialCam = "{cam_view}";
         if (initialCam.includes("Ghadi")) switchCam('ghadi');
         else if (initialCam.includes("Cycles4Change")) switchCam('cycle');
-        else if (initialCam.includes("S03")) switchCam('s03');
+        else if (initialCam.includes("S03") || initialCam.includes("Arc Fault")) switchCam('s03');
         else if (initialCam.includes("Kharun")) switchCam('kharun');
         else if (initialCam.includes("Slum")) switchCam('slum');
         else if (initialCam.includes("Hospital")) switchCam('hospital');
-        else if (initialCam.includes("Telibandha")) switchCam('telibandha');
-        else if (initialCam.includes("Top-Down")) switchCam('top');
+        else if (initialCam.includes("Telibandha") || initialCam.includes("Marine")) switchCam('telibandha');
+        else if (initialCam.includes("Top-Down") || initialCam.includes("Blueprint")) switchCam('top');
         else switchCam('drone');
+
+        camera.position.copy(targetCamPos);
+        controls.target.copy(currentCamTarget);
+        controls.update();
 
         // Playback Transport Controls
         function togglePlayPause() {{
@@ -1966,12 +1988,16 @@ def render_city_simulation_view(
           if (currentTemp > 44.0) {{
             scene.background.lerp(skyPalette.heat, 0.05);
             scene.fog.color.lerp(skyPalette.warm, 0.05);
-            sunLight.color.setHex(0xff7744);
+            sunLight.color.setHex(0xffaa44);
+            sunLight.intensity = 2.8;
+            hemiLight.intensity = 1.6;
             sunMesh.scale.setScalar(1.0 + Math.sin(Date.now() * 0.003) * 0.15);
           }} else {{
             scene.background.lerp(skyPalette.day, 0.05);
             scene.fog.color.setHex(0xdbeafe);
             sunLight.color.setHex(0xfffbeb);
+            sunLight.intensity = 2.3;
+            hemiLight.intensity = 1.45;
             sunMesh.scale.setScalar(1.0);
           }}
 

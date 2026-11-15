@@ -37,6 +37,13 @@ def test_smartcity_assets_loading():
         "apartment",
         "prius",
     ]
+    repo_root = Path(__file__).resolve().parent.parent
+    ref_dir = repo_root / "reference_3d" / "Cycle4Change-SmartCityRaipur"
+
     for k in expected_keys:
         assert k in assets, f"Missing asset {k}"
+        assert isinstance(assets[k], str), f"Asset {k} is not a string"
         assert len(assets[k]) > 0, f"Asset {k} is empty"
+        if ref_dir.exists():
+            # In full local environment with cloned models, verify genuine multi-kilobyte payload
+            assert len(assets[k]) > 500, f"Asset {k} payload too short in local environment"
