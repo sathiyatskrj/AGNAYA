@@ -50,6 +50,7 @@ for _mod in [
     "ui.views.dispatch_view",
     "ui.views.montecarlo_view",
     "ui.views.resilience_view",
+    "ui.views.city_simulation_view",
 ]:
     if _mod in sys.modules:
         try:
@@ -83,6 +84,7 @@ from ui.views.alerts_view import render_alerts_view
 from ui.views.dispatch_view import render_dispatch_view
 from ui.views.montecarlo_view import render_montecarlo_view
 from ui.views.resilience_view import render_resilience_view
+from ui.views.city_simulation_view import render_city_simulation_view
 
 
 @st.cache_data
@@ -382,7 +384,8 @@ active_mode = st.radio(
     [
         "Mode 1: Executive Command Center",
         "Mode 2: Spatial & Physical Digital Twins",
-        "Mode 3: Interventions, Resilience & Governance"
+        "Mode 3: Interventions, Resilience & Governance",
+        "Mode 4: 3D City Simulation & Causal Theatre",
     ],
     horizontal=True,
     label_visibility="collapsed"
@@ -1163,6 +1166,23 @@ elif active_mode == "Mode 3: Interventions, Resilience & Governance":
 | **MODEL-CLASSIFIED** | Algorithmic risk tiers and stress indices computed by deterministic physics and engineering models. | Heuristic Heat-Risk Index (HSRI), IEEE Std C57.91 transformer thermal aging acceleration ($F_{AA}$). | Deterministic algorithms (Uncalibrated) |
 | **OFFICIAL WARNING** | **NEVER PRODUCED BY THIS TOOL.** Statutory red/orange warnings, heatwave alerts, or evacuation directives. | Explicitly prohibited by core system rules. All outputs carry mandatory simulation disclaimers. | **IMD / NDMA / SEC / DDMA Exclusively** |
 """)
+
+
+# ══════════════════════════════════════════════════════════════
+# MODE 4: 3D CITY SIMULATION & CAUSAL THEATRE
+# ══════════════════════════════════════════════════════════════
+elif active_mode == "Mode 4: 3D City Simulation & Causal Theatre":
+    mode4_svg = get_svg_data_uri("mode4_simulation.svg")
+    if mode4_svg:
+        st.markdown(f'<img src="{mode4_svg}" style="width:100%;height:auto;border-radius:12px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.08);box-shadow:0 8px 32px rgba(0,0,0,0.4);" />', unsafe_allow_html=True)
+
+    render_city_simulation_view(
+        T_peak=T_peak,
+        rel_humidity=rel_humidity,
+        duration_days=duration_days,
+        budget_lakh=budget_lakh,
+        tripped_id=tripped_id
+    )
 
 
 # ══════════════════════════════════════════════════════════════
