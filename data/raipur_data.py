@@ -16,7 +16,7 @@ AGNAYA is a research prototype and does not issue official weather alerts or mun
 import csv
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 logger = logging.getLogger("agnaya.data")
 
