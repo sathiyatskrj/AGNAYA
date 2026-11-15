@@ -6,7 +6,9 @@ MANDATORY DISCLAIMER: SIMULATION ONLY – NOT AN OFFICIAL WARNING.
 """
 
 import streamlit as st
+import importlib
 
+import models.trilingual_alerts
 from models.trilingual_alerts import TrilingualAlertGenerator
 from models.cap_alerts import CAPAlertGenerator
 from data.raipur_data import RAIPUR_ZONES
@@ -22,6 +24,10 @@ def render_alerts_view(T_peak: float, rel_humidity: float, power_outage_sim: flo
     )
 
     trilingual_gen = TrilingualAlertGenerator()
+    if not hasattr(trilingual_gen, "generate_all_language_alerts"):
+        importlib.reload(models.trilingual_alerts)
+        trilingual_gen = models.trilingual_alerts.TrilingualAlertGenerator()
+
     utci_data = trilingual_gen.compute_biomet_utci(ambient_temp_c=T_peak, relative_humidity=rel_humidity)
 
     # Bento Metric Tiles
@@ -79,13 +85,41 @@ def render_alerts_view(T_peak: float, rel_humidity: float, power_outage_sim: flo
 
     # Trilingual Broadcast Previews
     st.markdown('<div class="section-head">Standardized Draft Broadcast Bulletins (Vernacular Previews)</div>', unsafe_allow_html=True)
-    alerts_data = trilingual_gen.generate_all_language_alerts(
-        ambient_temp_c=T_peak,
-        effective_temp_c=utci_data["utci_temp_c"],
-        risk_level=utci_data["thermal_stress_category"],
-        power_outage_hours=power_outage_sim,
-        critical_zone="Z05 Tikrapara"
-    )
+    if hasattr(trilingual_gen, "generate_all_language_alerts"):
+        alerts_data = trilingual_gen.generate_all_language_alerts(
+            ambient_temp_c=T_peak,
+            effective_temp_c=utci_data["utci_temp_c"],
+            risk_level=utci_data["thermal_stress_category"],
+            power_outage_hours=power_outage_sim,
+            critical_zone="Z05 Tikrapara"
+        )
+    else:
+        tri = trilingual_gen.generate_trilingual_alerts(
+            ambient_temp_c=T_peak,
+            relative_humidity=rel_humidity,
+            active_outage_hours=power_outage_sim,
+            primary_affected_zone="Z05 Tikrapara"
+        )
+        alerts_data = {
+            "en": {
+                "headline": tri["english"]["headline"],
+                "body": tri["english"]["body"],
+                "actions": tri["english"]["actions"],
+                "review_warning": "DRAFT PREVIEW – RESEARCH SIMULATION ONLY. NOT AN OFFICIAL WARNING ISSUED BY IMD / NDMA."
+            },
+            "hi": {
+                "headline": tri["hindi"]["headline"],
+                "body": tri["hindi"]["body"],
+                "actions": tri["hindi"]["actions"],
+                "review_warning": "ड्राफ्ट पूर्वावलोकन – केवल अनुसंधान सिमुलेशन। IMD / NDMA द्वारा जारी आधिकारिक चेतावनी नहीं है।"
+            },
+            "hne": {
+                "headline": tri["chhattisgarhi"]["headline"],
+                "body": tri["chhattisgarhi"]["body"],
+                "actions": tri["chhattisgarhi"]["actions"],
+                "review_warning": "ड्राफ्ट पूर्वावलोकन – केवल अध्ययन सिमुलेशन। मौसम विभाग या शासन के अधिकृत सूचना नो हे।"
+            }
+        }
 
     lang_tab1, lang_tab2, lang_tab3 = st.tabs(["हिंदी (Hindi)", "छत्तीसगढ़ी (Chhattisgarhi)", "English"])
 

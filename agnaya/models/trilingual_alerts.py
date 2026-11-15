@@ -321,3 +321,48 @@ class TrilingualAlertGenerator:
                 "color": utci_data["color"],
             },
         }
+
+    def generate_all_language_alerts(
+        self,
+        ambient_temp_c: float,
+        effective_temp_c: float = 45.0,
+        risk_level: str = "EXTREME THERMAL STRESS",
+        power_outage_hours: float = 2.0,
+        critical_zone: str = "Z05 Tikrapara",
+        duration_days: int = 4
+    ) -> Dict[str, Any]:
+        """
+        Generates structured trilingual alerts mapped by ISO keys ('hi', 'hne', 'en').
+        Provides review notices, headlines, formatted body text, and actionable citizen instructions.
+        """
+        tri = self.generate_trilingual_alerts(
+            ambient_temp_c=ambient_temp_c,
+            relative_humidity=35.0,
+            active_outage_hours=power_outage_hours,
+            primary_affected_zone=critical_zone
+        )
+
+        return {
+            "disclaimer": "SIMULATION ONLY – NOT AN OFFICIAL WARNING",
+            "en": {
+                "headline": tri["english"]["headline"],
+                "body": tri["english"]["body"],
+                "actions": tri["english"]["actions"],
+                "review_warning": "DRAFT PREVIEW – RESEARCH SIMULATION ONLY. NOT AN OFFICIAL WARNING ISSUED BY IMD / NDMA."
+            },
+            "hi": {
+                "headline": tri["hindi"]["headline"],
+                "body": tri["hindi"]["body"],
+                "actions": tri["hindi"]["actions"],
+                "review_warning": "ड्राफ्ट पूर्वावलोकन – केवल अनुसंधान सिमुलेशन। IMD / NDMA द्वारा जारी आधिकारिक चेतावनी नहीं है। स्थानीय हिंदी भाषा विशेषज्ञ द्वारा समीक्षा अपेक्षित।"
+            },
+            "hne": {
+                "headline": tri["chhattisgarhi"]["headline"],
+                "body": tri["chhattisgarhi"]["body"],
+                "actions": tri["chhattisgarhi"]["actions"],
+                "review_warning": "ड्राफ्ट पूर्वावलोकन – केवल अध्ययन सिमुलेशन। मौसम विभाग या शासन के अधिकृत सूचना नो हे। छत्तीसगढ़ी भाखा विशेषज्ञ ले जांच कराना जरूरी हे।"
+            },
+            "chhattisgarhi": tri["chhattisgarhi"],
+            "hindi": tri["hindi"],
+            "english": tri["english"],
+        }
