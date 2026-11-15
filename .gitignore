@@ -43,3 +43,5 @@ data/cache_*.json
 
 # Cloned reference repositories
 reference_3d/
+scratch/
+test_sim*.html
