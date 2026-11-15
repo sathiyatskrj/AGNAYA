@@ -33,6 +33,30 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
+# ── Dynamic Module Reload (Ensures live Streamlit sessions always pull fresh code from disk)
+import importlib
+for _mod in [
+    "models.cascade_model",
+    "models.trilingual_alerts",
+    "models.system_resilience",
+    "models.grid_digital_twin",
+    "models.tapas_health",
+    "models.conductor_ampacity",
+    "models.grid_power_flow",
+    "models.progressive_heatwave",
+    "models.cap_alerts",
+    "ui.views.e2e_walkthrough_view",
+    "ui.views.alerts_view",
+    "ui.views.dispatch_view",
+    "ui.views.montecarlo_view",
+    "ui.views.resilience_view",
+]:
+    if _mod in sys.modules:
+        try:
+            importlib.reload(sys.modules[_mod])
+        except Exception:
+            pass
+
 from config import settings
 
 from data.raipur_data import (

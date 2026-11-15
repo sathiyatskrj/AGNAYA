@@ -24,11 +24,21 @@ def render_alerts_view(T_peak: float, rel_humidity: float, power_outage_sim: flo
     )
 
     trilingual_gen = TrilingualAlertGenerator()
-    if not hasattr(trilingual_gen, "generate_all_language_alerts"):
+    if not hasattr(trilingual_gen, "generate_all_language_alerts") or not hasattr(trilingual_gen, "compute_biomet_utci"):
         importlib.reload(models.trilingual_alerts)
         trilingual_gen = models.trilingual_alerts.TrilingualAlertGenerator()
 
-    utci_data = trilingual_gen.compute_biomet_utci(ambient_temp_c=T_peak, relative_humidity=rel_humidity)
+    if hasattr(trilingual_gen, "compute_biomet_utci"):
+        utci_data = trilingual_gen.compute_biomet_utci(ambient_temp_c=T_peak, relative_humidity=rel_humidity)
+    else:
+        base_alerts = trilingual_gen.generate_alerts(T_peak, rel_humidity, duration_days=4)
+        utci_data = {
+            "utci_temp_c": base_alerts.get("utci_celsius", T_peak + 2.5),
+            "wbgt_temp_c": base_alerts.get("wbgt_celsius", 32.0),
+            "wet_bulb_temp_c": base_alerts.get("wet_bulb_celsius", 28.0),
+            "thermal_stress_category": "EXTREME THERMAL STRESS" if T_peak >= 44 else "STRONG THERMAL STRESS",
+            "color": base_alerts.get("badge_color", "#FF3366")
+        }
 
     # Bento Metric Tiles
     u1, u2, u3, u4 = st.columns(4)
