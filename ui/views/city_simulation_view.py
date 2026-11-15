@@ -2,13 +2,16 @@
 AGNAYA - 3D City Simulation & Causal Cascade Theatre (Mode 4)
 OpenCityModel (CityJSON LOD1) Georeferenced Digital Twin of Raipur, Chhattisgarh.
 Incorporates CityJSON geometries from https://github.com/opencitymodel/opencitymodel,
-CSERC Tariff Order FY24-25 grid parameters, Kharun River 180 MLD pumping infrastructure,
+Smart City assets from https://github.com/AkshaySharmaDEV/Cycle4Change-SmartCityRaipur,
+CSERC Tariff Order FY24-25 grid parameters, Kharun River 180 MLD water facilities,
 and biometeorological heatwave cascade dynamics.
 
 MANDATORY DISCLAIMER: SIMULATION ONLY – NOT AN OFFICIAL WARNING.
 """
 
 import json
+import base64
+from pathlib import Path
 import streamlit as st
 import streamlit.components.v1 as components
 from data.raipur_opencitymodel import get_raipur_opencitymodel
@@ -21,12 +24,13 @@ def render_city_simulation_view(
     budget_lakh: float,
     tripped_id: str | None = "S03 Amanaka"
 ):
-    st.markdown('<div class="section-head">3D Raipur City Digital Twin & Causal Cascade Theatre (OpenCityModel)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-head">3D Raipur City Digital Twin & Causal Cascade Theatre</div>', unsafe_allow_html=True)
     st.markdown(
         '<div class="section-subhead">Georeferenced 3D digital twin of Raipur City built on the open '
         '<a href="https://github.com/opencitymodel/opencitymodel" target="_blank" style="color:#38BDF8;text-decoration:underline;">OpenCityModel (CityJSON LOD1)</a> '
-        'standard. Simulates physical macroclimate propagation across 12 municipal planning zones, CSPTCL 220/132 kV substations, '
-        'the Kharun River 180 MLD water treatment facility, Telibandha Talab (Marine Drive), and slum microclimates. '
+        'standard and enriched with urban assets from <a href="https://github.com/AkshaySharmaDEV/Cycle4Change-SmartCityRaipur" target="_blank" style="color:#10B981;text-decoration:underline;">Raipur Smart City Limited (Cycles4Change)</a>. '
+        'Simulates physical macroclimate propagation across 12 municipal planning zones, Ghadi Chowk, Telibandha Marine Drive, '
+        'CSPTCL 220/132 kV substations, the Kharun River 180 MLD water treatment facility, and slum microclimates. '
         '<b>Simulation only &mdash; not an official warning.</b></div>',
         unsafe_allow_html=True
     )
@@ -34,6 +38,14 @@ def render_city_simulation_view(
     # Fetch verified OpenCityModel dataset for Raipur
     raipur_city_json = get_raipur_opencitymodel()
     city_json_str = json.dumps(raipur_city_json)
+
+    # Load Raipur Smart City logo
+    base_dir = Path(__file__).resolve().parent.parent.parent
+    rscl_logo_path = base_dir / "assets" / "raipur_smart_city_logo.png"
+    rscl_logo_b64 = ""
+    if rscl_logo_path.exists():
+        with open(rscl_logo_path, "rb") as f:
+            rscl_logo_b64 = base64.b64encode(f.read()).decode("utf-8")
 
     # Top Control Bar (Camera & Playback Presets)
     c_mode, c_cam, c_spd, c_int = st.columns([2, 2, 1, 2])
@@ -64,16 +76,19 @@ def render_city_simulation_view(
         if prefix in sim_stage:
             initial_hour = hr
             break
+
     with c_cam:
         cam_view = st.selectbox(
             "Cinematic Landmark Camera:",
             [
                 "⚡ S03 Amanaka 132 kV Substation (Trip Site)",
-                "🚁 Full Raipur Aerial Drone Orbit",
+                "🕰️ Ghadi Chowk (Raipur Clock Tower)",
+                "🚴 Cycles4Change Smart Corridor (RSCL)",
+                "🌊 Telibandha Marine Drive Lakefront",
                 "💧 Kharun River 180 MLD Intake & Pumping Works",
-                "🏚️ Tikrapara Informal Slum Sector (Tin Roof Heat Trap)",
+                "🏚️ Tikrapara Informal Slum (Tin Roof Heat Trap)",
                 "🏥 Dr. B.R. Ambedkar Memorial Hospital (Mekahara)",
-                "🌊 Telibandha Talab (Marine Drive Lakefront)",
+                "🚁 Full Raipur Aerial Drone Orbit",
                 "📐 Top-Down OpenCityModel Blueprint"
             ],
             index=0
@@ -117,8 +132,8 @@ def render_city_simulation_view(
           display: flex;
           justify-content: space-between;
           align-items: center;
-          background: rgba(16, 20, 28, 0.82);
-          backdrop-filter: blur(12px);
+          background: rgba(16, 20, 28, 0.85);
+          backdrop-filter: blur(14px);
           border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: 8px;
           padding: 10px 18px;
@@ -129,6 +144,14 @@ def render_city_simulation_view(
           display: flex;
           align-items: center;
           gap: 12px;
+        }}
+        .rscl-logo-img {{
+          width: 32px;
+          height: 32px;
+          border-radius: 4px;
+          background: #FFFFFF;
+          padding: 2px;
+          object-fit: contain;
         }}
         .hud-badge {{
           font-size: 11px;
@@ -242,8 +265,8 @@ def render_city_simulation_view(
           position: absolute;
           bottom: 24px;
           left: 18px;
-          max-width: 360px;
-          background: rgba(15, 23, 42, 0.88);
+          max-width: 370px;
+          background: rgba(15, 23, 42, 0.9);
           backdrop-filter: blur(8px);
           border: 1px solid rgba(239, 68, 68, 0.35);
           border-radius: 6px;
@@ -304,10 +327,10 @@ def render_city_simulation_view(
           position: absolute;
           top: 76px;
           left: 18px;
-          width: 280px;
-          background: rgba(16, 20, 28, 0.92);
-          backdrop-filter: blur(12px);
-          border: 1px solid rgba(56, 189, 248, 0.3);
+          width: 290px;
+          background: rgba(16, 20, 28, 0.94);
+          backdrop-filter: blur(14px);
+          border: 1px solid rgba(56, 189, 248, 0.35);
           border-radius: 8px;
           padding: 12px;
           font-size: 11px;
@@ -367,10 +390,11 @@ def render_city_simulation_view(
       <!-- Glassmorphic Top HUD -->
       <div class="hud-header">
         <div class="hud-title-lockup">
+          {'<img class="rscl-logo-img" src="data:image/png;base64,' + rscl_logo_b64 + '" alt="RSCL" />' if rscl_logo_b64 else ''}
           <span class="hud-badge" id="hud-badge">STAGE 4 // S03 ARC FAULT</span>
           <div>
-            <div style="font-weight: 700; font-size: 13px;">RAIPUR CITY 3D DIGITAL TWIN</div>
-            <div style="font-size: 10.5px; color: #94A3B8;">OpenCityModel (CityJSON LOD1) &middot; EPSG:4979 WGS84 &middot; Kharun River Basin</div>
+            <div style="font-weight: 700; font-size: 13px;">RAIPUR SMART CITY 3D DIGITAL TWIN</div>
+            <div style="font-size: 10.5px; color: #94A3B8;">RSCL &middot; Cycles4Change Urban Corridor &middot; OpenCityModel (CityJSON LOD1)</div>
           </div>
         </div>
         <div class="hud-stats">
@@ -400,11 +424,13 @@ def render_city_simulation_view(
       <!-- Landmark Camera Selection -->
       <div class="hud-cam-pills">
         <div class="cam-pill" onclick="switchCam('s03')">⚡ S03 Amanaka 132 kV Substation</div>
-        <div class="cam-pill" onclick="switchCam('drone')">🚁 Full Raipur Drone Flyover</div>
+        <div class="cam-pill" onclick="switchCam('ghadi')">🕰️ Ghadi Chowk (Clock Tower)</div>
+        <div class="cam-pill" onclick="switchCam('cycle')">🚴 Cycles4Change Smart Track</div>
+        <div class="cam-pill" onclick="switchCam('telibandha')">🌊 Telibandha Marine Drive</div>
         <div class="cam-pill" onclick="switchCam('kharun')">💧 Kharun 180 MLD Water Plant</div>
         <div class="cam-pill" onclick="switchCam('slum')">🏚️ Tikrapara Slum (Tin Heat Trap)</div>
         <div class="cam-pill" onclick="switchCam('hospital')">🏥 Ambedkar Memorial Hospital (Mekahara)</div>
-        <div class="cam-pill" onclick="switchCam('telibandha')">🌊 Telibandha Talab (Marine Drive)</div>
+        <div class="cam-pill" onclick="switchCam('drone')">🚁 Full Raipur Drone Flyover</div>
         <div class="cam-pill" onclick="switchCam('top')">📐 OpenCityModel Top-Down Blueprint</div>
       </div>
 
@@ -416,6 +442,7 @@ def render_city_simulation_view(
         <div class="inspector-row"><span class="inspector-label">Roof Material:</span><span class="inspector-val" id="insp-roof">Corrugated Tin</span></div>
         <div class="inspector-row"><span class="inspector-label">Thermal Penalty:</span><span class="inspector-val" id="insp-pen">+4.5°C</span></div>
         <div class="inspector-row"><span class="inspector-label">WGS84 Coordinates:</span><span class="inspector-val" id="insp-coords">21.2514° N, 81.6296° E</span></div>
+        <div class="inspector-row"><span class="inspector-label">Civic Provenance:</span><span class="inspector-val" id="insp-prov" style="color:#10B981;font-size:10px;">Raipur Smart City (RSCL)</span></div>
       </div>
 
       <!-- Playback Transport Controller -->
@@ -428,7 +455,7 @@ def render_city_simulation_view(
           </div>
           <div class="scrubber-labels">
             <span>00:00 (38°C)</span>
-            <span id="label-curr-time">Hour 48:00 (Peak Arc)</span>
+            <span id="label-curr-time">Hour {initial_hour:.1f}:00</span>
             <span>96:00 (Recovery)</span>
           </div>
         </div>
@@ -448,13 +475,13 @@ def render_city_simulation_view(
 
       <!-- Legend -->
       <div class="hud-legend">
+        <div class="legend-item"><div class="legend-color" style="background:#10B981;"></div><span>Cycles4Change Green Bike Track (RSCL)</span></div>
+        <div class="legend-item"><div class="legend-color" style="background:#F59E0B;"></div><span>Ghadi Chowk Clock Tower & Plaza</span></div>
         <div class="legend-item"><div class="legend-color" style="background:#0284C7;"></div><span>Kharun River 180 MLD Intake & Main</span></div>
         <div class="legend-item"><div class="legend-color" style="background:#0369A1;"></div><span>Telibandha Talab (Marine Drive)</span></div>
         <div class="legend-item"><div class="legend-color" style="background:#38BDF8;"></div><span>CSPTCL 220/132 kV Transmission Grid</span></div>
         <div class="legend-item"><div class="legend-color" style="background:#EF4444;"></div><span>S03 Arc Fault & Tripped Substation</span></div>
         <div class="legend-item"><div class="legend-color" style="background:#94A3B8;"></div><span>Tin-Roof Slum Dwellings (Heat Trap)</span></div>
-        <div class="legend-item"><div class="legend-color" style="background:#F59E0B;"></div><span>Municipal Relief Tanker (HiGHS MILP)</span></div>
-        <div class="legend-item"><div class="legend-color" style="background:#10B981;"></div><span>Hospital Trauma / Cooling Shelter</span></div>
       </div>
 
       <!-- Ingest OpenCityModel CityJSON & Run Three.js Engine -->
@@ -527,24 +554,43 @@ def render_city_simulation_view(
         scene.add(gridHelper);
 
         // ═════════════════════════════════════════════════════════════════════
-        // REAL RAIPUR ARTERIAL ROADS & WATER BODIES
+        // REAL RAIPUR ARTERIAL ROADS, HIGHWAYS & WATER BODIES
         // ═════════════════════════════════════════════════════════════════════
 
         // 1. Great Eastern Road (GE Road / NH-53): East-West arterial corridor
         const geRoadCurve = new THREE.CatmullRomCurve3([
           new THREE.Vector3(-220, 0.1, -30), // Tatibandh / AIIMS
           new THREE.Vector3(-95, 0.1, 30),   // Amanaka
-          new THREE.Vector3(0, 0.1, 0),      // Jaistambh Chowk / Civil Lines
+          new THREE.Vector3(0, 0.1, 0),      // Ghadi Chowk / Jaistambh Chowk
           new THREE.Vector3(120, 0.1, 45),   // Pandri
-          new THREE.Vector3(180, 0.1, 70)    // Telibandha
+          new THREE.Vector3(180, 0.1, 70)    // Telibandha Marine Drive
         ]);
-        const geRoadGeo = new THREE.TubeGeometry(geRoadCurve, 64, 4.2, 4, false);
+        const geRoadGeo = new THREE.TubeGeometry(geRoadCurve, 64, 4.4, 4, false);
         const geRoadMat = new THREE.MeshStandardMaterial({{ color: 0x1e293b, roughness: 0.8 }});
         const geRoadMesh = new THREE.Mesh(geRoadGeo, geRoadMat);
         geRoadMesh.scale.set(1, 0.05, 1);
         scene.add(geRoadMesh);
 
-        // 2. Kharun River (Western Raipur Lifeline): Real course from Kumhari southwards
+        // 2. CYCLES4CHANGE GREEN DEDICATED TRACK (Raipur Smart City Limited)
+        // Parallel non-motorized corridor along GE Road from Telibandha to Amanaka
+        const cycleTrackCurve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(-215, 0.18, -26),
+          new THREE.Vector3(-92, 0.18, 34),
+          new THREE.Vector3(0, 0.18, 4),
+          new THREE.Vector3(122, 0.18, 49),
+          new THREE.Vector3(175, 0.18, 74)
+        ]);
+        const cycleTrackGeo = new THREE.TubeGeometry(cycleTrackCurve, 64, 1.8, 4, false);
+        const cycleTrackMat = new THREE.MeshStandardMaterial({{
+          color: 0x10b981, // Emerald Green Cycles4Change Track
+          roughness: 0.35,
+          metalness: 0.2
+        }});
+        const cycleTrackMesh = new THREE.Mesh(cycleTrackGeo, cycleTrackMat);
+        cycleTrackMesh.scale.set(1, 0.06, 1);
+        scene.add(cycleTrackMesh);
+
+        // 3. Kharun River (Western Raipur Lifeline): Real course from Kumhari southwards
         const kharunCurve = new THREE.CatmullRomCurve3([
           new THREE.Vector3(-240, 0.15, -220),
           new THREE.Vector3(-210, 0.15, -130),
@@ -565,7 +611,7 @@ def render_city_simulation_view(
         kharunMesh.scale.set(1, 0.05, 1);
         scene.add(kharunMesh);
 
-        // 3. Telibandha Talab (Marine Drive Raipur Lake): Real eastern lake basin
+        // 4. Telibandha Talab (Marine Drive Raipur Lake): Real eastern lake basin
         const lakeGeo = new THREE.CylinderGeometry(28, 28, 0.3, 32);
         const lakeMat = new THREE.MeshStandardMaterial({{
           color: 0x0369a1,
@@ -580,7 +626,7 @@ def render_city_simulation_view(
 
         // Promenade around Telibandha Lake
         const lakeRingGeo = new THREE.RingGeometry(28, 32, 32);
-        const lakeRingMat = new THREE.MeshBasicMaterial({{ color: 0x38bdf8, side: THREE.DoubleSide }});
+        const lakeRingMat = new THREE.MeshBasicMaterial({{ color: 0x10b981, side: THREE.DoubleSide }});
         const lakeRing = new THREE.Mesh(lakeRingGeo, lakeRingMat);
         lakeRing.rotation.x = -Math.PI / 2;
         lakeRing.position.set(165, 0.15, 72);
@@ -601,6 +647,7 @@ def render_city_simulation_view(
         const matHosp = new THREE.MeshStandardMaterial({{ color: 0x064e3b, roughness: 0.6 }});
         const matSub = new THREE.MeshStandardMaterial({{ color: 0x334155, roughness: 0.4, metalness: 0.6 }});
         const matWtp = new THREE.MeshStandardMaterial({{ color: 0x0369a1, roughness: 0.3, metalness: 0.7 }});
+        const matGhadi = new THREE.MeshStandardMaterial({{ color: 0x92400e, roughness: 0.5, metalness: 0.3 }});
 
         // Parse each CityJSON CityObject
         Object.entries(RAIPUR_CITY_JSON.CityObjects).forEach(([objId, objData]) => {{
@@ -613,6 +660,7 @@ def render_city_simulation_view(
           else if (attrs.class === 'Hospital') bMat = matHosp;
           else if (attrs.class === 'ElectricalSubstation') bMat = matSub;
           else if (attrs.class === 'WaterTreatmentPlant') bMat = matWtp;
+          else if (attrs.class === 'CivicMonument') bMat = matGhadi;
 
           const bGeo = new THREE.BoxGeometry(w, h, d);
           const bMesh = new THREE.Mesh(bGeo, bMat);
@@ -623,12 +671,38 @@ def render_city_simulation_view(
           cityObjectsGroup.add(bMesh);
           interactiveBuildings.push(bMesh);
 
+          // Ghadi Chowk Landmark (Raipur Clock Tower Architecture)
+          if (objId === 'MON_GHADI_CHOWK') {{
+            // 4-sided Clock Dials
+            const clockMat = new THREE.MeshBasicMaterial({{ color: 0xfef08a }});
+            const clockGeo = new THREE.CylinderGeometry(1.4, 1.4, 0.4, 16);
+            clockGeo.rotateX(Math.PI / 2);
+
+            // North, South, East, West clock dials
+            const d1 = new THREE.Mesh(clockGeo, clockMat); d1.position.set(cx, 19, cz + d/2 + 0.2); cityObjectsGroup.add(d1);
+            const d2 = new THREE.Mesh(clockGeo, clockMat); d2.position.set(cx, 19, cz - d/2 - 0.2); cityObjectsGroup.add(d2);
+            const d3 = new THREE.Mesh(clockGeo, clockMat); d3.position.set(cx + w/2 + 0.2, 19, cz); d3.rotation.y = Math.PI/2; cityObjectsGroup.add(d3);
+            const d4 = new THREE.Mesh(clockGeo, clockMat); d4.position.set(cx - w/2 - 0.2, 19, cz); d4.rotation.y = Math.PI/2; cityObjectsGroup.add(d4);
+
+            // Spire on top
+            const spireGeo = new THREE.ConeGeometry(w * 0.6, 6, 4);
+            const spireMat = new THREE.MeshStandardMaterial({{ color: 0xd97706, metalness: 0.8, roughness: 0.2 }});
+            const spire = new THREE.Mesh(spireGeo, spireMat);
+            spire.position.set(cx, h + 3, cz);
+            spire.rotation.y = Math.PI / 4;
+            cityObjectsGroup.add(spire);
+
+            // Golden Monument Light
+            const ghadiLight = new THREE.PointLight(0xf59e0b, 2.5, 50);
+            ghadiLight.position.set(cx, 12, cz);
+            cityObjectsGroup.add(ghadiLight);
+          }}
+
           // Track Substation centers for transmission line grid routing
           if (attrs.class === 'ElectricalSubstation') {{
             const subId = objId.replace('SUB_', '');
             substationPositions[subId] = new THREE.Vector3(cx, h + 2, cz);
 
-            // Substation steel gantry tower
             const towGeo = new THREE.CylinderGeometry(0.5, 2.5, 36, 4);
             const towMat = new THREE.MeshStandardMaterial({{ color: 0x94a3b8, wireframe: true }});
             const tower = new THREE.Mesh(towGeo, towMat);
@@ -640,7 +714,7 @@ def render_city_simulation_view(
           if (attrs.roofType === 'corrugated_tin') {{
             const roofGeo = new THREE.BoxGeometry(w * 1.04, 0.7, d * 1.04);
             const roofMat = new THREE.MeshStandardMaterial({{
-              color: 0x94a3b8, // Starts grey, turns red under heat
+              color: 0x94a3b8,
               metalness: 0.7,
               roughness: 0.35
             }});
@@ -649,7 +723,6 @@ def render_city_simulation_view(
             cityObjectsGroup.add(roofMesh);
             tinRoofsList.push(roofMesh);
           }} else if (attrs.class === 'Hospital') {{
-            // Illuminated Medical Cross on Hospital Roof
             const crossH = new THREE.BoxGeometry(8, 1.2, 2.4);
             const crossV = new THREE.BoxGeometry(2.4, 1.2, 8);
             const crossMat = new THREE.MeshBasicMaterial({{ color: 0x10b981 }});
@@ -660,7 +733,6 @@ def render_city_simulation_view(
             cityObjectsGroup.add(ch);
             cityObjectsGroup.add(cv);
           }} else if (attrs.class === 'ResidentialCommercial') {{
-            // Windows with light texture
             const winGeo = new THREE.BoxGeometry(w * 1.01, h * 0.7, d * 1.01);
             const winMat = new THREE.MeshBasicMaterial({{ color: 0x38bdf8, transparent: true, opacity: 0.35 }});
             const win = new THREE.Mesh(winGeo, winMat);
@@ -670,6 +742,60 @@ def render_city_simulation_view(
           }}
         }});
         scene.add(cityObjectsGroup);
+
+        // ═════════════════════════════════════════════════════════════════════
+        // RSCL SMART SENSOR POLES & CYCLES4CHANGE CYCLISTS
+        // ═════════════════════════════════════════════════════════════════════
+        // Smart Environmental IoT Poles (From Cycles4Change project)
+        const iotPoles = [
+          new THREE.Vector3(0, 0, 8),     // Ghadi Chowk IoT
+          new THREE.Vector3(165, 0, 60),  // Marine Drive IoT
+          new THREE.Vector3(-95, 0, 36),  // Amanaka IoT
+          new THREE.Vector3(-101, 0, 90)  // Tikrapara Slum Sensor
+        ];
+        const iotLightList = [];
+        iotPoles.forEach(pt => {{
+          const poleGeo = new THREE.CylinderGeometry(0.3, 0.4, 12, 8);
+          const poleMat = new THREE.MeshStandardMaterial({{ color: 0x475569, metalness: 0.8 }});
+          const pole = new THREE.Mesh(poleGeo, poleMat);
+          pole.position.set(pt.x, 6, pt.z);
+          scene.add(pole);
+
+          // Glowing Telemetry Ring
+          const ringGeo = new THREE.TorusGeometry(0.7, 0.15, 8, 16);
+          const ringMat = new THREE.MeshBasicMaterial({{ color: 0x10b981 }});
+          const ring = new THREE.Mesh(ringGeo, ringMat);
+          ring.rotation.x = Math.PI / 2;
+          ring.position.set(pt.x, 11, pt.z);
+          scene.add(ring);
+          iotLightList.push(ringMat);
+        }});
+
+        // Animated Smart Bicycles on Cycles4Change Track
+        const cyclesFleet = [];
+        for (let i = 0; i < 4; i++) {{
+          const bikeGroup = new THREE.Group();
+          // Frame
+          const frameGeo = new THREE.BoxGeometry(1.6, 0.8, 0.4);
+          const frameMat = new THREE.MeshStandardMaterial({{ color: 0x10b981 }});
+          const frame = new THREE.Mesh(frameGeo, frameMat);
+          frame.position.y = 0.8;
+          bikeGroup.add(frame);
+          // Wheels
+          const wheelGeo = new THREE.CylinderGeometry(0.5, 0.5, 0.15, 12);
+          const wheelMat = new THREE.MeshBasicMaterial({{ color: 0x0f172a }});
+          const w1 = new THREE.Mesh(wheelGeo, wheelMat); w1.rotation.z = Math.PI/2; w1.position.set(-0.7, 0.5, 0); bikeGroup.add(w1);
+          const w2 = new THREE.Mesh(wheelGeo, wheelMat); w2.rotation.z = Math.PI/2; w2.position.set(0.7, 0.5, 0); bikeGroup.add(w2);
+
+          bikeGroup.position.set(-150 + i * 80, 0.2, 10 + i * 15);
+          scene.add(bikeGroup);
+          cyclesFleet.push({{
+            group: bikeGroup,
+            speed: 0.4 + i * 0.05,
+            startX: -190,
+            endX: 160
+          }});
+        }}
 
         // ═════════════════════════════════════════════════════════════════════
         // KHARUN WATER MAIN PIPELINE
@@ -807,6 +933,12 @@ def render_city_simulation_view(
           if (mode === 's03') {{
             targetCamPos.set(-70, 32, 180);
             currentCamTarget.set(s03Pos.x, s03Pos.y, s03Pos.z);
+          }} else if (mode === 'ghadi') {{
+            targetCamPos.set(22, 28, 32);
+            currentCamTarget.set(0, 14, 0); // Ghadi Chowk Tower
+          }} else if (mode === 'cycle') {{
+            targetCamPos.set(65, 20, 55);
+            currentCamTarget.set(45, 2, 30); // Cycles4Change Track
           }} else if (mode === 'drone') {{
             targetCamPos.set(160, 140, 180);
             currentCamTarget.set(0, 0, 0);
@@ -831,7 +963,9 @@ def render_city_simulation_view(
 
         // Apply initial camera selection from Streamlit dropdown
         const initialCam = "{cam_view}";
-        if (initialCam.includes("S03")) switchCam('s03');
+        if (initialCam.includes("Ghadi")) switchCam('ghadi');
+        else if (initialCam.includes("Cycles4Change")) switchCam('cycle');
+        else if (initialCam.includes("S03")) switchCam('s03');
         else if (initialCam.includes("Kharun")) switchCam('kharun');
         else if (initialCam.includes("Slum")) switchCam('slum');
         else if (initialCam.includes("Hospital")) switchCam('hospital');
@@ -892,6 +1026,7 @@ def render_city_simulation_view(
               document.getElementById('insp-roof').innerText = attrs.roofType || 'flat_concrete';
               document.getElementById('insp-pen').innerText = attrs.tin_roof_penalty_c ? '+' + attrs.tin_roof_penalty_c + '°C' : (attrs.voltage_kv ? attrs.voltage_kv + ' kV' : 'N/A');
               document.getElementById('insp-coords').innerText = attrs.lat ? attrs.lat.toFixed(4) + '° N, ' + attrs.lon.toFixed(4) + '° E' : '21.2514° N, 81.6296° E';
+              document.getElementById('insp-prov').innerText = attrs.source || 'Raipur Smart City (RSCL)';
             }}
           }} else if (e.clientY > 160 && e.clientY < window.innerHeight - 80) {{
             inspectorCard.style.display = 'none';
@@ -948,6 +1083,10 @@ def render_city_simulation_view(
             sunLight.color.setHex(0xffedd5);
             sunMesh.scale.setScalar(1.0);
           }}
+
+          // Pulse Smart IoT Poles
+          const iotColor = isCrisis ? 0xef4444 : 0x10b981;
+          iotLightList.forEach(m => m.color.setHex(iotColor));
 
           // Tin Roof Heat Trap (Turn blazing red under heatwave)
           const tinFactor = Math.max(0, Math.min(1, (currentTemp - 40.0) / 7.9));
@@ -1027,6 +1166,14 @@ def render_city_simulation_view(
             }}
           }});
 
+          // Animate Smart Cyclists along Cycles4Change Green Track
+          cyclesFleet.forEach(c => {{
+            c.group.position.x += c.speed;
+            if (c.group.position.x > c.endX) {{
+              c.group.position.x = c.startX;
+            }}
+          }});
+
           renderer.render(scene, camera);
         }}
 
@@ -1055,8 +1202,9 @@ def render_city_simulation_view(
         unsafe_allow_html=True
     )
 
-    t1, t2, t3 = st.tabs([
+    t1, t2, t3, t4 = st.tabs([
         "OpenCityModel Raipur Spatial Geometry",
+        "Raipur Smart City (RSCL) & Cycles4Change",
         "Physical Twin Telemetry Breakdown",
         "Municipal Intervention & Tanker Dispatch"
     ])
@@ -1069,7 +1217,7 @@ def render_city_simulation_view(
             <b>• Dataset Specification:</b> OpenCityModel (CityJSON 1.0) &middot; EPSG:4979 WGS84 Geographic Datum.<br/>
             <b>• Ingested Buildings:</b> <b>{raipur_city_json['metadata']['total_buildings']} 3D Building Objects</b> across 12 Raipur municipal planning zones.<br/>
             <b>• Physical Anchor Coordinates:</b> Center Datum at Jaistambh Chowk / Civil Lines (21.2514° N, 81.6296° E).<br/>
-            <b>• Landmark Features:</b> Kharun River western boundary, Telibandha Talab (Marine Drive Lakefront), Great Eastern Road (GE Road / NH-53), and Raipur Junction rail corridor.
+            <b>• Landmark Features:</b> Ghadi Chowk (Clock Tower), Telibandha Marine Drive, Kharun River western boundary, and Great Eastern Road (GE Road / NH-53).
           </div>
         </div>
         """, unsafe_allow_html=True)
@@ -1104,6 +1252,33 @@ def render_city_simulation_view(
         """, unsafe_allow_html=True)
 
     with t2:
+        c_rscl1, c_rscl2 = st.columns(2)
+        with c_rscl1:
+            st.markdown("""
+            <div class="bento-tile tile-civic" style="margin-bottom:12px;">
+              <div class="stat-eyebrow">Raipur Smart City Limited (RSCL) Assets</div>
+              <div style="font-size:12.5px;color:#CBD5E1;line-height:1.6;margin-top:6px;">
+                <b>• Ghadi Chowk Landmark:</b> Historic clock tower at Jaistambh / Raj Bhavan intersection on GE Road; serves as the city's central civic coordinate anchor.<br/>
+                <b>• Telibandha Marine Drive:</b> 2.5 km lakefront non-motorized transport boulevard and public recreation hub.<br/>
+                <b>• Cycles4Change Green Corridor:</b> Dedicated cycling corridor along GE Road prioritized for sustainable transit and emergency relief access during crises.<br/>
+                <b>• Smart Environmental IoT Poles:</b> Distributed sensor nodes monitoring ambient microclimate temperatures and air quality.
+              </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with c_rscl2:
+            st.markdown("""
+            <div class="bento-tile tile-gold" style="margin-bottom:12px;">
+              <div class="stat-eyebrow">Emergency Climate Repurposing</div>
+              <div style="font-size:12.5px;color:#CBD5E1;line-height:1.6;margin-top:6px;">
+                <b>• Shaded Cooling Kiosks:</b> During heatwave triggers (>44°C), RSCL activates shaded misting kiosks along the Cycles4Change track.<br/>
+                <b>• Express Relief Lane:</b> The non-motorized corridor provides unimpeded express access for municipal water tankers and medical emergency responders avoiding highway traffic bottlenecks.<br/>
+                <b>• Sensor-Driven Alerts:</b> Real-time IoT pole telemetry feeds directly into AGNAYA's biometeorological UTCI and trilingual alert generators.
+              </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    with t3:
         col_m1, col_m2, col_m3, col_m4 = st.columns(4)
         with col_m1:
             st.markdown(f"""
@@ -1153,7 +1328,7 @@ def render_city_simulation_view(
             </div>
             """, unsafe_allow_html=True)
 
-    with t3:
+    with t4:
         st.markdown(f"""
         <div class="callout-box">
           <strong style="color:#F8FAFC;">Municipal Dispatch Operations (Budget: ₹{budget_lakh:.1f} Lakhs):</strong><br/>

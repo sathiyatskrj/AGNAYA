@@ -148,7 +148,40 @@ def get_raipur_opencitymodel() -> Dict[str, Any]:
             }
         )
 
-    # 4. Generate Zonal Settlements (12 Raipur Planning Zones)
+    # 4. Generate Raipur Smart City Landmarks (Cycles4Change / RSCL)
+    # 4a. Ghadi Chowk (Raipur Clock Tower Monument at GE Road / Raj Bhavan Axis)
+    add_box_geometry(
+        obj_id="MON_GHADI_CHOWK",
+        obj_type="CivicMonument",
+        cx=0.0, cz=0.0, w=8.0, d=8.0, h=24.0,
+        attributes={
+            "name": "Ghadi Chowk (Raipur Clock Tower)",
+            "class": "CivicMonument",
+            "roofType": "clock_tower_spire",
+            "lat": RAIPUR_REF_LAT,
+            "lon": RAIPUR_REF_LON,
+            "source": "Raipur Smart City Limited (RSCL) Cycles4Change Assets",
+            "description": "Historic 4-sided clock tower civic plaza on Great Eastern Road."
+        }
+    )
+
+    # 4b. Telibandha Marine Drive Civic Center & Cycles4Change Plaza
+    add_box_geometry(
+        obj_id="CIVIC_MARINE_DRIVE",
+        obj_type="CivicRecreation",
+        cx=165.0, cz=72.0, w=26.0, d=16.0, h=14.0,
+        attributes={
+            "name": "Telibandha Marine Drive (Cycles4Change Plaza)",
+            "class": "SmartCityCivicPlaza",
+            "roofType": "lakefront_promenade_canopy",
+            "lat": 21.2350,
+            "lon": 81.6700,
+            "source": "Raipur Smart City Limited (RSCL) Cycles4Change Assets",
+            "description": "2.5 km lakefront non-motorized transport corridor & smart environmental monitoring hub."
+        }
+    )
+
+    # 5. Generate Zonal Settlements (12 Raipur Planning Zones)
     for z in RAIPUR_ZONES:
         cx, cz = geo_to_city_coords(z["lat"], z["lon"])
         is_slum = z["slum_pct"] >= 0.25
