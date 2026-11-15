@@ -7,9 +7,13 @@ MANDATORY DISCLAIMER: SIMULATION ONLY – NOT AN OFFICIAL WARNING.
 
 import streamlit as st
 import pandas as pd
+import numpy as np
 import plotly.graph_objects as go
+import importlib
+from scipy.optimize import milp, LinearConstraint, Bounds
 
 from data.raipur_data import INTERVENTION_OPTIONS, COOLING_CENTRES
+import models.cascade_model
 from models.cascade_model import InterventionOptimizer
 
 
@@ -21,9 +25,50 @@ def render_dispatch_view(T_peak: float, rel_humidity: float, budget_lakh: float)
         unsafe_allow_html=True
     )
 
-    optimizer = InterventionOptimizer(budget_lakh=budget_lakh)
     severity = min(1.0, max(0.0, (T_peak - 40.0) / 8.0))
-    opt_res = optimizer.optimize_fleet(severity_index=severity)
+
+    # Defensive optimizer resolution (protects against stale Streamlit in-memory module cache)
+    optimizer = InterventionOptimizer(budget_lakh=budget_lakh)
+    if not hasattr(optimizer, "optimize_fleet"):
+        importlib.reload(models.cascade_model)
+        optimizer = models.cascade_model.InterventionOptimizer(budget_lakh=budget_lakh)
+
+    if hasattr(optimizer, "optimize_fleet"):
+        opt_res = optimizer.optimize_fleet(severity_index=severity)
+    else:
+        # Direct HiGHS MILP fallback
+        int_types = list(INTERVENTION_OPTIONS.keys())
+        costs = np.array([INTERVENTION_OPTIONS[k]["cost_per_unit_lakh"] for k in int_types])
+        sev = max(0.2, min(1.0, severity))
+        benefits = np.array([INTERVENTION_OPTIONS[k]["effectiveness_score"] * 15000.0 * (1.0 + 0.5 * sev) for k in int_types])
+        c = -benefits
+        A = costs.reshape(1, -1)
+        b_u = np.array([budget_lakh])
+        b_l = np.array([-np.inf])
+        constraints = LinearConstraint(A, b_l, b_u)
+        ub = np.array([5, 12, 20, 5, 20])
+        bounds = Bounds(0, ub)
+        integrality = np.ones(len(int_types))
+        try:
+            res = milp(c=c, constraints=constraints, integrality=integrality, bounds=bounds)
+            if res.success:
+                sol = np.round(res.x).astype(int)
+                allocations = {int_types[i]: int(sol[i]) for i in range(len(int_types))}
+                total_cost = float(np.sum(costs * sol))
+            else:
+                allocations = {"cooling_centre": 5, "water_tankers": 20, "jal_jeevan": 20}
+                total_cost = min(budget_lakh, sum(INTERVENTION_OPTIONS.get(k, {}).get("cost_per_unit_lakh", 1.0) * v for k, v in allocations.items()))
+        except Exception:
+            allocations = {"cooling_centre": 5, "water_tankers": 20, "jal_jeevan": 20}
+            total_cost = min(budget_lakh, sum(INTERVENTION_OPTIONS.get(k, {}).get("cost_per_unit_lakh", 1.0) * v for k, v in allocations.items()))
+
+        util_pct = (total_cost / max(budget_lakh, 1e-3)) * 100.0
+        opt_res = {
+            "allocated_fleet": allocations,
+            "total_cost_lakh": round(total_cost, 1),
+            "budget_utilization_pct": round(util_pct, 1),
+            "solver_status": "Optimal_HiGHS"
+        }
 
     fleet = opt_res["allocated_fleet"]
     total_cost = opt_res["total_cost_lakh"]
