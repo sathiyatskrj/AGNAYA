@@ -486,6 +486,10 @@ def render_city_simulation_view(
 
       <!-- Ingest OpenCityModel CityJSON & Run Three.js Engine -->
       <script>
+        window.onerror = function(msg, url, lineNo, columnNo, error) {{
+          console.error("ThreeJS Simulation Error:", msg, lineNo, error);
+        }};
+
         const RAIPUR_CITY_JSON = {city_json_str};
 
         let isPlaying = true;
@@ -509,13 +513,23 @@ def render_city_simulation_view(
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         container.appendChild(renderer.domElement);
 
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.maxPolarAngle = Math.PI / 2 - 0.03;
-        controls.minDistance = 15;
-        controls.maxDistance = 750;
-        controls.target.set(0, 4, 0);
+        // Defensive OrbitControls Initialization
+        let controls;
+        if (typeof THREE.OrbitControls === 'function') {{
+          controls = new THREE.OrbitControls(camera, renderer.domElement);
+          controls.enableDamping = true;
+          controls.dampingFactor = 0.05;
+          controls.maxPolarAngle = Math.PI / 2 - 0.03;
+          controls.minDistance = 15;
+          controls.maxDistance = 750;
+          controls.target.set(0, 4, 0);
+        }} else {{
+          controls = {{
+            target: new THREE.Vector3(0, 4, 0),
+            update: function() {{}},
+            dispose: function() {{}}
+          }};
+        }}
 
         // Lighting
         const ambientLight = new THREE.AmbientLight(0x272d3d, 1.3);
@@ -1009,7 +1023,7 @@ def render_city_simulation_view(
         const mouse = new THREE.Vector2();
         const inspectorCard = document.getElementById('inspector-card');
 
-        window.addEventListener('click', (e) {{
+        window.addEventListener('click', (e) => {{
           mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
           mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
           raycaster.setFromCamera(mouse, camera);
