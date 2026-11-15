@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" width="100%" height="100%" style="border-radius: 12px; background: linear-gradient(135deg, #090e17 0%, #111a28 50%, #0c1420 100%);">
+  <defs>
+    <linearGradient id="transfBody" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B"/>
+      <stop offset="50%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+    <linearGradient id="heatCore" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#EF4444" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#F59E0B" stop-opacity="0.2"/>
+    </linearGradient>
+    <linearGradient id="oilRise" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#0D9488" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#14B8A6" stop-opacity="0.9"/>
+    </linearGradient>
+    <linearGradient id="waterFlow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0284C7" stop-opacity="0.2"/>
+      <stop offset="50%" stop-color="#38BDF8" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#0D9488" stop-opacity="0.3"/>
+    </linearGradient>
+    <filter id="twinGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Isometric Ground Grid -->
+  <g opacity="0.16" stroke="#0D9488" stroke-width="0.75">
+    <path d="M 50 170 L 400 30 L 750 170 L 400 200 Z" fill="none"/>
+    <line x1="120" y1="170" x2="400" y2="60"/>
+    <line x1="190" y1="170" x2="400" y2="90"/>
+    <line x1="260" y1="170" x2="400" y2="120"/>
+    <line x1="330" y1="170" x2="400" y2="150"/>
+    <line x1="680" y1="170" x2="400" y2="60"/>
+    <line x1="610" y1="170" x2="400" y2="90"/>
+    <line x1="540" y1="170" x2="400" y2="120"/>
+    <line x1="470" y1="170" x2="400" y2="150"/>
+  </g>
+
+  <!-- Left: 3D Isometric Substation Transformer (IEEE C57.91) -->
+  <g transform="translate(140, 110)">
+    <!-- Base Plinth -->
+    <path d="M -70 30 L 0 60 L 70 30 L 0 0 Z" fill="#1E293B" stroke="#475569" stroke-width="1.5"/>
+    <path d="M -70 30 L -70 42 L 0 72 L 0 60 Z" fill="#0F172A" stroke="#334155" stroke-width="1.5"/>
+    <path d="M 0 60 L 0 72 L 70 42 L 70 30 Z" fill="#1E293B" stroke="#334155" stroke-width="1.5"/>
+
+    <!-- Main Tank (3D Isometric Box) -->
+    <path d="M -50 -10 L 0 10 L 50 -10 L 0 -30 Z" fill="#334155" stroke="#64748B" stroke-width="1.5"/>
+    <path d="M -50 -10 L -50 25 L 0 45 L 0 10 Z" fill="#1E293B" stroke="#475569" stroke-width="1.5"/>
+    <path d="M 0 10 L 0 45 L 50 25 L 50 -10 Z" fill="#293548" stroke="#475569" stroke-width="1.5"/>
+
+    <!-- Heat Hot-Spot Core Thermal Window (Glassmorphic Cutout) -->
+    <path d="M -30 2 L 0 14 L 0 32 L -30 20 Z" fill="url(#heatCore)" opacity="0.85" filter="url(#twinGlow)"/>
+    <text x="-16" y="22" fill="#FEF08A" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="700">118°C</text>
+
+    <!-- Cooling Radiator Fins (Left Side) -->
+    <g stroke="#38BDF8" stroke-width="1.5" opacity="0.8">
+      <line x1="-58" y1="-5" x2="-58" y2="22"/>
+      <line x1="-63" y1="-3" x2="-63" y2="20"/>
+      <line x1="-68" y1="-1" x2="-68" y2="18"/>
+      <line x1="-73" y1="1" x2="-73" y2="16"/>
+    </g>
+
+    <!-- Conservator Tank on Top -->
+    <path d="M -25 -42 L 15 -26 L 15 -34 L -25 -50 Z" fill="#475569" stroke="#64748B" stroke-width="1.2"/>
+    <ellipse cx="15" cy="-30" rx="4" ry="8" fill="#64748B"/>
+
+    <!-- High-Voltage Bushings (3 Phase) -->
+    <g stroke="#F59E0B" stroke-width="2" fill="none">
+      <line x1="-20" y1="-22" x2="-20" y2="-48"/>
+      <circle cx="-20" cy="-48" r="3" fill="#F59E0B" filter="url(#twinGlow)"/>
+      <line x1="0" y1="-14" x2="0" y2="-42"/>
+      <circle cx="0" cy="-42" r="3" fill="#F59E0B" filter="url(#twinGlow)"/>
+      <line x1="20" y1="-22" x2="20" y2="-48"/>
+      <circle cx="20" cy="-48" r="3" fill="#F59E0B" filter="url(#twinGlow)"/>
+    </g>
+    <!-- Corona Rings on Bushings -->
+    <ellipse cx="-20" cy="-38" rx="6" ry="2" stroke="#FEF08A" stroke-width="1" fill="none"/>
+    <ellipse cx="0" cy="-32" rx="6" ry="2" stroke="#FEF08A" stroke-width="1" fill="none"/>
+    <ellipse cx="20" cy="-38" rx="6" ry="2" stroke="#FEF08A" stroke-width="1" fill="none"/>
+  </g>
+
+  <!-- Center: Digital Twin Topology / DC Power Flow Bus Matrix -->
+  <g transform="translate(390, 95)">
+    <!-- Circuit lines connecting 4 buses -->
+    <path d="M -80 -20 L 0 -50 L 80 -10 L 0 40 Z" fill="none" stroke="#0D9488" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.6"/>
+    <!-- Central Grid Synchro Pulse -->
+    <circle cx="0" cy="-5" r="38" fill="none" stroke="#3B82F6" stroke-width="1" opacity="0.3"/>
+    <circle cx="0" cy="-5" r="22" fill="none" stroke="#60A5FA" stroke-width="1.5" opacity="0.6"/>
+
+    <!-- Bus 1 (Raipur Main 220 kV) -->
+    <circle cx="-80" cy="-20" r="10" fill="#1E293B" stroke="#3B82F6" stroke-width="2"/>
+    <circle cx="-80" cy="-20" r="4" fill="#3B82F6" filter="url(#twinGlow)"/>
+    <text x="-95" y="-34" fill="#93C5FD" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="600">S01 220kV</text>
+
+    <!-- Bus 2 (Mowa 132 kV) -->
+    <circle cx="0" cy="-50" r="8" fill="#1E293B" stroke="#F59E0B" stroke-width="2"/>
+    <circle cx="0" cy="-50" r="3" fill="#F59E0B"/>
+    <text x="-18" y="-62" fill="#FCD34D" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="600">S02 132kV</text>
+
+    <!-- Bus 3 (Amanaka 132 kV) -->
+    <circle cx="80" cy="-10" r="8" fill="#1E293B" stroke="#EF4444" stroke-width="2"/>
+    <circle cx="80" cy="-10" r="3" fill="#EF4444" filter="url(#twinGlow)"/>
+    <text x="65" y="-22" fill="#FCA5A5" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="600">S03 N-1</text>
+
+    <!-- Bus 4 (Kharun WTP Pumping Substation) -->
+    <circle cx="0" cy="40" r="8" fill="#1E293B" stroke="#0D9488" stroke-width="2"/>
+    <circle cx="0" cy="40" r="3" fill="#0D9488"/>
+    <text x="-24" y="58" fill="#5EEAD4" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="600">WTP 180MLD</text>
+
+    <!-- Power Flow Vectors (Arrow Heads) -->
+    <polygon points="-40,-35 -30,-38 -34,-31" fill="#38BDF8"/>
+    <polygon points="40,-30 48,-36 46,-27" fill="#F59E0B"/>
+    <polygon points="-40,10 -32,7 -35,16" fill="#0D9488"/>
+  </g>
+
+  <!-- Right: Water Treatment Plant (Kharun River 180 MLD Twin) -->
+  <g transform="translate(640, 105)">
+    <!-- Tank 1 (Clarifier) -->
+    <ellipse cx="-45" cy="15" rx="30" ry="14" fill="#1E293B" stroke="#0284C7" stroke-width="1.5"/>
+    <ellipse cx="-45" cy="5" rx="28" ry="12" fill="url(#waterFlow)" opacity="0.9"/>
+    <line x1="-45" y1="5" x2="-45" y2="-15" stroke="#38BDF8" stroke-width="2"/>
+    <circle cx="-45" cy="-15" r="4" fill="#38BDF8" filter="url(#twinGlow)"/>
+
+    <!-- Pumping Station Building -->
+    <rect x="0" y="-15" width="45" height="35" rx="3" fill="#1E293B" stroke="#475569" stroke-width="1.5"/>
+    <polygon points="0,-15 22.5,-32 45,-15" fill="#334155" stroke="#475569" stroke-width="1.2"/>
+    <!-- Intake Pipes -->
+    <path d="M -15 15 Q -5 28, 0 10" fill="none" stroke="#38BDF8" stroke-width="3"/>
+    <path d="M 45 5 Q 65 15, 80 -5" fill="none" stroke="#0D9488" stroke-width="2.5" stroke-dasharray="3 3"/>
+    <text x="5" y="8" fill="#E2E8F0" font-family="'Inter', sans-serif" font-size="8" font-weight="600">PUMPS</text>
+  </g>
+
+  <!-- Top Right HUD Badge -->
+  <g transform="translate(615, 20)">
+    <rect x="0" y="0" width="170" height="52" rx="8" fill="#151E2E" stroke="rgba(13,148,136,0.35)" stroke-width="1"/>
+    <circle cx="16" cy="18" r="4" fill="#0D9488" filter="url(#twinGlow)"/>
+    <text x="26" y="22" fill="#F8FAFC" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="600">PHYSICAL TWINS</text>
+    <text x="14" y="40" fill="#94A3B8" font-family="'Inter', sans-serif" font-size="10">IEEE C57.91 &amp; IEEE 738 DTR</text>
+  </g>
+</svg>

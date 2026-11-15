@@ -45,8 +45,8 @@ def render_e2e_walkthrough_view(
     c_help, c_gaps = st.columns(2)
     with c_help:
         st.markdown("""
-        <div class="callout-box">
-          <strong style="color:#F8FAFC;font-size:13px;">Executive Planning Context: Municipal Decision Support</strong>
+        <div class="callout-box callout-patina">
+          <strong style="color:#5EEAD4;font-size:13px;">Executive Planning Context: Municipal Decision Support</strong>
           <div style="font-size:12px;color:#94A3B8;margin-top:6px;line-height:1.55;">
             <b>1. Substation Prioritization:</b> Identifies which 132/33 kV substations (e.g. S03 Amanaka) lack automatic N-1 transformer redundancy and face extreme hot-spot degradation.<br/>
             <b>2. Lifeline Protection:</b> Pinpoints water supply dependencies &mdash; ensuring Kharun River WTP (180 MLD) and zonal boosting pumps maintain backup power.<br/>
@@ -58,8 +58,8 @@ def render_e2e_walkthrough_view(
 
     with c_gaps:
         st.markdown("""
-        <div class="callout-box">
-          <strong style="color:#F8FAFC;font-size:13px;">Data Requirements: Production SCADA & Telemetry Gaps</strong>
+        <div class="callout-box callout-gold">
+          <strong style="color:#FCD34D;font-size:13px;">Data Requirements: Production SCADA & Telemetry Gaps</strong>
           <div style="font-size:12px;color:#94A3B8;margin-top:6px;line-height:1.55;">
             <b>&bull; SLDC Feeder Telemetry:</b> Authenticated SCADA feed (IEC 60870-5-104) for real-time 33/11 kV feeder loadings.<br/>
             <b>&bull; Official 70-Ward GeoJSON:</b> Authenticated municipal GIS ward boundaries to migrate from illustrative aggregated zones.<br/>
@@ -68,6 +68,36 @@ def render_e2e_walkthrough_view(
           </div>
         </div>
         """, unsafe_allow_html=True)
+
+    # Visual Cascade Ribbon
+    st.markdown("""
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:18px 0 22px 0;background:#0F1319;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px 18px;overflow-x:auto;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:rgba(239,68,68,0.15);color:#EF4444;font-family:'JetBrains Mono';font-weight:700;font-size:12px;border:1px solid rgba(239,68,68,0.3);">1</span>
+        <div><div style="font-size:12px;font-weight:600;color:#F8FAFC;">Meteorology</div><div style="font-size:10px;color:#94A3B8;">45°C+ Ambient</div></div>
+      </div>
+      <span style="color:#475569;font-size:14px;">&rarr;</span>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:rgba(59,130,246,0.15);color:#3B82F6;font-family:'JetBrains Mono';font-weight:700;font-size:12px;border:1px solid rgba(59,130,246,0.3);">2</span>
+        <div><div style="font-size:12px;font-weight:600;color:#F8FAFC;">Grid Surge</div><div style="font-size:10px;color:#94A3B8;">420MW Cap</div></div>
+      </div>
+      <span style="color:#475569;font-size:14px;">&rarr;</span>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:rgba(245,158,11,0.15);color:#F59E0B;font-family:'JetBrains Mono';font-weight:700;font-size:12px;border:1px solid rgba(245,158,11,0.3);">3</span>
+        <div><div style="font-size:12px;font-weight:600;color:#F8FAFC;">Tin Roofs</div><div style="font-size:10px;color:#94A3B8;">+4°C Slum Trap</div></div>
+      </div>
+      <span style="color:#475569;font-size:14px;">&rarr;</span>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:rgba(13,148,136,0.15);color:#0D9488;font-family:'JetBrains Mono';font-weight:700;font-size:12px;border:1px solid rgba(13,148,136,0.3);">4</span>
+        <div><div style="font-size:12px;font-weight:600;color:#F8FAFC;">WTP Pumps</div><div style="font-size:10px;color:#94A3B8;">180 MLD Water</div></div>
+      </div>
+      <span style="color:#475569;font-size:14px;">&rarr;</span>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:rgba(16,185,129,0.15);color:#10B981;font-family:'JetBrains Mono';font-weight:700;font-size:12px;border:1px solid rgba(16,185,129,0.3);">5</span>
+        <div><div style="font-size:12px;font-weight:600;color:#F8FAFC;">Shield Fleet</div><div style="font-size:10px;color:#94A3B8;">HiGHS Dispatch</div></div>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("---")
 
@@ -99,7 +129,7 @@ def render_e2e_walkthrough_view(
     col_g1, col_g2, col_g3 = st.columns(3)
     with col_g1:
         st.markdown(f"""
-        <div class="bento-tile">
+        <div class="bento-tile tile-heat">
           <div class="stat-eyebrow">Peak Grid Demand</div>
           <div class="stat-figure-row">
             <span class="stat-number {'critical' if shortfall > 0 else 'ok'}">{peak_d:.1f}</span>
@@ -111,7 +141,7 @@ def render_e2e_walkthrough_view(
 
     with col_g2:
         st.markdown(f"""
-        <div class="bento-tile">
+        <div class="bento-tile tile-gold">
           <div class="stat-eyebrow">Transformer Hotspot Rise</div>
           <div class="stat-figure-row">
             <span class="stat-number {'critical' if max_hotspot > 120 else 'warning'}">{max_hotspot:.1f}</span>
@@ -123,7 +153,7 @@ def render_e2e_walkthrough_view(
 
     with col_g3:
         st.markdown(f"""
-        <div class="bento-tile">
+        <div class="bento-tile tile-grid">
           <div class="stat-eyebrow">Kharun River WTP Priority</div>
           <div class="stat-figure-row">
             <span class="stat-number ok">180</span>
@@ -195,7 +225,7 @@ def render_e2e_walkthrough_view(
     col_r1, col_r2, col_r3, col_r4 = st.columns(4)
     with col_r1:
         st.markdown(f"""
-        <div class="bento-tile">
+        <div class="bento-tile tile-heat">
           <div class="stat-eyebrow">Baseline Deficit</div>
           <div class="stat-figure-row">
             <span class="stat-number critical">{base_auc:.2f}</span>
@@ -206,7 +236,7 @@ def render_e2e_walkthrough_view(
         """, unsafe_allow_html=True)
     with col_r2:
         st.markdown(f"""
-        <div class="bento-tile">
+        <div class="bento-tile tile-gold">
           <div class="stat-eyebrow">Protected Deficit</div>
           <div class="stat-figure-row">
             <span class="stat-number">{shield_auc:.2f}</span>
@@ -217,7 +247,7 @@ def render_e2e_walkthrough_view(
         """, unsafe_allow_html=True)
     with col_r3:
         st.markdown(f"""
-        <div class="bento-tile">
+        <div class="bento-tile tile-ok">
           <div class="stat-eyebrow">Deficit Hours Saved</div>
           <div class="stat-figure-row">
             <span class="stat-number ok">{saved_auc:.2f}</span>
@@ -228,7 +258,7 @@ def render_e2e_walkthrough_view(
         """, unsafe_allow_html=True)
     with col_r4:
         st.markdown(f"""
-        <div class="bento-tile">
+        <div class="bento-tile tile-ok">
           <div class="stat-eyebrow">Resilience Dividend</div>
           <div class="stat-figure-row">
             <span class="stat-number ok">+{dividend:.1f}</span>

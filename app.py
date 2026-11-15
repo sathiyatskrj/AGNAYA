@@ -25,7 +25,8 @@ import folium
 from folium import plugins
 from datetime import datetime, timezone, timedelta
 import base64
-import sys, os
+import sys
+import os
 
 # ── Path Setup & Local Models Ingestion
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -36,26 +37,21 @@ from config import settings
 
 from data.raipur_data import (
     RAIPUR_ZONES, RAIPUR_SUBSTATIONS, RAIPUR_WATER_PUMPS,
-    RAIPUR_HOSPITALS, RAIPUR_CLIMATE, HISTORICAL_HEATWAVES,
-    INTERVENTION_OPTIONS, COOLING_CENTRES, CSPDCL_PARAMS,
-    get_asset_registry, get_provenance_summary, TERMINOLOGY_DEFINITIONS,
+    RAIPUR_HOSPITALS, HISTORICAL_HEATWAVES,
+    CSPDCL_PARAMS,
+    get_asset_registry, get_provenance_summary,
 )
 from data.weather_feed import get_current_raipur_weather
 from models.cascade_model import (
-    DemandModel, InfrastructureNetwork, MonteCarloCascade,
-    InterventionOptimizer, compute_zone_risk_table,
+    DemandModel,
 )
-from models.grid_digital_twin import GridStressNetwork, compute_spatial_load_distribution
-from models.tapas_health import TapasHealthEngine, HAP_MEASURES
-from models.conductor_ampacity import ConductorThermalAmpacity, RAIPUR_TRANSMISSION_CORRIDORS
-from models.climate_analytics import ClimateAnalyticsEngine
+from models.grid_digital_twin import GridStressNetwork
+from models.tapas_health import TapasHealthEngine
+from models.conductor_ampacity import ConductorThermalAmpacity
 
 # Advanced Synthesized Models
 from models.grid_power_flow import DCPowerFlowEngine
 from models.progressive_heatwave import ProgressiveHeatwaveSimulator
-from models.system_resilience import SystemResilienceEngine
-from models.trilingual_alerts import TrilingualAlertGenerator
-from models.gridpulse_risk import GridPulseRiskEngine
 
 # Modular UI Views
 from ui.views.e2e_walkthrough_view import render_e2e_walkthrough_view
@@ -78,6 +74,16 @@ def get_logo_base64():
         with open(logo_path, "rb") as f:
             return base64.b64encode(f.read()).decode()
     return None
+
+
+@st.cache_data
+def get_svg_data_uri(svg_name: str) -> str:
+    path = os.path.join(BASE_DIR, "assets", svg_name)
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            b64 = base64.b64encode(f.read().encode("utf-8")).decode("utf-8")
+            return f"data:image/svg+xml;base64,{b64}"
+    return ""
 
 
 logo_b64 = get_logo_base64()
@@ -142,19 +148,31 @@ def apply_utility_chart_theme(fig, height=320, show_legend=True):
     return fig
 
 
-def render_metric_card(col, label: str, value: str, unit: str = "", caption: str = "", status: str = ""):
-    """Backwards-compatible wrapper rendering Bento Stat Tiles."""
+def render_metric_card(col, label: str, value: str, unit: str = "", caption: str = "", status: str = "", tile_variant: str = ""):
+    """Backwards-compatible wrapper rendering Bento Stat Tiles with optional color variants."""
     status_cls = f"{status}" if status else ""
+    tile_cls = f"tile-{tile_variant}" if tile_variant else ""
     unit_html = f'<span class="stat-unit">{unit}</span>' if unit else ""
     caption_html = f'<div class="stat-caption">{caption}</div>' if caption else ""
+    # Add gradient progress indicator for percentage values
+    progress_html = ""
+    try:
+        num_val = float(value.replace("+", "").replace(",", "").replace("₹", ""))
+        if unit in ("%", "MW", "x") and num_val > 0:
+            fill_cls = "fill-critical" if status == "critical" else "fill-warning" if status == "warning" else "fill-ok" if status == "ok" else "fill-primary"
+            pct = min(100, abs(num_val) * (100 / 500 if unit == "MW" else 100 / 10 if unit == "x" else 1))
+            progress_html = f'<div class="progress-bar-track"><div class="progress-bar-fill {fill_cls}" style="width:{pct:.0f}%"></div></div>'
+    except (ValueError, ZeroDivisionError):
+        pass
     col.markdown(f"""
-    <div class="bento-tile">
+    <div class="bento-tile {tile_cls}">
       <div class="stat-eyebrow">{label}</div>
       <div class="stat-figure-row">
         <span class="stat-number {status_cls}">{value}</span>
         {unit_html}
       </div>
       {caption_html}
+      {progress_html}
     </div>
     """, unsafe_allow_html=True)
 
@@ -350,6 +368,10 @@ active_mode = st.radio(
 # MODE 1: EXECUTIVE COMMAND CENTER
 # ══════════════════════════════════════════════════════════════
 if active_mode == "Mode 1: Executive Command Center":
+    mode1_svg = get_svg_data_uri("mode1_command.svg")
+    if mode1_svg:
+        st.markdown(f'<img src="{mode1_svg}" style="width:100%;height:auto;border-radius:12px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.08);box-shadow:0 8px 32px rgba(0,0,0,0.4);" />', unsafe_allow_html=True)
+
     sub_tab_cockpit, sub_tab_cascade, sub_tab_lifecycle = st.tabs([
         "Situational Cockpit & Live Feed",
         "Coupled Causal Cascade Stepper",
@@ -361,24 +383,28 @@ if active_mode == "Mode 1: Executive Command Center":
         render_metric_card(
             c1, "Ambient air temperature", f"{T_peak:.1f}", "°C",
             caption="Raipur Station #42809",
-            status="critical" if T_peak >= 45 else "warning" if T_peak >= 42 else "ok"
+            status="critical" if T_peak >= 45 else "warning" if T_peak >= 42 else "ok",
+            tile_variant="heat"
         )
         render_metric_card(
             c2, "Peak grid demand", f"{peak_d:.0f}", "MW",
             caption=f"Contracted baseline: {CSPDCL_PARAMS['raipur_peak_demand_mw']} MW",
-            status="warning" if peak_d > cap_normal else "ok"
+            status="warning" if peak_d > cap_normal else "ok",
+            tile_variant="grid"
         )
         surge_mw = peak_d - CSPDCL_PARAMS['raipur_normal_demand_mw']
         surge_pct = (peak_d / CSPDCL_PARAMS['raipur_normal_demand_mw'] - 1.0) * 100
         render_metric_card(
             c3, "Demand surge", f"+{surge_mw:.0f}", "MW",
             caption=f"+{surge_pct:.0f}% above base load",
-            status="critical" if shortfall > 0 else "warning"
+            status="critical" if shortfall > 0 else "warning",
+            tile_variant="heat"
         )
         render_metric_card(
             c4, "Grid capacity balance", f"{shortfall:.0f}" if shortfall > 0 else f"{cap_normal - peak_d:.0f}", "MW",
             caption=f"{'Shortfall beyond threshold' if shortfall > 0 else 'Remaining capacity margin'}",
-            status="critical" if shortfall > 0 else "ok"
+            status="critical" if shortfall > 0 else "ok",
+            tile_variant="grid"
         )
 
         similar = [h for h in HISTORICAL_HEATWAVES if abs(h["peak_temp"] - T_peak) < 1.5]
@@ -468,9 +494,24 @@ if active_mode == "Mode 1: Executive Command Center":
         stage_info = sim_heatwave.get_stage_details(selected_stage_idx)
         stage_eval = sim_heatwave.evaluate_stage(selected_stage_idx)
 
+        # Visual Step Indicator Ribbon
+        steps_html = []
+        for s_idx in range(1, 8):
+            cls = "active" if s_idx == selected_stage_idx else ("completed" if s_idx < selected_stage_idx else "")
+            conn_cls = "completed" if s_idx < selected_stage_idx else ""
+            steps_html.append(f'<div class="step-badge {cls}">{s_idx}</div>')
+            if s_idx < 7:
+                steps_html.append(f'<div class="step-connector {conn_cls}"></div>')
+
         st.markdown(f"""
-        <div class="callout-box">
-          <div style="font-size:11px;font-weight:600;text-transform:uppercase;color:#94A3B8;letter-spacing:0.05em;">Phase {stage_info['stage_idx']} of 7 &middot; Horizon: {stage_info['time_label']}</div>
+        <div class="step-indicator" style="margin: 12px 0 16px 0;">
+          {''.join(steps_html)}
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown(f"""
+        <div class="callout-box callout-heat">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;color:#FCA5A5;letter-spacing:0.05em;">Phase {stage_info['stage_idx']} of 7 &middot; Horizon: {stage_info['time_label']}</div>
           <div style="font-size:16px;font-weight:600;color:#F8FAFC;margin:4px 0;">{stage_info['name']}</div>
           <div style="font-size:13px;color:#CBD5E1;line-height:1.6;">{stage_info['description']}</div>
         </div>
@@ -480,23 +521,27 @@ if active_mode == "Mode 1: Executive Command Center":
         render_metric_card(
             tk1, "Ambient temperature", f"{stage_info['ambient_temp_c']:.1f}", "°C",
             caption="Citywide mean dry-bulb",
-            status="critical" if stage_info['ambient_temp_c'] >= 44 else "warning"
+            status="critical" if stage_info['ambient_temp_c'] >= 44 else "warning",
+            tile_variant="heat"
         )
         render_metric_card(
             tk2, "Demand surge", f"+{stage_info['demand_surge_mw']:.0f}", "MW",
             caption="Above baseline demand",
-            status="warning" if stage_info['demand_surge_mw'] > 60 else "ok"
+            status="warning" if stage_info['demand_surge_mw'] > 60 else "ok",
+            tile_variant="grid"
         )
         render_metric_card(
             tk3, "Transformer thermal aging", f"{stage_info['transformer_aging_factor']:.1f}", "x",
             caption="Insulation degradation rate",
-            status="critical" if stage_info['transformer_aging_factor'] >= 4 else "warning"
+            status="critical" if stage_info['transformer_aging_factor'] >= 4 else "warning",
+            tile_variant="heat"
         )
         high_stress_wards = sum(1 for w in stage_eval.get('wards_health', []) if w.get('risk_band') in ['SEVERE', 'HIGH'])
         render_metric_card(
             tk4, "High-stress wards", f"{high_stress_wards} / 12", "zones",
             caption="Zones at High/Severe HSRI",
-            status="critical" if high_stress_wards >= 4 else ("warning" if high_stress_wards > 0 else "ok")
+            status="critical" if high_stress_wards >= 4 else ("warning" if high_stress_wards > 0 else "ok"),
+            tile_variant="civic"
         )
 
         st.markdown('<div class="section-head">Multi-asset parameter progression (Stages 1–7)</div>', unsafe_allow_html=True)
@@ -568,6 +613,10 @@ if active_mode == "Mode 1: Executive Command Center":
 # MODE 2: SPATIAL & PHYSICAL DIGITAL TWINS
 # ══════════════════════════════════════════════════════════════
 elif active_mode == "Mode 2: Spatial & Physical Digital Twins":
+    mode2_svg = get_svg_data_uri("mode2_twins.svg")
+    if mode2_svg:
+        st.markdown(f'<img src="{mode2_svg}" style="width:100%;height:auto;border-radius:12px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.08);box-shadow:0 8px 32px rgba(0,0,0,0.4);" />', unsafe_allow_html=True)
+
     sub_tab_map, sub_tab_substations, sub_tab_powerflow = st.tabs([
         "Geospatial Digital Twin (GIS Map)",
         "Substation Transformer Thermal Twin (IEEE C57.91)",
@@ -796,23 +845,85 @@ elif active_mode == "Mode 2: Spatial & Physical Digital Twins":
         render_metric_card(
             sc1, "Average hot-spot temperature", f"{avg_hotspot:.1f}", "°C",
             caption="Baseline aging limit: 110°C",
-            status="warning" if avg_hotspot >= 105 else "ok"
+            status="warning" if avg_hotspot >= 105 else "ok",
+            tile_variant="heat"
         )
         render_metric_card(
             sc2, "Transformers under stress", f"{crit_subs}", f"/ {len(sub_eval_list)}",
             caption="Load > 90% or Hotspot > 115°C",
-            status="critical" if crit_subs > 0 else "ok"
+            status="critical" if crit_subs > 0 else "ok",
+            tile_variant="heat"
         )
         render_metric_card(
             sc3, "Peak aging acceleration", f"{max_aging:.1f}", "x",
             caption="Relative to nominal Arrhenius rate",
-            status="critical" if max_aging >= 5 else "warning"
+            status="critical" if max_aging >= 5 else "warning",
+            tile_variant="gold"
         )
         render_metric_card(
             sc4, "Simulated N-1 contingency", f"{tripped_id or 'None'}", "",
             caption="Load redirected to adjacent buses",
-            status="warning" if tripped_id else "ok"
+            status="warning" if tripped_id else "ok",
+            tile_variant="grid"
         )
+
+        # 3D Arrhenius Thermal Degradation Landscape (IEEE Std C57.91)
+        st.markdown('<div class="section-head">3D Arrhenius Thermal Degradation Landscape (IEEE Std C57.91)</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-subhead">Interactive 3D non-linear surface displaying the Arrhenius acceleration factor (F_AA) and insulation life consumption across varying ambient temperatures and transformer load ratios. Click and drag to rotate.</div>', unsafe_allow_html=True)
+
+        T_amb_range = np.linspace(35, 52, 25)
+        Load_range = np.linspace(0.6, 1.4, 25)
+        T_grid, L_grid = np.meshgrid(T_amb_range, Load_range)
+        theta_H_grid = T_grid + 64.0 * (L_grid ** 1.6)
+        faa_grid = np.exp(15000.0 / 383.0 - 15000.0 / (theta_H_grid + 273.15))
+        faa_grid = np.clip(faa_grid, 0.1, 50.0)
+
+        fig_3d_arrh = go.Figure()
+        fig_3d_arrh.add_trace(go.Surface(
+            x=T_amb_range,
+            y=Load_range,
+            z=faa_grid,
+            colorscale="Turbo",
+            colorbar=dict(title="F_AA (x)", tickfont=dict(size=10, color="#94A3B8")),
+            opacity=0.92,
+            contours=dict(
+                z=dict(show=True, usecolormap=True, highlightcolor="#FFFFFF", project_z=True)
+            ),
+            hovertemplate="Ambient Temp: %{x:.1f}°C<br>Load Ratio: %{y:.2f}<br>Aging Factor F_AA: %{z:.2f}x<extra></extra>"
+        ))
+
+        sub_x = [T_peak for s in sub_eval_list if not s["tripped"]]
+        sub_y = [s["load_ratio"] for s in sub_eval_list if not s["tripped"]]
+        sub_z = [s["aging_factor"] for s in sub_eval_list if not s["tripped"]]
+        sub_names = [s["name"] for s in sub_eval_list if not s["tripped"]]
+
+        fig_3d_arrh.add_trace(go.Scatter3d(
+            x=sub_x,
+            y=sub_y,
+            z=sub_z,
+            mode="markers+text",
+            marker=dict(size=6, color="#FFFFFF", symbol="diamond", line=dict(color="#EF4444", width=2)),
+            text=sub_names,
+            textposition="top center",
+            textfont=dict(color="#FEF08A", size=10),
+            name="Raipur Substations",
+            hovertemplate="<b>%{text}</b><br>T_amb: %{x:.1f}°C<br>Load: %{y:.2f}<br>F_AA: %{z:.2f}x<extra></extra>"
+        ))
+
+        fig_3d_arrh.update_layout(
+            template="plotly_dark",
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            scene=dict(
+                xaxis=dict(title="Ambient Temp (°C)", backgroundcolor="rgba(15,19,25,0.6)", gridcolor="rgba(255,255,255,0.1)"),
+                yaxis=dict(title="Transformer Load Ratio", backgroundcolor="rgba(15,19,25,0.6)", gridcolor="rgba(255,255,255,0.1)"),
+                zaxis=dict(title="Aging Rate (F_AA)", backgroundcolor="rgba(15,19,25,0.6)", gridcolor="rgba(255,255,255,0.1)"),
+                camera=dict(eye=dict(x=-1.5, y=-1.6, z=1.2))
+            ),
+            height=460,
+            margin=dict(l=10, r=10, t=20, b=10)
+        )
+        st.plotly_chart(fig_3d_arrh, use_container_width=True)
 
         st.markdown('<div class="section-head">Substation Digital Twin Status (Simulated)</div>', unsafe_allow_html=True)
         sub_df = pd.DataFrame(sub_eval_list)
@@ -867,10 +978,10 @@ elif active_mode == "Mode 2: Spatial & Physical Digital Twins":
         pf_engine = DCPowerFlowEngine()
 
         c_pf1, c_pf2 = st.columns([2, 1])
-        with c_pf1:
-            line_choices = ["None"] + [f"{l['line_id']}: {l['name']}" for l in pf_engine.lines]
-            chosen_line_trip = st.selectbox("Simulate line outage (N-1 contingency)", line_choices, index=0)
-            tripped_line_key = chosen_line_trip.split(":")[0] if chosen_line_trip != "None" else None
+    with c_pf1:
+        line_choices = ["None"] + [f"{ln['line_id']}: {ln['name']}" for ln in pf_engine.lines]
+        chosen_line_trip = st.selectbox("Simulate line outage (N-1 contingency)", line_choices, index=0)
+        tripped_line_key = chosen_line_trip.split(":")[0] if chosen_line_trip != "None" else None
 
         with c_pf2:
             wind_speed_slider = st.slider("Conductor cross-wind speed (m/s)", 0.2, 5.0, 1.2, 0.2, help="Wind perpendicular to conductors provides convective cooling.")
@@ -888,34 +999,38 @@ elif active_mode == "Mode 2: Spatial & Physical Digital Twins":
         render_metric_card(
             pk1, "Max line loading", f"{max_flow_pct:.1f}", "%",
             caption="Highest loaded corridor",
-            status="critical" if max_flow_pct >= 100 else "warning" if max_flow_pct >= 85 else "ok"
+            status="critical" if max_flow_pct >= 100 else "warning" if max_flow_pct >= 85 else "ok",
+            tile_variant="heat"
         )
         render_metric_card(
             pk2, "Overloaded corridors", f"{overloaded_count}", "lines",
             caption="Exceeding thermal ampacity",
-            status="critical" if overloaded_count > 0 else "ok"
+            status="critical" if overloaded_count > 0 else "ok",
+            tile_variant="heat"
         )
         render_metric_card(
             pk3, "Average thermal derating", f"-{avg_derating:.1f}", "%",
             caption=f"At {T_peak:.1f}°C ambient",
-            status="warning"
+            status="warning",
+            tile_variant="gold"
         )
         render_metric_card(
             pk4, "Sag clearance alerts", f"{crit_sag}", "spans",
             caption="Ground clearance below limit",
-            status="critical" if crit_sag > 0 else "ok"
+            status="critical" if crit_sag > 0 else "ok",
+            tile_variant="grid"
         )
 
         st.markdown('<div class="section-head">Transmission corridor loading: Normal vs. Post-contingency</div>', unsafe_allow_html=True)
         flow_comp_rows = []
-        for l in pf_engine.lines:
-            lid = l["line_id"]
-            short_name = l["name"].replace("Transmission Line", "").replace("Interconnector", "").strip()
+        for line_item in pf_engine.lines:
+            lid = line_item["line_id"]
+            short_name = line_item["name"].replace("Transmission Line", "").replace("Interconnector", "").strip()
             flow_comp_rows.append({
                 "Line": f"{lid}: {short_name}",
                 "Base loading (%)": base_pf["line_loadings_pct"].get(lid, 0.0),
                 "Contingency loading (%)": contingency_pf["line_loadings_pct"].get(lid, 0.0),
-                "Rating MW": l["rating_mw"],
+                "Rating MW": line_item["rating_mw"],
                 "Flow MW": contingency_pf["line_flows_mw"].get(lid, 0.0)
             })
         fdf = pd.DataFrame(flow_comp_rows)
@@ -990,6 +1105,10 @@ elif active_mode == "Mode 2: Spatial & Physical Digital Twins":
 # MODE 3: INTERVENTIONS, RESILIENCE & GOVERNANCE
 # ══════════════════════════════════════════════════════════════
 elif active_mode == "Mode 3: Interventions, Resilience & Governance":
+    mode3_svg = get_svg_data_uri("mode3_resilience.svg")
+    if mode3_svg:
+        st.markdown(f'<img src="{mode3_svg}" style="width:100%;height:auto;border-radius:12px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.08);box-shadow:0 8px 32px rgba(0,0,0,0.4);" />', unsafe_allow_html=True)
+
     sub_tab_dispatch, sub_tab_resilience, sub_tab_sobol, sub_tab_artifacts = st.tabs([
         "Deterministic Dispatch & HiGHS MILP",
         "Continuous System Resilience Q(t)",

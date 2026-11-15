@@ -28,7 +28,7 @@ def render_alerts_view(T_peak: float, rel_humidity: float, power_outage_sim: flo
     u1, u2, u3, u4 = st.columns(4)
     with u1:
         st.markdown(f"""
-        <div class="bento-tile">
+        <div class="bento-tile tile-heat">
           <div class="stat-eyebrow">Biometeorological UTCI</div>
           <div class="stat-figure-row">
             <span class="stat-number {'critical' if utci_data['utci_temp_c'] >= 46 else 'warning'}">{utci_data['utci_temp_c']:.1f}</span>
@@ -40,7 +40,7 @@ def render_alerts_view(T_peak: float, rel_humidity: float, power_outage_sim: flo
 
     with u2:
         st.markdown(f"""
-        <div class="bento-tile">
+        <div class="bento-tile tile-grid">
           <div class="stat-eyebrow">Wet-Bulb Temp (Twb)</div>
           <div class="stat-figure-row">
             <span class="stat-number">{utci_data.get('wet_bulb_temp_c', 28.5):.1f}</span>
@@ -52,7 +52,7 @@ def render_alerts_view(T_peak: float, rel_humidity: float, power_outage_sim: flo
 
     with u3:
         st.markdown(f"""
-        <div class="bento-tile">
+        <div class="bento-tile tile-gold">
           <div class="stat-eyebrow">WBGT Index</div>
           <div class="stat-figure-row">
             <span class="stat-number warning">{utci_data.get('wbgt_temp_c', 34.0):.1f}</span>
@@ -65,7 +65,7 @@ def render_alerts_view(T_peak: float, rel_humidity: float, power_outage_sim: flo
     with u4:
         trap_pen = min(6.5, 4.0 * 0.35 + 0.8 * power_outage_sim)
         st.markdown(f"""
-        <div class="bento-tile">
+        <div class="bento-tile tile-heat">
           <div class="stat-eyebrow">Tin-Roof Thermal Penalty</div>
           <div class="stat-figure-row">
             <span class="stat-number critical">+{trap_pen:.1f}</span>
@@ -95,8 +95,8 @@ def render_alerts_view(T_peak: float, rel_humidity: float, power_outage_sim: flo
         <div class="disclaimer-banner">
           <strong>भाषाई समीक्षा सूचना (Review Notice):</strong> {hi['review_warning']}
         </div>
-        <div class="callout-box">
-          <div style="font-weight:600;font-size:14px;color:#F8FAFC;">शीर्षक: {hi['headline']}</div>
+        <div class="callout-box callout-gold">
+          <div style="font-weight:600;font-size:14px;color:#FCD34D;">शीर्षक: {hi['headline']}</div>
           <div style="margin-top:6px;line-height:1.6;color:#CBD5E1;">{hi['body']}</div>
           <div style="margin-top:10px;font-weight:600;color:#F8FAFC;">नागरिक सलाह (Citizen Advisories):</div>
           <ul style="margin:4px 0 0 16px;padding:0;color:#94A3B8;">
@@ -111,8 +111,8 @@ def render_alerts_view(T_peak: float, rel_humidity: float, power_outage_sim: flo
         <div class="disclaimer-banner">
           <strong>भाखा समीक्षा सूचना (Review Notice):</strong> {cg['review_warning']}
         </div>
-        <div class="callout-box">
-          <div style="font-weight:600;font-size:14px;color:#F8FAFC;">शीर्षक: {cg['headline']}</div>
+        <div class="callout-box callout-patina">
+          <div style="font-weight:600;font-size:14px;color:#5EEAD4;">शीर्षक: {cg['headline']}</div>
           <div style="margin-top:6px;line-height:1.6;color:#CBD5E1;">{cg['body']}</div>
           <div style="margin-top:10px;font-weight:600;color:#F8FAFC;">सिखौना अउ उपाय (Citizen Advisories):</div>
           <ul style="margin:4px 0 0 16px;padding:0;color:#94A3B8;">

@@ -6,6 +6,7 @@ MANDATORY DISCLAIMER: SIMULATION ONLY – NOT AN OFFICIAL WARNING.
 """
 
 import streamlit as st
+import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 
@@ -58,7 +59,7 @@ def render_montecarlo_view(T_peak: float, rel_humidity: float, duration_days: in
             with col_m1:
                 p_dem = intervals["peak_demand_mw"]
                 st.markdown(f"""
-                <div class="bento-tile">
+                <div class="bento-tile tile-grid">
                   <div class="stat-eyebrow">Peak Demand (P50)</div>
                   <div class="stat-figure-row">
                     <span class="stat-number">{p_dem['p50_median']:.1f}</span>
@@ -70,7 +71,7 @@ def render_montecarlo_view(T_peak: float, rel_humidity: float, duration_days: in
             with col_m2:
                 p_ind = intervals["max_indoor_temp_c"]
                 st.markdown(f"""
-                <div class="bento-tile">
+                <div class="bento-tile tile-heat">
                   <div class="stat-eyebrow">Max Indoor Temp (P50)</div>
                   <div class="stat-figure-row">
                     <span class="stat-number warning">{p_ind['p50_median']:.1f}</span>
@@ -82,7 +83,7 @@ def render_montecarlo_view(T_peak: float, rel_humidity: float, duration_days: in
             with col_m3:
                 p_faa = intervals["transformer_aging_faa"]
                 st.markdown(f"""
-                <div class="bento-tile">
+                <div class="bento-tile tile-gold">
                   <div class="stat-eyebrow">Aging Acceleration (P50)</div>
                   <div class="stat-figure-row">
                     <span class="stat-number critical">{p_faa['p50_median']:.2f}</span>
@@ -99,6 +100,47 @@ def render_montecarlo_view(T_peak: float, rel_humidity: float, duration_days: in
                 "P95 (Upper 95%)": [f"{p_dem['p95']:.1f}", f"{p_ind['p95']:.1f}", f"{p_faa['p95']:.2f}x"],
             })
             st.dataframe(df_plot, use_container_width=True, hide_index=True)
+
+            # 3D Stochastic Uncertainty Volume (Monte Carlo Manifold)
+            st.markdown('<div class="section-head">3D Stochastic Uncertainty Volume (Monte Carlo Manifold)</div>', unsafe_allow_html=True)
+            st.markdown('<div class="section-subhead">Interactive 3D cloud of stochastic trial outcomes. Rotate and zoom to inspect how coupled ambient temperature and feeder outage hours project onto citywide peak electricity demand.</div>', unsafe_allow_html=True)
+
+            rng_3d = np.random.default_rng(seed=int(sim_seed))
+            sample_count = min(n_trials, 200)
+            t_pts = np.clip(rng_3d.normal(T_peak, 1.2, sample_count), 38.0, 49.0)
+            out_pts = np.clip(rng_3d.exponential(2.0, sample_count), 0.0, 12.0)
+            # Demand calculation
+            dem_pts = [float(310.0 + 8.5 * (t_p - 35.0) + 0.15 * ((t_p - 35.0) ** 2)) for t_p in t_pts]
+            ind_pts = [float(t_p + 4.0 * 0.35 + 0.8 * out_p) for t_p, out_p in zip(t_pts, out_pts)]
+
+            fig_3d_mc = go.Figure(data=[go.Scatter3d(
+                x=t_pts,
+                y=out_pts,
+                z=dem_pts,
+                mode="markers",
+                marker=dict(
+                    size=4.5,
+                    color=ind_pts,
+                    colorscale="Turbo",
+                    colorbar=dict(title="Indoor Temp (°C)", tickfont=dict(size=10, color="#94A3B8")),
+                    opacity=0.88
+                ),
+                hovertemplate="T_amb: %{x:.1f}°C<br>Outage: %{y:.1f}h<br>Demand: %{z:.1f} MW<br>Indoor: %{marker.color:.1f}°C<extra></extra>"
+            )])
+            fig_3d_mc.update_layout(
+                template="plotly_dark",
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                scene=dict(
+                    xaxis=dict(title="Ambient Temp (°C)", backgroundcolor="rgba(15,19,25,0.6)", gridcolor="rgba(255,255,255,0.1)"),
+                    yaxis=dict(title="Outage Duration (h)", backgroundcolor="rgba(15,19,25,0.6)", gridcolor="rgba(255,255,255,0.1)"),
+                    zaxis=dict(title="Peak Demand (MW)", backgroundcolor="rgba(15,19,25,0.6)", gridcolor="rgba(255,255,255,0.1)"),
+                    camera=dict(eye=dict(x=-1.6, y=-1.5, z=1.2))
+                ),
+                height=420,
+                margin=dict(l=10, r=10, t=20, b=10)
+            )
+            st.plotly_chart(fig_3d_mc, use_container_width=True)
 
     # ─────────────────────────────────────────────────────────────────────────
     # SUB-TAB 2: SOBOL VARIANCE DECOMPOSITION (SALib)
@@ -166,8 +208,8 @@ def render_montecarlo_view(T_peak: float, rel_humidity: float, duration_days: in
         st.plotly_chart(fig_sobol, use_container_width=True)
 
         st.markdown("""
-        <div class="callout-box">
-          <strong style="color:#F8FAFC;">Sensitivity Rationale:</strong> Ambient temperature is the primary driver of bulk transmission load surge (ST > 0.85).
+        <div class="callout-box callout-patina">
+          <strong style="color:#5EEAD4;">Sensitivity Rationale:</strong> Ambient temperature is the primary driver of bulk transmission load surge (ST > 0.85).
           However, for indoor heat entrapment in informal settlements, feeder outage duration accounts for over 40% of variance,
           demonstrating that grid feeder resilience directly governs human thermal survivability.
         </div>

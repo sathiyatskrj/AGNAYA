@@ -7,6 +7,7 @@ MANDATORY DISCLAIMER: SIMULATION ONLY – NOT AN OFFICIAL WARNING.
 
 import streamlit as st
 import pandas as pd
+import plotly.graph_objects as go
 
 from data.raipur_data import INTERVENTION_OPTIONS, COOLING_CENTRES
 from models.cascade_model import InterventionOptimizer
@@ -28,11 +29,11 @@ def render_dispatch_view(T_peak: float, rel_humidity: float, budget_lakh: float)
     total_cost = opt_res["total_cost_lakh"]
     utilization_pct = opt_res["budget_utilization_pct"]
 
-    # Bento KPI Tiles
+    # Bento KPI Tiles with Color Variants
     c1, c2, c3, c4 = st.columns(4)
     with c1:
         st.markdown(f"""
-        <div class="bento-tile">
+        <div class="bento-tile tile-gold">
           <div class="stat-eyebrow">Municipal Budget Ceiling</div>
           <div class="stat-figure-row">
             <span class="stat-number">₹{budget_lakh:.1f}</span>
@@ -44,7 +45,7 @@ def render_dispatch_view(T_peak: float, rel_humidity: float, budget_lakh: float)
 
     with c2:
         st.markdown(f"""
-        <div class="bento-tile">
+        <div class="bento-tile tile-ok">
           <div class="stat-eyebrow">Optimized Allocation</div>
           <div class="stat-figure-row">
             <span class="stat-number ok">₹{total_cost:.1f}</span>
@@ -56,7 +57,7 @@ def render_dispatch_view(T_peak: float, rel_humidity: float, budget_lakh: float)
 
     with c3:
         st.markdown(f"""
-        <div class="bento-tile">
+        <div class="bento-tile tile-civic">
           <div class="stat-eyebrow">Cooling Centres</div>
           <div class="stat-figure-row">
             <span class="stat-number">{fleet.get('cooling_centre', 0)}</span>
@@ -68,7 +69,7 @@ def render_dispatch_view(T_peak: float, rel_humidity: float, budget_lakh: float)
 
     with c4:
         st.markdown(f"""
-        <div class="bento-tile">
+        <div class="bento-tile tile-grid">
           <div class="stat-eyebrow">Water Tankers</div>
           <div class="stat-figure-row">
             <span class="stat-number">{fleet.get('water_tankers', 0)}</span>
@@ -80,29 +81,57 @@ def render_dispatch_view(T_peak: float, rel_humidity: float, budget_lakh: float)
 
     st.markdown("---")
 
-    # Itemized Breakdown Table
-    col_t1, col_t2 = st.columns([1.6, 1.2])
+    # Itemized Breakdown Table & Budget Visualization
+    col_t1, col_t2 = st.columns([1.5, 1.3])
 
     with col_t1:
         st.markdown('<div class="section-head">Optimal Resource Allocation Breakdown</div>', unsafe_allow_html=True)
         items = []
+        plot_names = []
+        plot_costs = []
         for k, v in fleet.items():
             meta = INTERVENTION_OPTIONS.get(k, {})
             cost_u = meta.get("cost_per_unit_lakh", 1.0)
+            c_tot = v * cost_u
+            lbl = meta.get("label", k)
             items.append({
-                "Intervention Type": meta.get("label", k),
+                "Intervention Type": lbl,
                 "Units Allocated": v,
                 "Unit Cost": f"₹{cost_u:.1f} Lakh",
-                "Total Cost": f"₹{v * cost_u:.1f} Lakh",
+                "Total Cost": f"₹{c_tot:.1f} Lakh",
                 "Effectiveness Weight": meta.get("effectiveness_score", 0.5),
                 "Benefit-to-Cost Ratio": round(meta.get("effectiveness_score", 0.5) / cost_u, 3),
             })
+            if c_tot > 0:
+                plot_names.append(lbl)
+                plot_costs.append(c_tot)
+
         df_items = pd.DataFrame(items)
         st.dataframe(df_items, use_container_width=True, hide_index=True)
 
+        if plot_costs:
+            fig_alloc = go.Figure(data=[go.Pie(
+                labels=plot_names,
+                values=plot_costs,
+                hole=0.55,
+                marker=dict(colors=["#0284C7", "#8B5CF6", "#D97706", "#10B981"]),
+                textinfo="label+percent",
+                insidetextorientation="radial"
+            )])
+            fig_alloc.update_layout(
+                title="Capital Expenditure by Asset Class",
+                template="plotly_dark",
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                height=260,
+                margin=dict(l=10, r=10, t=35, b=10),
+                showlegend=False
+            )
+            st.plotly_chart(fig_alloc, use_container_width=True)
+
         st.markdown("""
-        <div class="callout-box">
-          <strong style="color:#F8FAFC;">Mathematical Optimization Rationale (SciPy HiGHS):</strong><br/>
+        <div class="callout-box callout-patina">
+          <strong style="color:#5EEAD4;">Mathematical Optimization Rationale (SciPy HiGHS):</strong><br/>
           Objective function: maximize &sum; (v<sub>k</sub> &times; x<sub>k</sub>) subject to &sum; (c<sub>k</sub> &times; x<sub>k</sub>) &le; B<sub>budget</sub>.<br/>
           &bull; <b>Water Tankers:</b> Highest marginal utility ratio (0.625) &mdash; rapid potable water relief at modest unit cost (₹0.8 Lakh).<br/>
           &bull; <b>Cooling Centres:</b> Direct sheltering for dense slum zones with tin-roof traps (0.280 ratio).<br/>
