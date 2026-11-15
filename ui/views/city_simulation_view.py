@@ -641,7 +641,15 @@ def render_city_simulation_view(
           new THREE.Vector3(120, 0.12, 45),   // Pandri
           new THREE.Vector3(180, 0.12, 70)    // Telibandha Marine Drive
         ]);
-        const geRoadGeo = new THREE.TubeGeometry(geRoadCurve, 64, 4.8, 4, false);
+        // Paved Concrete Sidewalk Curb alongside Great Eastern Road
+        const sidewalkGeo = new THREE.TubeGeometry(geRoadCurve, 64, 6.4, 4, false);
+        const sidewalkMat = new THREE.MeshStandardMaterial({{ color: 0xcbd5e1, roughness: 0.85 }});
+        const sidewalkMesh = new THREE.Mesh(sidewalkGeo, sidewalkMat);
+        sidewalkMesh.scale.set(1, 0.04, 1);
+        sidewalkMesh.receiveShadow = true;
+        scene.add(sidewalkMesh);
+
+        const geRoadGeo = new THREE.TubeGeometry(geRoadCurve, 64, 5.0, 4, false);
         const geRoadMat = new THREE.MeshStandardMaterial({{ color: 0x1e293b, roughness: 0.75 }});
         const geRoadMesh = new THREE.Mesh(geRoadGeo, geRoadMat);
         geRoadMesh.scale.set(1, 0.05, 1);
@@ -812,37 +820,207 @@ def render_city_simulation_view(
         scene.add(treeGroup);
 
         // ═════════════════════════════════════════════════════════════════════
-        // VIBRANT GAME-QUALITY ARCHITECTURAL BUILDINGS (OpenCityModel LOD1)
+        // PROCEDURAL ARCHITECTURAL FACADE GENERATORS (Game-Engine Quality)
+        // ═════════════════════════════════════════════════════════════════════
+        function createCommercialFacade(primaryColor, windowColor, isGlassTower = false) {{
+          const c = document.createElement('canvas');
+          c.width = 512;
+          c.height = 512;
+          const ctx = c.getContext('2d');
+          ctx.fillStyle = primaryColor;
+          ctx.fillRect(0, 0, 512, 512);
+
+          const floors = 8;
+          const cols = 6;
+          const floorH = 512 / floors;
+          const colW = 512 / cols;
+
+          if (isGlassTower) {{
+            for (let f = 0; f < floors; f++) {{
+              for (let cl = 0; cl < cols; cl++) {{
+                const x = cl * colW;
+                const y = f * floorH;
+                ctx.fillStyle = (f + cl) % 4 === 0 ? '#60a5fa' : (f + cl) % 5 === 0 ? '#93c5fd' : '#1e3a8a';
+                ctx.fillRect(x + 2, y + 2, colW - 4, floorH - 4);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+                ctx.beginPath();
+                ctx.moveTo(x + 2, y + 2);
+                ctx.lineTo(x + colW * 0.7, y + 2);
+                ctx.lineTo(x + 2, y + floorH * 0.7);
+                ctx.closePath();
+                ctx.fill();
+              }}
+            }}
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 3;
+            for (let f = 0; f <= floors; f++) {{
+              ctx.beginPath(); ctx.moveTo(0, f * floorH); ctx.lineTo(512, f * floorH); ctx.stroke();
+            }}
+            for (let cl = 0; cl <= cols; cl++) {{
+              ctx.beginPath(); ctx.moveTo(cl * colW, 0); ctx.lineTo(cl * colW, 512); ctx.stroke();
+            }}
+          }} else {{
+            for (let f = 0; f < floors; f++) {{
+              const y = f * floorH;
+              ctx.fillStyle = 'rgba(0, 0, 0, 0.16)';
+              ctx.fillRect(0, y + floorH - 3, 512, 3);
+
+              for (let cl = 0; cl < cols; cl++) {{
+                const x = cl * colW;
+                const wx = x + colW * 0.16;
+                const wy = y + floorH * 0.18;
+                const ww = colW * 0.68;
+                const wh = floorH * 0.64;
+
+                if (f === floors - 1) {{
+                  // Ground floor store awning & illuminated entrance
+                  ctx.fillStyle = cl % 2 === 0 ? '#ef4444' : '#f59e0b';
+                  ctx.fillRect(x + 3, y + 2, colW - 6, floorH * 0.38);
+                  ctx.fillStyle = '#0f172a';
+                  ctx.fillRect(x + 5, y + floorH * 0.40, colW - 10, floorH * 0.58);
+                  ctx.fillStyle = 'rgba(254, 240, 138, 0.55)';
+                  ctx.fillRect(x + 8, y + floorH * 0.48, colW - 16, floorH * 0.44);
+                }} else {{
+                  // Upper floor punched windows with frames & sills
+                  ctx.fillStyle = '#1e293b';
+                  ctx.fillRect(wx - 2, wy - 2, ww + 4, wh + 4);
+                  const isLit = (f * 3 + cl * 2) % 4 === 0;
+                  ctx.fillStyle = isLit ? '#fef08a' : windowColor;
+                  ctx.fillRect(wx, wy, ww, wh);
+
+                  ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+                  ctx.beginPath();
+                  ctx.moveTo(wx, wy);
+                  ctx.lineTo(wx + ww * 0.6, wy);
+                  ctx.lineTo(wx, wy + wh * 0.8);
+                  ctx.closePath();
+                  ctx.fill();
+
+                  ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                  ctx.fillRect(wx - 3, wy + wh, ww + 6, 3);
+                }}
+              }}
+            }}
+          }}
+
+          const tex = new THREE.CanvasTexture(c);
+          tex.wrapS = THREE.RepeatWrapping;
+          tex.wrapT = THREE.RepeatWrapping;
+          return tex;
+        }}
+
+        function createHospitalTexture() {{
+          const c = document.createElement('canvas');
+          c.width = 512;
+          c.height = 512;
+          const ctx = c.getContext('2d');
+          ctx.fillStyle = '#f8fafc';
+          ctx.fillRect(0, 0, 512, 512);
+
+          const floors = 6;
+          const floorH = 512 / floors;
+          for (let f = 0; f < floors; f++) {{
+            const y = f * floorH;
+            ctx.fillStyle = '#0284c7';
+            ctx.fillRect(0, y + floorH * 0.28, 512, floorH * 0.44);
+            ctx.fillStyle = '#0f172a';
+            for (let x = 0; x < 512; x += 32) {{
+              ctx.fillRect(x, y + floorH * 0.28, 3, floorH * 0.44);
+            }}
+          }}
+
+          // Red Cross Emblem
+          ctx.fillStyle = '#ef4444';
+          ctx.fillRect(18, 12, 36, 12);
+          ctx.fillRect(30, 0, 12, 36);
+
+          const tex = new THREE.CanvasTexture(c);
+          tex.wrapS = THREE.RepeatWrapping;
+          tex.wrapT = THREE.RepeatWrapping;
+          return tex;
+        }}
+
+        function createSubstationTexture() {{
+          const c = document.createElement('canvas');
+          c.width = 512;
+          c.height = 512;
+          const ctx = c.getContext('2d');
+          ctx.fillStyle = '#475569';
+          ctx.fillRect(0, 0, 512, 512);
+
+          ctx.strokeStyle = '#334155';
+          ctx.lineWidth = 4;
+          for (let x = 0; x < 512; x += 16) {{
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 512); ctx.stroke();
+          }}
+
+          // Yellow/Black Hazard Stripes
+          ctx.fillStyle = '#facc15';
+          ctx.fillRect(0, 230, 512, 52);
+          ctx.fillStyle = '#0f172a';
+          for (let x = -50; x < 550; x += 40) {{
+            ctx.beginPath();
+            ctx.moveTo(x, 230);
+            ctx.lineTo(x + 20, 230);
+            ctx.lineTo(x - 10, 282);
+            ctx.lineTo(x - 30, 282);
+            ctx.closePath();
+            ctx.fill();
+          }}
+
+          const tex = new THREE.CanvasTexture(c);
+          tex.wrapS = THREE.RepeatWrapping;
+          tex.wrapT = THREE.RepeatWrapping;
+          return tex;
+        }}
+
+        function createSlumRoofTexture() {{
+          const c = document.createElement('canvas');
+          c.width = 512;
+          c.height = 512;
+          const ctx = c.getContext('2d');
+          ctx.fillStyle = '#94a3b8';
+          ctx.fillRect(0, 0, 512, 512);
+
+          for (let x = 0; x < 512; x += 12) {{
+            ctx.fillStyle = x % 24 === 0 ? '#cbd5e1' : '#64748b';
+            ctx.fillRect(x, 0, 6, 512);
+          }}
+          ctx.fillStyle = 'rgba(180, 83, 9, 0.45)';
+          ctx.fillRect(40, 100, 120, 180);
+          ctx.fillRect(260, 220, 180, 140);
+          ctx.fillRect(100, 360, 160, 100);
+
+          const tex = new THREE.CanvasTexture(c);
+          tex.wrapS = THREE.RepeatWrapping;
+          tex.wrapT = THREE.RepeatWrapping;
+          return tex;
+        }}
+
+        const texFacadeSandstone = createCommercialFacade('#fef3c7', '#0284c7', false);
+        const texFacadeGlass = createCommercialFacade('#ffffff', '#38bdf8', true);
+        const texFacadeSaffron = createCommercialFacade('#fed7aa', '#1e293b', false);
+        const texFacadeCoral = createCommercialFacade('#fce7f3', '#0369a1', false);
+        const texFacadeMint = createCommercialFacade('#dcfce7', '#15803d', false);
+        const texFacadeHospital = createHospitalTexture();
+        const texFacadeSubstation = createSubstationTexture();
+        const texSlumRoof = createSlumRoofTexture();
+
+        const facadePool = [texFacadeSandstone, texFacadeGlass, texFacadeSaffron, texFacadeCoral, texFacadeMint];
+
+        // ═════════════════════════════════════════════════════════════════════
+        // VIBRANT GAME-QUALITY ARCHITECTURAL BUILDINGS (Stepped Massing)
         // ═════════════════════════════════════════════════════════════════════
         const cityObjectsGroup = new THREE.Group();
         const tinRoofsList = [];
-        const windowMeshesList = [];
         const interactiveBuildings = [];
         const substationPositions = {{}};
 
-        // Authentic Indian Urban Palette (Game-Engine Saturated)
-        const urbanPalettes = [
-          new THREE.MeshStandardMaterial({{ color: 0xfef3c7, roughness: 0.65 }}), // Warm Sandstone Cream
-          new THREE.MeshStandardMaterial({{ color: 0xf59e0b, roughness: 0.55 }}), // Saffron / Marigold Ochre
-          new THREE.MeshStandardMaterial({{ color: 0x93c5fd, roughness: 0.50 }}), // Sky Cerulean Blue
-          new THREE.MeshStandardMaterial({{ color: 0xf472b6, roughness: 0.65 }}), // Pastel Rose Coral
-          new THREE.MeshStandardMaterial({{ color: 0x86efac, roughness: 0.60 }}), // Pistachio / Mint Green
-          new THREE.MeshStandardMaterial({{ color: 0xffffff, roughness: 0.40, metalness: 0.1 }}), // Clean Modern Pearl
-          new THREE.MeshStandardMaterial({{ color: 0x38bdf8, roughness: 0.20, metalness: 0.85 }}) // Aqua Glass Tower
-        ];
-
-        // Specialized Class Materials
-        const matSlumWall = new THREE.MeshStandardMaterial({{ color: 0xb45309, roughness: 0.85 }}); // Terracotta Brick
-        const matHosp = new THREE.MeshStandardMaterial({{ color: 0xffffff, roughness: 0.35, metalness: 0.05 }}); // Brilliant White Hospital
-        const matSub = new THREE.MeshStandardMaterial({{ color: 0x64748b, roughness: 0.45, metalness: 0.6 }}); // Substation Industrial Grey
-        const matWtp = new THREE.MeshStandardMaterial({{ color: 0x0284c7, roughness: 0.35, metalness: 0.7 }}); // Water Treatment Plant
-        const matGhadi = new THREE.MeshStandardMaterial({{ color: 0xd97706, roughness: 0.50, metalness: 0.25 }}); // Sandstone Heritage Tower
-
-        // Common Rooftop Asset Geometries
+        // Common Rooftop Assets
         const tankGeo = new THREE.CylinderGeometry(0.8, 0.8, 1.8, 10);
-        const tankMat = new THREE.MeshStandardMaterial({{ color: 0x0f172a, roughness: 0.7 }}); // Black Sintex Tank
+        const tankMat = new THREE.MeshStandardMaterial({{ color: 0x0f172a, roughness: 0.7 }});
         const solarGeo = new THREE.PlaneGeometry(3.2, 2.0);
-        const solarMat = new THREE.MeshStandardMaterial({{ color: 0x1d4ed8, roughness: 0.2, metalness: 0.9 }}); // Blue Solar PV
+        const solarMat = new THREE.MeshStandardMaterial({{ color: 0x1d4ed8, roughness: 0.2, metalness: 0.9 }});
         solarGeo.rotateX(-Math.PI / 3);
 
         let buildingIdx = 0;
@@ -851,127 +1029,300 @@ def render_city_simulation_view(
           const [cx, cy, cz] = objData.center;
           const [w, h, d] = objData.dimensions;
 
-          let bMat = urbanPalettes[buildingIdx % urbanPalettes.length];
+          const bGroup = new THREE.Group();
+          bGroup.position.set(cx, 0, cz);
+
+          let bTex = facadePool[buildingIdx % facadePool.length];
           buildingIdx++;
 
-          if (attrs.class === 'InformalSettlement') bMat = matSlumWall;
-          else if (attrs.class === 'Hospital') bMat = matHosp;
-          else if (attrs.class === 'ElectricalSubstation') bMat = matSub;
-          else if (attrs.class === 'WaterTreatmentPlant') bMat = matWtp;
-          else if (attrs.class === 'CivicMonument') bMat = matGhadi;
+          if (attrs.class === 'Hospital') bTex = texFacadeHospital;
+          else if (attrs.class === 'ElectricalSubstation') bTex = texFacadeSubstation;
+          else if (attrs.class === 'WaterTreatmentPlant') bTex = texFacadeGlass;
 
-          const bGeo = new THREE.BoxGeometry(w, h, d);
-          const bMesh = new THREE.Mesh(bGeo, bMat);
-          bMesh.position.set(cx, cy, cz);
-          bMesh.castShadow = true;
-          bMesh.receiveShadow = true;
-          bMesh.userData = {{ id: objId, attrs: attrs }};
-          cityObjectsGroup.add(bMesh);
-          interactiveBuildings.push(bMesh);
+          // 1. Ground Floor Commercial Storefront / Plinth
+          const plinthH = Math.min(3.5, h * 0.28);
+          const plinthGeo = new THREE.BoxGeometry(w * 1.04, plinthH, d * 1.04);
+          const plinthMat = new THREE.MeshStandardMaterial({{ color: 0x334155, roughness: 0.6 }});
+          const plinthMesh = new THREE.Mesh(plinthGeo, plinthMat);
+          plinthMesh.position.y = plinthH / 2;
+          plinthMesh.castShadow = true;
+          plinthMesh.receiveShadow = true;
+          bGroup.add(plinthMesh);
 
-          // 1. Ghadi Chowk (Raipur Historic Clock Tower)
-          if (objId === 'MON_GHADI_CHOWK') {{
-            // 4-sided Illuminated Clock Dials
-            const clockMat = new THREE.MeshBasicMaterial({{ color: 0xfef08a }});
-            const clockGeo = new THREE.CylinderGeometry(1.6, 1.6, 0.4, 16);
-            clockGeo.rotateX(Math.PI / 2);
+          // 2. Main Architectural Tower Body with Repeating Window Grid
+          const towerH = h - plinthH;
+          const towerGeo = new THREE.BoxGeometry(w, towerH, d);
+          const customTex = bTex.clone();
+          customTex.needsUpdate = true;
+          customTex.wrapS = THREE.RepeatWrapping;
+          customTex.wrapT = THREE.RepeatWrapping;
+          customTex.repeat.set(Math.max(1, Math.round(w / 4)), Math.max(1, Math.round(towerH / 3)));
 
-            const d1 = new THREE.Mesh(clockGeo, clockMat); d1.position.set(cx, 19, cz + d/2 + 0.2); cityObjectsGroup.add(d1);
-            const d2 = new THREE.Mesh(clockGeo, clockMat); d2.position.set(cx, 19, cz - d/2 - 0.2); cityObjectsGroup.add(d2);
-            const d3 = new THREE.Mesh(clockGeo, clockMat); d3.position.set(cx + w/2 + 0.2, 19, cz); d3.rotation.y = Math.PI/2; cityObjectsGroup.add(d3);
-            const d4 = new THREE.Mesh(clockGeo, clockMat); d4.position.set(cx - w/2 - 0.2, 19, cz); d4.rotation.y = Math.PI/2; cityObjectsGroup.add(d4);
+          const towerMat = new THREE.MeshStandardMaterial({{
+            map: customTex,
+            roughness: 0.35,
+            metalness: 0.25
+          }});
+          const towerMesh = new THREE.Mesh(towerGeo, towerMat);
+          towerMesh.position.y = plinthH + towerH / 2;
+          towerMesh.castShadow = true;
+          towerMesh.receiveShadow = true;
+          towerMesh.userData = {{ id: objId, attrs: attrs }};
+          bGroup.add(towerMesh);
+          interactiveBuildings.push(towerMesh);
 
-            // Heritage Spire & Golden Pinnacle
-            const spireGeo = new THREE.ConeGeometry(w * 0.65, 7, 4);
-            const spireMat = new THREE.MeshStandardMaterial({{ color: 0xd97706, metalness: 0.85, roughness: 0.2 }});
-            const spire = new THREE.Mesh(spireGeo, spireMat);
-            spire.position.set(cx, h + 3.5, cz);
-            spire.rotation.y = Math.PI / 4;
-            cityObjectsGroup.add(spire);
+          // 3. Architectural Roof Parapet Rim
+          const parapetGeo = new THREE.BoxGeometry(w * 1.02, 0.8, d * 1.02);
+          const parapetMat = new THREE.MeshStandardMaterial({{ color: 0xe2e8f0, roughness: 0.8 }});
+          const parapet = new THREE.Mesh(parapetGeo, parapetMat);
+          parapet.position.y = h + 0.4;
+          bGroup.add(parapet);
 
-            // Indian Tricolor Flag on Pinnacle Spire
-            const flagPoleGeo = new THREE.CylinderGeometry(0.12, 0.12, 5, 8);
-            const flagPoleMat = new THREE.MeshStandardMaterial({{ color: 0xe2e8f0, metalness: 0.9 }});
-            const flagPole = new THREE.Mesh(flagPoleGeo, flagPoleMat);
-            flagPole.position.set(cx, h + 9.5, cz);
-            cityObjectsGroup.add(flagPole);
-
-            const flagGeo = new THREE.PlaneGeometry(2.4, 1.4);
-            const flagMat = new THREE.MeshBasicMaterial({{ color: 0xf97316, side: THREE.DoubleSide }}); // Saffron Flag
-            const flagMesh = new THREE.Mesh(flagGeo, flagMat);
-            flagMesh.position.set(cx + 1.2, h + 11, cz);
-            cityObjectsGroup.add(flagMesh);
-
-            const ghadiLight = new THREE.PointLight(0xf59e0b, 3.0, 60);
-            ghadiLight.position.set(cx, 14, cz);
-            cityObjectsGroup.add(ghadiLight);
+          // 4. Rooftop Mechanical Penthouse / Elevator Shaft
+          if (w > 8 && d > 8) {{
+            const pentGeo = new THREE.BoxGeometry(w * 0.35, 3.2, d * 0.35);
+            const pentMat = new THREE.MeshStandardMaterial({{ color: 0x64748b, roughness: 0.7 }});
+            const pent = new THREE.Mesh(pentGeo, pentMat);
+            pent.position.set(0, h + 1.6, 0);
+            bGroup.add(pent);
           }}
 
-          // 2. Electrical Substation Switchyard
+          // 5. Rooftop Sintex Tanks & Solar PV & Antennas
+          if (w > 12 && d > 10 && attrs.class === 'ResidentialCommercial') {{
+            const tank = new THREE.Mesh(tankGeo, tankMat);
+            tank.position.set(-w * 0.25, h + 1.0, -d * 0.25);
+            bGroup.add(tank);
+
+            const solar = new THREE.Mesh(solarGeo, solarMat);
+            solar.position.set(w * 0.2, h + 1.2, d * 0.2);
+            bGroup.add(solar);
+
+            const antGeo = new THREE.CylinderGeometry(0.08, 0.12, 6.0, 6);
+            const antMat = new THREE.MeshStandardMaterial({{ color: 0xe2e8f0, metalness: 0.9 }});
+            const ant = new THREE.Mesh(antGeo, antMat);
+            ant.position.set(w * 0.2, h + 3.0, -d * 0.2);
+            bGroup.add(ant);
+
+            const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 8), new THREE.MeshBasicMaterial({{ color: 0xef4444 }}));
+            beacon.position.set(w * 0.2, h + 6.0, -d * 0.2);
+            bGroup.add(beacon);
+          }}
+
+          // 6. Ghadi Chowk (Raipur Clock Tower) Superstructure
+          if (objId === 'MON_GHADI_CHOWK') {{
+            const clockMat = new THREE.MeshBasicMaterial({{ color: 0xfef08a }});
+            const clockGeo = new THREE.CylinderGeometry(1.8, 1.8, 0.4, 16);
+            clockGeo.rotateX(Math.PI / 2);
+
+            const d1 = new THREE.Mesh(clockGeo, clockMat); d1.position.set(0, 19, d/2 + 0.2); bGroup.add(d1);
+            const d2 = new THREE.Mesh(clockGeo, clockMat); d2.position.set(0, 19, -d/2 - 0.2); bGroup.add(d2);
+            const d3 = new THREE.Mesh(clockGeo, clockMat); d3.position.set(w/2 + 0.2, 19, 0); d3.rotation.y = Math.PI/2; bGroup.add(d3);
+            const d4 = new THREE.Mesh(clockGeo, clockMat); d4.position.set(-w/2 - 0.2, 19, 0); d4.rotation.y = Math.PI/2; bGroup.add(d4);
+
+            const spireGeo = new THREE.ConeGeometry(w * 0.65, 8, 4);
+            const spireMat = new THREE.MeshStandardMaterial({{ color: 0xd97706, metalness: 0.85, roughness: 0.2 }});
+            const spire = new THREE.Mesh(spireGeo, spireMat);
+            spire.position.set(0, h + 4.0, 0);
+            spire.rotation.y = Math.PI / 4;
+            bGroup.add(spire);
+
+            const flagPole = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 6, 8), new THREE.MeshStandardMaterial({{ color: 0xe2e8f0, metalness: 0.9 }}));
+            flagPole.position.set(0, h + 11.0, 0);
+            bGroup.add(flagPole);
+
+            const flagMesh = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 1.6), new THREE.MeshBasicMaterial({{ color: 0xf97316, side: THREE.DoubleSide }}));
+            flagMesh.position.set(1.3, h + 12.5, 0);
+            bGroup.add(flagMesh);
+
+            const ghadiLight = new THREE.PointLight(0xf59e0b, 3.5, 70);
+            ghadiLight.position.set(0, 16, 0);
+            bGroup.add(ghadiLight);
+          }}
+
+          // 7. Hospital Complexes (Mekahara & Ram Krishna Care)
+          if (attrs.class === 'Hospital') {{
+            // Covered Emergency Portico Bay
+            const porticoGeo = new THREE.BoxGeometry(w * 0.5, 4.0, 8.0);
+            const porticoMat = new THREE.MeshStandardMaterial({{ color: 0xe2e8f0, roughness: 0.4 }});
+            const portico = new THREE.Mesh(porticoGeo, porticoMat);
+            portico.position.set(0, 2.0, d / 2 + 4.0);
+            bGroup.add(portico);
+
+            const pSign = new THREE.Mesh(new THREE.BoxGeometry(w * 0.45, 0.8, 0.2), new THREE.MeshBasicMaterial({{ color: 0xef4444 }}));
+            pSign.position.set(0, 3.6, d / 2 + 8.1);
+            bGroup.add(pSign);
+
+            // Rooftop Helipad
+            const helipad = new THREE.Mesh(new THREE.CylinderGeometry(6.0, 6.0, 0.4, 24), new THREE.MeshStandardMaterial({{ color: 0x334155, roughness: 0.8 }}));
+            helipad.position.set(0, h + 0.2, 0);
+            bGroup.add(helipad);
+
+            const hRing = new THREE.Mesh(new THREE.RingGeometry(4.8, 5.2, 24), new THREE.MeshBasicMaterial({{ color: 0xffffff }}));
+            hRing.rotation.x = -Math.PI / 2;
+            hRing.position.set(0, h + 0.42, 0);
+            bGroup.add(hRing);
+
+            // Glowing Red Crosses
+            const crossH = new THREE.BoxGeometry(8, 1.4, 2.2);
+            const crossV = new THREE.BoxGeometry(2.2, 1.4, 8);
+            const crossMat = new THREE.MeshBasicMaterial({{ color: 0xef4444 }});
+            const ch = new THREE.Mesh(crossH, crossMat); ch.position.set(0, h + 1.2, 0); bGroup.add(ch);
+            const cv = new THREE.Mesh(crossV, crossMat); cv.position.set(0, h + 1.2, 0); bGroup.add(cv);
+          }}
+
+          // 8. Electrical Substations (S01 - S06)
           if (attrs.class === 'ElectricalSubstation') {{
             const subId = objId.replace('SUB_', '');
             substationPositions[subId] = new THREE.Vector3(cx, h + 2, cz);
 
-            // Steel Lattice Gantry Tower
-            const towGeo = new THREE.CylinderGeometry(0.6, 3.0, 36, 4);
-            const towMat = new THREE.MeshStandardMaterial({{ color: 0x94a3b8, wireframe: true }});
-            const tower = new THREE.Mesh(towGeo, towMat);
-            tower.position.set(cx, 18, cz);
-            cityObjectsGroup.add(tower);
+            const gravel = new THREE.Mesh(new THREE.PlaneGeometry(w * 1.6, d * 1.6), new THREE.MeshStandardMaterial({{ color: 0x475569, roughness: 0.95 }}));
+            gravel.rotation.x = -Math.PI / 2;
+            gravel.position.y = 0.08;
+            bGroup.add(gravel);
 
-            // Transformer Oil Radiators & Bushings
-            const radGeo = new THREE.BoxGeometry(4.0, 3.5, 3.0);
-            const radMat = new THREE.MeshStandardMaterial({{ color: 0x334155, metalness: 0.8 }});
-            const rad = new THREE.Mesh(radGeo, radMat);
-            rad.position.set(cx + 4, 2, cz);
-            cityObjectsGroup.add(rad);
-          }}
+            const tower = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 3.2, 36, 4), new THREE.MeshStandardMaterial({{ color: 0x94a3b8, wireframe: true }}));
+            tower.position.set(0, 18, 0);
+            bGroup.add(tower);
 
-          // 3. Corrugated Tin Roofs for Informal Slum Settlements (Tikrapara)
-          if (attrs.roofType === 'corrugated_tin') {{
-            const roofGeo = new THREE.BoxGeometry(w * 1.05, 0.8, d * 1.05);
-            const roofMat = new THREE.MeshStandardMaterial({{
-              color: 0xe2e8f0, // Metallic Zinc-Galvanized Silver
-              metalness: 0.85,
-              roughness: 0.3
-            }});
-            const roofMesh = new THREE.Mesh(roofGeo, roofMat);
-            roofMesh.position.set(cx, h + 0.4, cz);
-            cityObjectsGroup.add(roofMesh);
-            tinRoofsList.push(roofMesh);
-          }} else if (attrs.class === 'Hospital') {{
-            // Glowing Medical Emergency Crosses
-            const crossH = new THREE.BoxGeometry(9, 1.4, 2.6);
-            const crossV = new THREE.BoxGeometry(2.6, 1.4, 9);
-            const crossMat = new THREE.MeshBasicMaterial({{ color: 0xef4444 }}); // Red Cross
-            const ch = new THREE.Mesh(crossH, crossMat);
-            const cv = new THREE.Mesh(crossV, crossMat);
-            ch.position.set(cx, h + 1.4, cz);
-            cv.position.set(cx, h + 1.4, cz);
-            cityObjectsGroup.add(ch);
-            cityObjectsGroup.add(cv);
-          }} else if (attrs.class === 'ResidentialCommercial') {{
-            // Real-Life Rooftops: Sintex Water Tanks & Solar PV Panels
-            if (w > 12 && d > 10) {{
-              const tank = new THREE.Mesh(tankGeo, tankMat);
-              tank.position.set(cx - w * 0.25, h + 1.0, cz - d * 0.25);
-              cityObjectsGroup.add(tank);
-
-              const solar = new THREE.Mesh(solarGeo, solarMat);
-              solar.position.set(cx + w * 0.2, h + 1.2, cz + d * 0.2);
-              cityObjectsGroup.add(solar);
+            const transGroup = new THREE.Group();
+            const tankBody = new THREE.Mesh(new THREE.BoxGeometry(5.0, 4.0, 4.0), new THREE.MeshStandardMaterial({{ color: 0x1e293b, metalness: 0.8 }}));
+            tankBody.position.y = 2.0;
+            transGroup.add(tankBody);
+            for (let bi = -1; bi <= 1; bi++) {{
+              const bush = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.28, 1.6, 8), new THREE.MeshStandardMaterial({{ color: 0xd97706, roughness: 0.3 }}));
+              bush.position.set(bi * 1.4, 4.8, 0);
+              transGroup.add(bush);
             }}
-
-            // Reflective Glass Windows
-            const winGeo = new THREE.BoxGeometry(w * 1.01, h * 0.75, d * 1.01);
-            const winMat = new THREE.MeshBasicMaterial({{ color: 0x38bdf8, transparent: true, opacity: 0.35 }});
-            const win = new THREE.Mesh(winGeo, winMat);
-            win.position.set(cx, cy, cz);
-            cityObjectsGroup.add(win);
-            windowMeshesList.push(win);
+            transGroup.position.set(w * 0.35, 0, d * 0.35);
+            bGroup.add(transGroup);
           }}
+
+          // 9. Informal Slums (Tikrapara)
+          if (attrs.roofType === 'corrugated_tin') {{
+            towerMesh.material = new THREE.MeshStandardMaterial({{ color: 0xb45309, roughness: 0.9 }});
+
+            const customTinTex = texSlumRoof.clone();
+            customTinTex.needsUpdate = true;
+            customTinTex.repeat.set(Math.max(1, Math.round(w / 3)), Math.max(1, Math.round(d / 3)));
+            const roofMesh = new THREE.Mesh(
+              new THREE.BoxGeometry(w * 1.1, 0.8, d * 1.1),
+              new THREE.MeshStandardMaterial({{ map: customTinTex, metalness: 0.8, roughness: 0.35 }})
+            );
+            roofMesh.position.set(0, h + 0.4, 0);
+            roofMesh.rotation.z = (Math.random() - 0.5) * 0.12;
+            bGroup.add(roofMesh);
+            tinRoofsList.push(roofMesh);
+
+            for (let b = 0; b < 3; b++) {{
+              const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 1.2, 8), new THREE.MeshStandardMaterial({{ color: 0x0284c7, roughness: 0.4 }}));
+              barrel.position.set(w / 2 + 1.2 + b * 0.8, 0.6, d / 2 - b * 0.7);
+              bGroup.add(barrel);
+            }}
+          }}
+
+          cityObjectsGroup.add(bGroup);
         }});
         scene.add(cityObjectsGroup);
+
+        // ═════════════════════════════════════════════════════════════════════
+        // 3D HIGHWAY STREETLIGHT POLES & ZEBRA CROSSWALKS
+        // ═════════════════════════════════════════════════════════════════════
+        const poleMat = new THREE.MeshStandardMaterial({{ color: 0x64748b, metalness: 0.85, roughness: 0.2 }});
+        const lampBulbMat = new THREE.MeshBasicMaterial({{ color: 0xfef08a }});
+
+        for (let lx = -200; lx <= 170; lx += 22) {{
+          const poleGroup = new THREE.Group();
+          const post = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.3, 9.0, 8), poleMat);
+          post.position.y = 4.5;
+          post.castShadow = true;
+          poleGroup.add(post);
+
+          const arm = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.2, 0.2), poleMat);
+          arm.position.set(0.9, 8.8, 0);
+          poleGroup.add(arm);
+
+          const bulb = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.2, 0.5), lampBulbMat);
+          bulb.position.set(1.8, 8.6, 0);
+          poleGroup.add(bulb);
+
+          poleGroup.position.set(lx, 0.1, -7.5);
+          scene.add(poleGroup);
+
+          const pole2 = poleGroup.clone();
+          pole2.position.set(lx + 11, 0.1, 7.5);
+          pole2.rotation.y = Math.PI;
+          scene.add(pole2);
+        }}
+
+        // Pedestrian Zebra Crossings at Major Intersections
+        const crosswalkLocations = [-95, 0, 120];
+        crosswalkLocations.forEach(cx => {{
+          const cwGroup = new THREE.Group();
+          for (let z = -5.0; z <= 5.0; z += 1.2) {{
+            const bar = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 0.7), new THREE.MeshBasicMaterial({{ color: 0xffffff }}));
+            bar.rotation.x = -Math.PI / 2;
+            bar.position.set(0, 0.15, z);
+            cwGroup.add(bar);
+          }}
+          cwGroup.position.set(cx, 0, 0);
+          scene.add(cwGroup);
+        }});
+
+        // ═════════════════════════════════════════════════════════════════════
+        // FLOATING 3D CUMULUS CLOUDS & TELIBANDHA LAKE BOAT
+        // ═════════════════════════════════════════════════════════════════════
+        const cloudsGroup = new THREE.Group();
+        const cloudMat = new THREE.MeshStandardMaterial({{
+          color: 0xffffff,
+          roughness: 0.95,
+          transparent: true,
+          opacity: 0.90
+        }});
+
+        function createCloud() {{
+          const cGroup = new THREE.Group();
+          const puffs = 5 + Math.floor(Math.random() * 4);
+          for (let p = 0; p < puffs; p++) {{
+            const rad = 6.0 + Math.random() * 5.0;
+            const puff = new THREE.Mesh(new THREE.DodecahedronGeometry(rad, 1), cloudMat);
+            puff.position.set(
+              (p - puffs / 2) * 7.0 + (Math.random() - 0.5) * 4.0,
+              (Math.random() - 0.5) * 2.5,
+              (Math.random() - 0.5) * 5.0
+            );
+            puff.castShadow = true;
+            cGroup.add(puff);
+          }}
+          return cGroup;
+        }}
+
+        const cloudsList = [];
+        for (let ci = 0; ci < 16; ci++) {{
+          const cloud = createCloud();
+          cloud.position.set(
+            (Math.random() - 0.5) * 600,
+            85 + Math.random() * 35,
+            (Math.random() - 0.5) * 600
+          );
+          cloud.scale.setScalar(0.7 + Math.random() * 0.6);
+          cloudsGroup.add(cloud);
+          cloudsList.push({{
+            obj: cloud,
+            speed: 0.08 + Math.random() * 0.06
+          }});
+        }}
+        scene.add(cloudsGroup);
+
+        // Floating Pleasure Boat on Telibandha Lake
+        const boatMesh = new THREE.Group();
+        const hull = new THREE.Mesh(new THREE.BoxGeometry(4.2, 1.2, 2.2), new THREE.MeshStandardMaterial({{ color: 0xd97706, roughness: 0.5 }}));
+        hull.position.y = 0.4;
+        boatMesh.add(hull);
+        const canopy = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.2, 2.0), new THREE.MeshStandardMaterial({{ color: 0xef4444 }}));
+        canopy.position.y = 1.6;
+        boatMesh.add(canopy);
+        boatMesh.position.set(152, 0.15, 62);
+        scene.add(boatMesh);
 
         // ═════════════════════════════════════════════════════════════════════
         // AUTHENTIC RAIPUR SMART CITY FBX ASSETS & SKELETAL ANIMATIONS
@@ -1736,6 +2087,18 @@ def render_city_simulation_view(
               c.obj.position.x = c.minX;
             }}
           }});
+
+          // Drift 3D Cumulus Clouds across the sky
+          cloudsList.forEach(c => {{
+            c.obj.position.x += c.speed;
+            if (c.obj.position.x > 320) c.obj.position.x = -320;
+          }});
+
+          // Bob Pleasure Boat on Telibandha Lake
+          if (boatMesh) {{
+            boatMesh.position.y = 0.15 + Math.sin(Date.now() * 0.003) * 0.12;
+            boatMesh.rotation.z = Math.sin(Date.now() * 0.002) * 0.04;
+          }}
 
           renderer.render(scene, camera);
         }}
