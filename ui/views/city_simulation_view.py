@@ -1014,6 +1014,7 @@ def render_city_simulation_view(
         const cityObjectsGroup = new THREE.Group();
         const tinRoofsList = [];
         const interactiveBuildings = [];
+        const windowMeshesList = [];
         const substationPositions = {{}};
 
         // Common Rooftop Assets
@@ -1331,6 +1332,8 @@ def render_city_simulation_view(
         const animMixers = [];
         const walkingCitizens = [];
         const activeCyclists = [];
+        const cityTraffic = [];
+        const cyclesFleet = [];
 
         function parseBase64FBX(b64Str) {{
           if (!b64Str) return null;
@@ -1611,7 +1614,6 @@ def render_city_simulation_view(
         }});
 
         // Smart Cyclists on Cycles4Change Track
-        const cyclesFleet = [];
         const cyclistColors = [0x10b981, 0xf59e0b, 0x3b82f6, 0xef4444];
         for (let i = 0; i < 4; i++) {{
           const bikeGroup = new THREE.Group();
@@ -1732,7 +1734,6 @@ def render_city_simulation_view(
         // ═════════════════════════════════════════════════════════════════════
         // LIVING CITY VEHICLES (Auto-rickshaws, Buses, Ambulances & Tankers)
         // ═════════════════════════════════════════════════════════════════════
-        const cityTraffic = [];
 
         // 1. Municipal Relief Water Tankers (HiGHS MILP Fleet)
         for (let i = 0; i < 5; i++) {{
@@ -2043,9 +2044,11 @@ def render_city_simulation_view(
             sparkParticles.geometry.attributes.position.needsUpdate = true;
             sparkParticles.visible = true;
 
-            windowMeshesList.forEach((w, idx) => {{
-              if (idx % 2 === 0) w.material.opacity = 0.05;
-            }});
+            if (typeof windowMeshesList !== 'undefined' && windowMeshesList.length > 0) {{
+              windowMeshesList.forEach((w, idx) => {{
+                if (w && w.material && idx % 2 === 0) w.material.opacity = 0.05;
+              }});
+            }}
 
             pipeMat.color.setHex(0xef4444);
             document.getElementById('hud-badge').innerText = 'STAGE 4 // S03 ARC FLASH TRIP';
@@ -2064,7 +2067,11 @@ def render_city_simulation_view(
             arcStrobe.intensity = 0;
             sparkParticles.visible = false;
             pipeMat.color.setHex(0x06b6d4);
-            windowMeshesList.forEach(w => w.material.opacity = 0.35);
+            if (typeof windowMeshesList !== 'undefined' && windowMeshesList.length > 0) {{
+              windowMeshesList.forEach(w => {{
+                if (w && w.material) w.material.opacity = 0.35;
+              }});
+            }}
             document.getElementById('hud-badge').innerText = 'STAGE 2 // NORMAL OPERATIONS';
             document.getElementById('hud-badge').style.background = '#3B82F6';
             document.getElementById('val-water').innerText = '180 MLD (NOMINAL)';
@@ -2092,7 +2099,9 @@ def render_city_simulation_view(
           }});
 
           // Animate Skeletal Animation Mixers (Walking Citizens & Cycling Riders)
-          animMixers.forEach(m => m.update(delta));
+          animMixers.forEach(m => {{
+            try {{ m.update(delta); }} catch (e) {{}}
+          }});
 
           // Animate Walking Pedestrians along Telibandha Marine Drive Promenade
           walkingCitizens.forEach(w => {{
